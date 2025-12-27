@@ -3,7 +3,7 @@
 from fastapi import APIRouter
 
 from src.api.routes import (
-    # agent,  # Temporarily disabled - requires deepagents
+    agent,
     artifacts,
     auth,
     checkpoints,
