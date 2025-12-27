@@ -9,6 +9,7 @@ from src.api.routes import (
     auth,
     batch,
     checkpoints,
+    collaboration,
     comments,
     conversation_branching,
     conversations,
@@ -66,3 +67,4 @@ router.include_router(audit.router, prefix="/audit", tags=["Audit"])
 router.include_router(comments.router, prefix="/comments", tags=["Comments"])
 router.include_router(tags.router, prefix="/tags", tags=["Tags"])
 router.include_router(batch.router, tags=["Batch Operations"])
+router.include_router(collaboration.router, prefix="/collaboration", tags=["Collaboration"])

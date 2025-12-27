@@ -212,7 +212,7 @@ async def test_database_operations():
             # Create a conversation with specific title
             unique_conv = Conversation(
                 user_id="test-user",
-                project_id=project.id,
+                project_id=project_id_str,
                 title="Unique Title Test",
                 model="claude-sonnet-4-5-20250929"
             )
@@ -224,7 +224,7 @@ async def test_database_operations():
             # Just verify we can query by specific criteria
             result = await db.execute(
                 select(Conversation).where(
-                    Conversation.project_id == project.id,
+                    Conversation.project_id == project_id_str,
                     Conversation.title == "Unique Title Test"
                 )
             )

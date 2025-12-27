@@ -2,10 +2,9 @@
 
 from datetime import datetime
 from typing import Optional
-from uuid import UUID
+from uuid import uuid4
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, func
-from sqlalchemy.dialects.postgresql import UUID as PGUUID
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.database import Base
@@ -16,14 +15,14 @@ class CollaborationSession(Base):
 
     __tablename__ = "collaboration_sessions"
 
-    id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True),
+    id: Mapped[str] = mapped_column(
+        String(36),
         primary_key=True,
-        server_default=func.gen_random_uuid(),
+        default=lambda: str(uuid4()),
         comment="Unique session ID"
     )
-    conversation_id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True),
+    conversation_id: Mapped[str] = mapped_column(
+        String(36),
         ForeignKey("conversations.id", ondelete="CASCADE"),
         nullable=False,
         comment="Conversation being collaborated on"
@@ -41,15 +40,15 @@ class CollaborationSession(Base):
         comment="Whether the session is active"
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        server_default=func.now(),
+        DateTime,
+        default=datetime.utcnow,
         nullable=False,
         comment="Session creation time"
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
         nullable=False,
         comment="Last update time"
     )
@@ -64,20 +63,20 @@ class CollaborationParticipant(Base):
 
     __tablename__ = "collaboration_participants"
 
-    id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True),
+    id: Mapped[str] = mapped_column(
+        String(36),
         primary_key=True,
-        server_default=func.gen_random_uuid(),
+        default=lambda: str(uuid4()),
         comment="Unique participant ID"
     )
-    session_id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True),
+    session_id: Mapped[str] = mapped_column(
+        String(36),
         ForeignKey("collaboration_sessions.id", ondelete="CASCADE"),
         nullable=False,
         comment="Session the participant belongs to"
     )
-    user_id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True),
+    user_id: Mapped[str] = mapped_column(
+        String(36),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
         comment="User ID of the participant"
@@ -109,9 +108,9 @@ class CollaborationParticipant(Base):
         comment="Whether participant is currently typing"
     )
     last_activity: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        server_default=func.now(),
-        onupdate=func.now(),
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
         nullable=False,
         comment="Last activity timestamp"
     )
@@ -126,20 +125,20 @@ class CollaborationEvent(Base):
 
     __tablename__ = "collaboration_events"
 
-    id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True),
+    id: Mapped[str] = mapped_column(
+        String(36),
         primary_key=True,
-        server_default=func.gen_random_uuid(),
+        default=lambda: str(uuid4()),
         comment="Unique event ID"
     )
-    session_id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True),
+    session_id: Mapped[str] = mapped_column(
+        String(36),
         ForeignKey("collaboration_sessions.id", ondelete="CASCADE"),
         nullable=False,
         comment="Session the event belongs to"
     )
-    participant_id: Mapped[UUID] = mapped_column(
-        PGUUID(as_uuid=True),
+    participant_id: Mapped[str] = mapped_column(
+        String(36),
         ForeignKey("collaboration_participants.id", ondelete="CASCADE"),
         nullable=False,
         comment="Participant who triggered the event"
@@ -155,8 +154,8 @@ class CollaborationEvent(Base):
         comment="Event data as JSON"
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        server_default=func.now(),
+        DateTime,
+        default=datetime.utcnow,
         nullable=False,
         comment="Event creation time"
     )

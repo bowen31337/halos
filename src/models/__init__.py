@@ -11,6 +11,8 @@ class Base(DeclarativeBase):
 from src.models.tag import Tag, conversation_tags
 # Import User first (needed by Comment)
 from src.models.user import User, Session, PasswordResetToken, APIKey, UserStatus
+# Import collaboration models BEFORE Conversation (Conversation references CollaborationSession)
+from src.models.collaboration import CollaborationSession, CollaborationParticipant, CollaborationEvent
 # Import Comment before Conversation and Message (they reference Comment in relationships)
 from src.models.comment import Comment
 from src.models.conversation import Conversation
@@ -28,8 +30,6 @@ from src.models.background_task import BackgroundTask, TaskStatus
 from src.models.audit_log import AuditLog, AuditActionType, AuditAction
 from src.models.template import Template
 from src.models.saved_search import SavedSearch
-# Import collaboration models
-from src.models.collaboration import CollaborationSession, CollaborationParticipant, CollaborationEvent
 
 __all__ = [
     "Base", "Conversation", "Message", "Comment", "Project", "ProjectFile", "Artifact",
@@ -37,5 +37,5 @@ __all__ = [
     "Folder", "FolderItem", "BackgroundTask", "TaskStatus", "AuditLog",
     "AuditActionType", "AuditAction", "User", "Session", "PasswordResetToken",
     "APIKey", "UserStatus", "Tag", "conversation_tags", "Template", "SavedSearch",
-    "CollaborationSession", "CollaborationEdit", "CollaborationMessage"
+    "CollaborationSession", "CollaborationParticipant", "CollaborationEvent"
 ]
