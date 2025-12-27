@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useProjectStore, Project } from '../stores/projectStore'
+import { ProjectFiles } from './ProjectFiles'
 
 interface ProjectModalProps {
   isOpen: boolean
@@ -208,6 +209,16 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
               These instructions will be applied to all conversations in this project.
             </p>
           </div>
+
+          {/* Project Files Section */}
+          {project && (
+            <div>
+              <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+                Project Files (Knowledge Base)
+              </label>
+              <ProjectFiles project={project} />
+            </div>
+          )}
         </form>
 
         {/* Footer */}

@@ -14,11 +14,24 @@ export interface Project {
   updated_at: string
 }
 
+export interface ProjectFile {
+  id: string
+  project_id: string
+  filename: string
+  original_filename: string
+  file_url: string
+  file_size: number
+  content_type?: string
+  content?: string
+  created_at: string
+}
+
 interface ProjectState {
   projects: Project[]
   selectedProjectId: string | null
   isLoading: boolean
   error: string | null
+  files: ProjectFile[] // Files for currently selected project
 
   // Actions
   fetchProjects: () => Promise<void>
@@ -33,6 +46,12 @@ interface ProjectState {
   deleteProject: (id: string) => Promise<void>
   setSelectedProject: (id: string | null) => void
   clearProjects: () => void
+
+  // File actions
+  fetchFiles: (projectId: string) => Promise<void>
+  uploadFile: (projectId: string, file: File) => Promise<ProjectFile>
+  deleteFile: (projectId: string, fileId: string) => Promise<void>
+  clearFiles: () => void
 }
 
 export const useProjectStore = create<ProjectState>()(
@@ -43,6 +62,7 @@ export const useProjectStore = create<ProjectState>()(
       selectedProjectId: null,
       isLoading: false,
       error: null,
+      files: [],
 
       // Fetch all projects
       fetchProjects: async () => {
@@ -146,7 +166,82 @@ export const useProjectStore = create<ProjectState>()(
 
       // Clear all projects (for testing/logout)
       clearProjects: () => {
-        set({ projects: [], selectedProjectId: null, error: null })
+        set({ projects: [], selectedProjectId: null, error: null, files: [] })
+      },
+
+      // Fetch files for a project
+      fetchFiles: async (projectId: string) => {
+        set({ isLoading: true, error: null })
+        try {
+          const response = await fetch(`/api/projects/${projectId}/files`)
+          if (!response.ok) throw new Error('Failed to fetch files')
+
+          const files: ProjectFile[] = await response.json()
+          set({ files, isLoading: false })
+        } catch (error) {
+          set({
+            error: error instanceof Error ? error.message : 'Failed to fetch files',
+            isLoading: false,
+          })
+        }
+      },
+
+      // Upload a file to a project
+      uploadFile: async (projectId: string, file: File) => {
+        set({ isLoading: true, error: null })
+        try {
+          const formData = new FormData()
+          formData.append('file', file)
+
+          const response = await fetch(`/api/projects/${projectId}/files`, {
+            method: 'POST',
+            body: formData,
+          })
+
+          if (!response.ok) throw new Error('Failed to upload file')
+
+          const newFile: ProjectFile = await response.json()
+          set((state) => ({
+            files: [newFile, ...state.files],
+            isLoading: false,
+          }))
+
+          return newFile
+        } catch (error) {
+          set({
+            error: error instanceof Error ? error.message : 'Failed to upload file',
+            isLoading: false,
+          })
+          throw error
+        }
+      },
+
+      // Delete a file from a project
+      deleteFile: async (projectId: string, fileId: string) => {
+        set({ isLoading: true, error: null })
+        try {
+          const response = await fetch(`/api/projects/${projectId}/files/${fileId}`, {
+            method: 'DELETE',
+          })
+
+          if (!response.ok) throw new Error('Failed to delete file')
+
+          set((state) => ({
+            files: state.files.filter((f) => f.id !== fileId),
+            isLoading: false,
+          }))
+        } catch (error) {
+          set({
+            error: error instanceof Error ? error.message : 'Failed to delete file',
+            isLoading: false,
+          })
+          throw error
+        }
+      },
+
+      // Clear files
+      clearFiles: () => {
+        set({ files: [] })
       },
     }),
     {

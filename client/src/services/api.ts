@@ -300,6 +300,47 @@ class APIService {
     })
     return response.json()
   }
+
+  // Project File APIs
+  async listProjectFiles(projectId: string): Promise<any[]> {
+    const response = await fetch(`${API_BASE}/projects/${projectId}/files`)
+    return response.json()
+  }
+
+  async uploadProjectFile(projectId: string, file: File): Promise<any> {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await fetch(`${API_BASE}/projects/${projectId}/files`, {
+      method: 'POST',
+      body: formData,
+    })
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async downloadProjectFile(projectId: string, filename: string): Promise<Blob> {
+    const response = await fetch(`${API_BASE}/projects/${projectId}/files/${filename}`)
+    if (!response.ok) {
+      throw new Error(`Download failed: ${response.status}`)
+    }
+    return response.blob()
+  }
+
+  async deleteProjectFile(projectId: string, fileId: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/projects/${projectId}/files/${fileId}`, {
+      method: 'DELETE',
+    })
+    if (!response.ok) {
+      throw new Error(`Delete failed: ${response.status}`)
+    }
+  }
+
+  async getProjectFileContent(projectId: string, fileId: string): Promise<any> {
+    const response = await fetch(`${API_BASE}/projects/${projectId}/files/${fileId}/content`)
+    return response.json()
+  }
 }
 
 export const api = new APIService()

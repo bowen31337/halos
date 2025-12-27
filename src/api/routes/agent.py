@@ -55,6 +55,55 @@ async def get_effective_custom_instructions(
     return project_instructions, global_instructions
 
 
+async def get_project_files_content(
+    conversation_id: Optional[str],
+    db: AsyncSession
+) -> str:
+    """
+    Get the content of all files in the project associated with a conversation.
+
+    Returns a formatted string containing file contents for the agent context.
+    """
+    from sqlalchemy import select
+    from src.models.conversation import Conversation
+    from src.models.project_file import ProjectFile
+
+    if not conversation_id:
+        return ""
+
+    # Get conversation to find its project
+    result = await db.execute(
+        select(Conversation).where(Conversation.id == conversation_id)
+    )
+    conversation = result.scalar_one_or_none()
+
+    if not conversation or not conversation.project_id:
+        return ""
+
+    # Get all files in the project
+    result = await db.execute(
+        select(ProjectFile)
+        .where(ProjectFile.project_id == conversation.project_id)
+        .where(ProjectFile.is_deleted == False)
+        .where(ProjectFile.content != None)
+    )
+    files = result.scalars().all()
+
+    if not files:
+        return ""
+
+    # Format file contents for the agent
+    file_context = "\n\n[PROJECT FILES CONTEXT]\n"
+    file_context += "The following files are available in this project:\n\n"
+
+    for file in files:
+        file_context += f"--- File: {file.original_filename} ---\n"
+        file_context += f"Content:\n{file.content}\n\n"
+
+    file_context += "[END PROJECT FILES CONTEXT]\n\n"
+    return file_context
+
+
 class AgentRequest(BaseModel):
     """Request model for agent invocation."""
 
@@ -115,16 +164,26 @@ async def invoke_agent(
             db
         )
 
+        # Get project files content
+        files_content = await get_project_files_content(
+            str(data.conversation_id) if data.conversation_id else None,
+            db
+        )
+
         # Use explicitly provided instructions, or fall back to effective instructions
         effective_instructions = data.custom_instructions
         if not effective_instructions or not effective_instructions.strip():
             # Use project instructions if available, otherwise global
             effective_instructions = project_instructions if project_instructions else global_instructions
 
-        # Prepare message with custom instructions if provided
+        # Prepare message with custom instructions and files content if provided
         message_content = data.message
         if effective_instructions and effective_instructions.strip():
             message_content = f"[System Instructions: {effective_instructions}]\n\n{data.message}"
+
+        # Add project files context if available
+        if files_content:
+            message_content = f"{files_content}{message_content}"
 
         # Invoke agent with message and parameters
         config = {
@@ -212,6 +271,12 @@ async def stream_agent(
                 db
             )
 
+            # Get project files content
+            files_content = await get_project_files_content(
+                str(conversation_id) if conversation_id else None,
+                db
+            )
+
             # Use explicitly provided instructions, or fall back to effective instructions
             effective_instructions = custom_instructions
             if not effective_instructions or not effective_instructions.strip():
@@ -221,10 +286,14 @@ async def stream_agent(
             # Stream agent response with extended thinking support
             # Pass temperature, max_tokens, custom_instructions, and system_prompt_override in config for mock agent to use
 
-            # Prepare message with custom instructions if provided (same as invoke endpoint)
+            # Prepare message with custom instructions and files content if provided (same as invoke endpoint)
             message_content = message
             if effective_instructions and effective_instructions.strip():
                 message_content = f"[System Instructions: {effective_instructions}]\n\n{message}"
+
+            # Add project files context if available
+            if files_content:
+                message_content = f"{files_content}{message_content}"
 
             config = {
                 "configurable": {

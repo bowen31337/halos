@@ -1,129 +1,129 @@
 # Claude.ai Clone - Development Progress
 
-## Session 14 Summary (DeepAgents Architecture Verification & Bug Fixes)
+## Session 15 Summary (Feature #38 - Project File Upload)
 
 ### Date: 2025-12-27
 
-**Session Focus:** Verified DeepAgents architecture integration, fixed duplicate middleware issue, and updated feature status
+**Session Focus:** Implemented and verified project file upload feature (Feature #38)
 
-### Implementation & Fixes
+### Feature Implemented
 
-1. **Fixed Agent Service Middleware Issue** ✅
-   - **Location:** `src/services/agent_service.py`
-   - **Issue:** Duplicate SubAgentMiddleware causing "duplicate middleware" error
-   - **Root Cause:** `create_deep_agent()` already includes SubAgentMiddleware internally
-   - **Fix:** Removed SubAgentMiddleware from user-provided middleware stack
-   - **Result:** Agent creation now works without errors
+**Feature #38:** Upload files to project knowledge base ✓
 
-2. **Updated Agent Service Documentation** ✅
-   - **Location:** `src/services/agent_service.py`
-   - **Changes:**
-     - Updated docstring to reflect all built-in middleware
-     - Added detailed comments about each middleware component
-     - Clarified that create_deep_agent provides all core middleware
+### Implementation Details
 
-3. **Verified DeepAgents Architecture** ✅
-   - **Test File:** `tests/test_deepagents_architecture.py`
-   - **All 14 Steps Passing:**
-     1. ✅ deepagents package installed
-     2. ✅ create_deep_agent importable
-     3. ✅ Agent creation works
-     4. ✅ TodoListMiddleware available
-     5. ✅ FilesystemMiddleware available
-     6. ✅ SubAgentMiddleware available
-     7. ✅ SummarizationMiddleware included
-     8. ✅ AnthropicPromptCachingMiddleware available
-     9. ✅ HumanInTheLoopMiddleware included
-     10. ✅ All backends (State, Store, Composite) available
-     11. ✅ Agent has invoke() method
-     12. ✅ Agent has astream_events() for streaming
-     13. ✅ SubAgentMiddleware supports custom subagents
-     14. ✅ Long-term memory via CompositeBackend works
+1. **Backend API Endpoints** ✓
+   - **Location:** `src/api/routes/projects.py`
+   - **Endpoints:**
+     - `POST /api/projects/{project_id}/files` - Upload file
+     - `GET /api/projects/{project_id}/files` - List files
+     - `GET /api/projects/{project_id}/files/{filename}` - Download file
+     - `DELETE /api/projects/{project_id}/files/{file_id}` - Delete file
+   - **Features:**
+     - File storage in `data/project_files/{project_id}/`
+     - Content extraction for text/markdown/JSON files
+     - Database tracking with ProjectFile model
+     - Soft delete support
 
-4. **Verified Project Custom Instructions** ✅
-   - **Test File:** `tests/test_project_custom_instructions.py`
-   - **All Tests Passing:**
-     - Backend health check
-     - Project creation with custom instructions
-     - Conversation creation in project
-     - Agent with project-specific instructions
-     - Control conversation without project
-     - Agent without project instructions
+2. **Frontend Components** ✓
+   - **Location:** `client/src/components/ProjectFilesModal.tsx`
+   - **Features:**
+     - File upload with drag-and-drop support
+     - Upload progress indicator
+     - File listing with metadata
+     - Download functionality
+     - Delete functionality
+     - File type icons (PDF, text, etc.)
+   - **Location:** `client/src/components/ProjectFiles.tsx`
+   - **Features:** Alternative file management component
 
-### Bug Fixes
+3. **Frontend Store** ✓
+   - **Location:** `client/src/stores/projectStore.ts`
+   - **Actions:**
+     - `fetchFiles(projectId)` - List project files
+     - `uploadFile(projectId, file)` - Upload new file
+     - `deleteFile(projectId, fileId)` - Delete file
+     - `clearFiles()` - Clear file state
 
-1. **Agent Service - Duplicate Middleware** ✅
-   - **File:** `src/services/agent_service.py`
-   - **Line 119:** Changed `middleware_stack = [SubAgentMiddleware(...)]` to `middleware_stack = []`
-   - **Reason:** `create_deep_agent()` already provides SubAgentMiddleware
+4. **Frontend API Service** ✓
+   - **Location:** `client/src/services/api.ts`
+   - **Methods:**
+     - `listProjectFiles(projectId)` - List files
+     - `uploadProjectFile(projectId, file)` - Upload file
+     - `downloadProjectFile(projectId, filename)` - Download file
+     - `deleteProjectFile(projectId, fileId)` - Delete file
 
-2. **Feature List - QA Status** ✅
-   - **File:** `feature_list.json`
-   - **Change:** Feature #37 `is_qa_passed: false` → `is_qa_passed: true`
-   - **Reason:** Project custom instructions test passed
+5. **UI Integration** ✓
+   - **Location:** `client/src/components/Header.tsx`
+   - **Features:**
+     - "Manage Files" button in project dropdown
+     - Opens ProjectFilesModal when clicked
+     - Works with selected project
 
-### Current Progress
-
-**Total Features:** 201/201
-**Completed (Dev):** 37/201 (18.4%)
-**Passing:** 37/201 (18.4%)
-**QA Passed:** 36/201 (17.9%)
-
-**Verified Features:**
-- Features #1-36: Core architecture and basic functionality ✅
-- Feature #37: Project-specific custom instructions ✅
+6. **Test Coverage** ✓
+   - **Location:** `tests/test_project_file_upload.py`
+   - **6 Tests Passing:**
+     1. ✅ Upload file to project
+     2. ✅ Upload multiple files
+     3. ✅ Upload to nonexistent project (404 error)
+     4. ✅ Delete project file
+     5. ✅ Upload PDF file
+     6. ✅ Project file isolation
 
 ### Files Modified
 
-1. `src/services/agent_service.py` - Fixed middleware configuration
-2. `feature_list.json` - Updated QA status for feature #37
-3. `tests/test_deepagents_architecture.py` - Architecture verification tests
-4. `tests/test_project_custom_instructions.py` - Project instructions tests
+1. **`src/api/routes/projects.py`** - Added file upload endpoints (already existed)
+2. **`client/src/services/api.ts`** - Added file API methods (already existed)
+3. **`client/src/stores/projectStore.ts`** - Added file state management (already existed)
+4. **`client/src/components/ProjectFilesModal.tsx`** - File management UI (already existed)
+5. **`client/src/components/Header.tsx`** - Integrated file management (already existed)
+6. **`tests/test_project_file_upload.py`** - NEW comprehensive test suite
+7. **`feature_list.json`** - Updated feature #38 status
+
+### Test Results
+
+**All 6 Tests Passing:** ✓
+```
+1. test_upload_file_to_project - ✓
+2. test_upload_multiple_files - ✓
+3. test_upload_file_to_nonexistent_project - ✓
+4. test_delete_project_file - ✓
+5. test_upload_pdf_file - ✓
+6. test_project_files_isolation - ✓
+```
+
+### Progress Update
+
+**Previous:** 37/201 features (18.4%)
+**Current:** 38/201 features (18.9%)
+**New Feature:** +1 (Feature #38)
+
+**Total Features:** 201/201
+**Completed (Dev):** 38/201 (18.9%)
+**Passing:** 38/201 (18.9%)
+**QA Passed:** 37/201 (18.4%)
+
+### API Endpoints Summary
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/projects/{id}/files` | Upload file |
+| GET | `/api/projects/{id}/files` | List files |
+| GET | `/api/projects/{id}/files/{filename}` | Download file |
+| DELETE | `/api/projects/{id}/files/{file_id}` | Delete file |
 
 ### Next Steps
 
-**Next Feature to Implement:** #38 - Upload files to project knowledge base
-
-**Pending Features:**
-- #38: Upload files to project knowledge base
-- #39: Artifact detection renders code artifacts in side panel
-- #40: HTML artifact preview with live preview
-- #41: SVG artifact renders as graphic
-- #42: Mermaid diagram artifact renders correctly
-- #43: Download artifact content as file
-- #44: Edit artifact and re-prompt for changes
-- #45: Artifact version history navigation
-- #46: Full-screen artifact view toggle
-- #47: Multiple artifacts can be viewed in tabs
-- #48: LaTeX/math equations render with KaTeX
-- #49-50: Conversation branching features
-- And more...
-
-### Technical Notes
-
-**DeepAgents Architecture:**
-- **Framework:** LangChain deepagents (langchain-ai/deepagents)
-- **Core Function:** `create_deep_agent()` from deepagents package
-- **Built-in Middleware:**
-  - TodoListMiddleware (write_todos, read_todos)
-  - FilesystemMiddleware (ls, read_file, write_file, edit_file, glob, grep)
-  - SubAgentMiddleware (task for sub-agent delegation)
-  - SummarizationMiddleware (context > 170k tokens)
-  - AnthropicPromptCachingMiddleware (cost reduction)
-  - HumanInTheLoopMiddleware (tool approval via interrupt_on)
-- **Backend:** CompositeBackend (StateBackend + StoreBackend routes)
-- **State Management:** LangGraph with MemorySaver
-
-**Agent Service:**
-- Creates agents with proper configuration
-- Falls back to MockAgent when no API key
-- Supports permission modes: default, acceptEdits, plan, bypassPermissions
-- Configurable temperature, max_tokens, custom_instructions
+**Next Features:** #39-42 (Artifacts)
+- Feature #39: Artifact detection renders code artifacts in side panel
+- Feature #40: HTML artifact preview with live preview
+- Feature #41: SVG artifact renders as graphic
+- Feature #42: Mermaid diagram artifact renders correctly
 
 ---
 
-*Last Updated: Session 14*
-*Status: DeepAgents Architecture Verified - Ready for Next Feature Implementation*
+*Last Updated: Session 15*
+*Status: Feature #38 Complete - Ready for Artifact Features*
 
 ## Session 14 Summary (Project-Specific Custom Instructions - Feature #37)
 

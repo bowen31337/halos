@@ -4,6 +4,7 @@ import { useUIStore } from '../stores/uiStore'
 import { useProjectStore } from '../stores/projectStore'
 import { SettingsModal } from './SettingsModal'
 import { ProjectModal } from './ProjectModal'
+import { ProjectFilesModal } from './ProjectFilesModal'
 
 const MODELS = [
   { id: 'claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5', description: 'Balanced' },
@@ -27,6 +28,7 @@ export function Header() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [projectMenuOpen, setProjectMenuOpen] = useState(false)
   const [projectModalOpen, setProjectModalOpen] = useState(false)
+  const [projectFilesOpen, setProjectFilesOpen] = useState(false)
   const [editingProject, setEditingProject] = useState<{ id: string } | null>(null)
   const [isExporting, setIsExporting] = useState(false)
 
@@ -93,6 +95,20 @@ export function Header() {
       setEditingProject({ id: projectId })
       setProjectModalOpen(true)
       setProjectMenuOpen(false)
+    }
+  }
+
+  const handleManageFiles = (projectId: string) => {
+    if (selectedProjectId === projectId) {
+      setProjectFilesOpen(true)
+      setProjectMenuOpen(false)
+    } else {
+      // First select the project, then open files
+      setSelectedProject(projectId)
+      setTimeout(() => {
+        setProjectFilesOpen(true)
+        setProjectMenuOpen(false)
+      }, 100)
     }
   }
 
@@ -194,24 +210,57 @@ export function Header() {
                         )}
                       </button>
 
-                      {/* Edit button on hover */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleEditProject(project.id)
-                        }}
-                        className="absolute right-2 top-8 p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[var(--surface-elevated)] rounded"
-                        title="Edit project"
-                      >
-                        <svg className="w-4 h-4 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                        </svg>
-                      </button>
+                      {/* Action buttons on hover */}
+                      <div className="absolute right-2 top-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleManageFiles(project.id)
+                          }}
+                          className="p-1 hover:bg-[var(--surface-elevated)] rounded"
+                          title="Manage files"
+                        >
+                          <svg className="w-4 h-4 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleEditProject(project.id)
+                          }}
+                          className="p-1 hover:bg-[var(--surface-elevated)] rounded"
+                          title="Edit project"
+                        >
+                          <svg className="w-4 h-4 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   ))
                 )}
 
                 <div className="border-t border-[var(--border-primary)] my-2" />
+
+                {/* Manage files button - only show when a project is selected */}
+                {selectedProjectId && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setProjectFilesOpen(true)
+                        setProjectMenuOpen(false)
+                      }}
+                      className="w-full px-4 py-2 text-left hover:bg-[var(--surface-elevated)] transition-colors flex items-center gap-2"
+                    >
+                      <svg className="w-4 h-4 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <span className="text-sm font-medium text-[var(--text-primary)]">Manage Files</span>
+                    </button>
+                    <div className="border-t border-[var(--border-primary)] my-2" />
+                  </>
+                )}
 
                 {/* Create new project button */}
                 <button
@@ -375,6 +424,16 @@ export function Header() {
           setEditingProject(null)
         }}
         project={editingProject ? projects.find(p => p.id === editingProject.id) : undefined}
+      />
+    )}
+
+    {/* Project Files Modal */}
+    {projectFilesOpen && selectedProject && (
+      <ProjectFilesModal
+        isOpen={projectFilesOpen}
+        onClose={() => setProjectFilesOpen(false)}
+        projectId={selectedProject.id}
+        projectName={selectedProject.name}
       />
     )}
     </>

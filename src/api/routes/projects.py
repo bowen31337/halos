@@ -5,6 +5,8 @@ import os
 from pathlib import Path
 from typing import Optional
 from uuid import UUID, uuid4
+import aiofiles
+from aiofiles import os as aiofiles_os
 
 from fastapi import APIRouter, HTTPException, status, Depends, UploadFile, File
 from fastapi.responses import FileResponse
@@ -21,6 +23,7 @@ router = APIRouter()
 
 # Directory for project files
 PROJECT_FILES_DIR = Path("data/project_files")
+PROJECT_FILES_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class ProjectCreate(BaseModel):
@@ -203,6 +206,21 @@ async def delete_project(
     for conv in conversations:
         conv.project_id = None
 
+    # Delete all project files from database and disk
+    result = await db.execute(
+        select(ProjectFile).where(ProjectFile.project_id == project_id)
+    )
+    project_files = result.scalars().all()
+    for file in project_files:
+        # Delete file from disk
+        try:
+            file_path = Path(file.file_path)
+            if file_path.exists():
+                file_path.unlink()
+        except Exception:
+            pass
+        await db.delete(file)
+
     await db.delete(project)
     await db.commit()
 
@@ -268,3 +286,201 @@ async def update_project_settings(
 
     return {"status": "updated", "settings": settings}
 
+
+@router.post("/{project_id}/files", status_code=status.HTTP_201_CREATED)
+async def upload_project_file(
+    project_id: str,
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db)
+) -> dict:
+    """Upload a file to a project's knowledge base."""
+    # Verify project exists
+    result = await db.execute(
+        select(Project).where(Project.id == project_id)
+    )
+    project = result.scalar_one_or_none()
+
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    # Generate unique filename
+    file_extension = file.filename.split(".")[-1] if file.filename and "." in file.filename else ""
+    unique_filename = f"{uuid4()}.{file_extension}" if file_extension else str(uuid4())
+
+    # Create project-specific directory
+    project_dir = PROJECT_FILES_DIR / project_id
+    project_dir.mkdir(parents=True, exist_ok=True)
+
+    file_path = project_dir / unique_filename
+
+    # Save file
+    try:
+        contents = await file.read()
+        async with aiofiles.open(file_path, "wb") as f:
+            await f.write(contents)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to save file: {str(e)}"
+        )
+
+    # Extract text content for certain file types
+    content = None
+    if file.content_type in ["text/plain", "text/markdown", "text/csv"]:
+        content = contents.decode("utf-8", errors="ignore")
+    elif file.content_type == "application/json":
+        try:
+            content = json.dumps(json.loads(contents.decode("utf-8", errors="ignore")), indent=2)
+        except:
+            content = contents.decode("utf-8", errors="ignore")
+
+    # Create database record
+    project_file = ProjectFile(
+        project_id=project_id,
+        filename=unique_filename,
+        original_filename=file.filename or "unknown",
+        file_path=str(file_path),
+        file_url=f"/api/projects/{project_id}/files/{unique_filename}",
+        file_size=len(contents),
+        content_type=file.content_type,
+        content=content,
+    )
+
+    db.add(project_file)
+    await db.commit()
+    await db.refresh(project_file)
+
+    return {
+        "id": project_file.id,
+        "project_id": project_file.project_id,
+        "filename": project_file.filename,
+        "original_filename": project_file.original_filename,
+        "file_url": project_file.file_url,
+        "file_size": project_file.file_size,
+        "content_type": project_file.content_type,
+        "content": project_file.content,
+        "created_at": project_file.created_at.isoformat() if project_file.created_at else None,
+    }
+
+
+@router.get("/{project_id}/files")
+async def list_project_files(
+    project_id: str,
+    db: AsyncSession = Depends(get_db)
+) -> list[dict]:
+    """List all files in a project's knowledge base."""
+    # Verify project exists
+    result = await db.execute(
+        select(Project).where(Project.id == project_id)
+    )
+    project = result.scalar_one_or_none()
+
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    # Get project files
+    result = await db.execute(
+        select(ProjectFile)
+        .where(ProjectFile.project_id == project_id)
+        .where(ProjectFile.is_archived == False)
+        .where(ProjectFile.is_deleted == False)
+        .order_by(ProjectFile.created_at.desc())
+    )
+    files = result.scalars().all()
+
+    return [
+        {
+            "id": f.id,
+            "project_id": f.project_id,
+            "filename": f.filename,
+            "original_filename": f.original_filename,
+            "file_url": f.file_url,
+            "file_size": f.file_size,
+            "content_type": f.content_type,
+            "content": f.content[:500] if f.content else None,  # Preview first 500 chars
+            "created_at": f.created_at.isoformat() if f.created_at else None,
+        }
+        for f in files
+    ]
+
+
+@router.get("/{project_id}/files/{filename}")
+async def get_project_file(
+    project_id: str,
+    filename: str,
+    db: AsyncSession = Depends(get_db)
+) -> FileResponse:
+    """Download a file from a project's knowledge base."""
+    # Verify project exists
+    result = await db.execute(
+        select(Project).where(Project.id == project_id)
+    )
+    project = result.scalar_one_or_none()
+
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    # Get file record
+    result = await db.execute(
+        select(ProjectFile)
+        .where(ProjectFile.project_id == project_id)
+        .where(ProjectFile.filename == filename)
+        .where(ProjectFile.is_deleted == False)
+    )
+    project_file = result.scalar_one_or_none()
+
+    if not project_file:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    file_path = Path(project_file.file_path)
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found on disk")
+
+    return FileResponse(
+        file_path,
+        filename=project_file.original_filename,
+        media_type=project_file.content_type or "application/octet-stream"
+    )
+
+
+@router.delete("/{project_id}/files/{file_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_project_file(
+    project_id: str,
+    file_id: str,
+    db: AsyncSession = Depends(get_db)
+) -> None:
+    """Delete a file from a project's knowledge base."""
+    # Verify project exists
+    result = await db.execute(
+        select(Project).where(Project.id == project_id)
+    )
+    project = result.scalar_one_or_none()
+
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    # Get file record
+    result = await db.execute(
+        select(ProjectFile)
+        .where(ProjectFile.id == file_id)
+        .where(ProjectFile.project_id == project_id)
+    )
+    project_file = result.scalar_one_or_none()
+
+    if not project_file:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    # Delete file from disk
+    try:
+        file_path = Path(project_file.file_path)
+        if file_path.exists():
+            file_path.unlink()
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to delete file from disk: {str(e)}"
+        )
+
+    # Mark as deleted in database
+    project_file.is_deleted = True
+    await db.commit()

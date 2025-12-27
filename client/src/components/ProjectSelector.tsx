@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useProjectStore, type Project } from '../stores/projectStore'
+import { ProjectFilesModal } from './ProjectFilesModal'
 
 interface ProjectSelectorProps {
   selectedProjectId: string | null
@@ -10,6 +11,7 @@ export function ProjectSelector({ selectedProjectId, onProjectChange }: ProjectS
   const { projects, fetchProjects, createProject } = useProjectStore()
   const [isOpen, setIsOpen] = useState(false)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showFilesModal, setShowFilesModal] = useState(false)
 
   useEffect(() => {
     fetchProjects()
@@ -30,6 +32,13 @@ export function ProjectSelector({ selectedProjectId, onProjectChange }: ProjectS
     } catch (error) {
       console.error('Failed to create project:', error)
       alert('Failed to create project')
+    }
+  }
+
+  const handleManageFiles = () => {
+    if (selectedProject) {
+      setShowFilesModal(true)
+      setIsOpen(false)
     }
   }
 
@@ -111,6 +120,20 @@ export function ProjectSelector({ selectedProjectId, onProjectChange }: ProjectS
             {/* Divider */}
             <div className="border-t border-[var(--border)] my-1" />
 
+            {/* Manage Files Button - only show if a project is selected */}
+            {selectedProject && (
+              <>
+                <button
+                  onClick={handleManageFiles}
+                  className="w-full px-3 py-2 text-sm text-left hover:bg-[var(--bg-secondary)] transition-colors flex items-center gap-2 text-[var(--primary)]"
+                >
+                  <span>📎</span>
+                  <span>Manage Project Files</span>
+                </button>
+                <div className="border-t border-[var(--border)] my-1" />
+              </>
+            )}
+
             {/* Create Project Button */}
             <button
               onClick={() => {
@@ -131,6 +154,16 @@ export function ProjectSelector({ selectedProjectId, onProjectChange }: ProjectS
         <CreateProjectModal
           onClose={() => setShowCreateModal(false)}
           onCreate={handleCreateProject}
+        />
+      )}
+
+      {/* Project Files Modal */}
+      {showFilesModal && selectedProject && (
+        <ProjectFilesModal
+          isOpen={showFilesModal}
+          onClose={() => setShowFilesModal(false)}
+          projectId={selectedProject.id}
+          projectName={selectedProject.name}
         />
       )}
     </div>

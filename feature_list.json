@@ -618,9 +618,11 @@
       "Step 7: Start a conversation referencing the file content",
       "Step 8: Verify AI can access the document content"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Backend: POST/GET/DELETE /api/projects/{id}/files. Frontend: ProjectFilesModal.tsx. Store: projectStore.ts file actions. Tests: 6 passing tests in test_project_file_upload.py"
   },
   {
     "category": "functional",
