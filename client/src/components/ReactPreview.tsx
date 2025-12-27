@@ -32,6 +32,7 @@ export function ReactPreview({ code, onError, onReady }: ReactPreviewProps) {
 
   // Prepare the code for execution in the iframe
   const iframeContent = useMemo(() => {
+    const codeStr = JSON.stringify(code)
     return `
       <!DOCTYPE html>
       <html>
@@ -111,21 +112,18 @@ export function ReactPreview({ code, onError, onReady }: ReactPreviewProps) {
                 root.innerHTML = '';
 
                 // Transform JSX using Babel standalone
-                const transformedCode = Babel.transform(${JSON.stringify(code)}, {
+                const transformedCode = Babel.transform(${codeStr}, {
                   presets: [['react', { runtime: 'automatic' }]],
                   filename: 'component.jsx'
                 }).code;
 
                 // Create a function from the transformed code
-                const moduleFactory = new Function('React', 'require', `
-                  ${transformedCode}
-                  return module;
-                `);
+                const moduleFactory = new Function('React', 'require', transformedCode + '\\nreturn module;');
 
                 // Create a mock require function
                 const mockRequire = (name) => {
                   if (name === 'react') return React;
-                  throw new Error(\`Module '\${name}' is not available in preview\`);
+                  throw new Error('Module "' + name + '" is not available in preview');
                 };
 
                 // Execute the code to get the module
@@ -165,13 +163,7 @@ export function ReactPreview({ code, onError, onReady }: ReactPreviewProps) {
               } catch (err) {
                 console.error('Preview error:', err);
                 const root = document.getElementById('root');
-                root.innerHTML = \`
-                  <div class="error-boundary">
-                    <h3>⚠️ Preview Error</h3>
-                    <p>\${err.message}</p>
-                    \${err.stack ? '<pre>' + err.stack + '</pre>' : ''}
-                  </div>
-                \`;
+                root.innerHTML = '<div class="error-boundary"><h3>⚠️ Preview Error</h3><p>' + (err.message || err) + '</p>' + (err.stack ? '<pre>' + err.stack + '</pre>' : '') + '</div>';
                 window.parent.postMessage({ type: 'preview-error', error: err.message }, '*');
               }
             }
@@ -182,7 +174,7 @@ export function ReactPreview({ code, onError, onReady }: ReactPreviewProps) {
                 const script = document.createElement('script');
                 script.src = src;
                 script.onload = resolve;
-                script.onerror = () => reject(new Error(\`Failed to load \${src}\`));
+                script.onerror = () => reject(new Error('Failed to load ' + src));
                 document.head.appendChild(script);
               });
             };
@@ -195,12 +187,7 @@ export function ReactPreview({ code, onError, onReady }: ReactPreviewProps) {
               renderComponent();
             }).catch((err) => {
               console.error('Failed to load dependencies:', err);
-              document.getElementById('root').innerHTML = \`
-                <div class="error-boundary">
-                  <h3>⚠️ Failed to load dependencies</h3>
-                  <p>\${err.message}</p>
-                </div>
-              \`;
+              document.getElementById('root').innerHTML = '<div class="error-boundary"><h3>⚠️ Failed to load dependencies</h3><p>' + (err.message || err) + '</p></div>';
             });
           </script>
         </body>

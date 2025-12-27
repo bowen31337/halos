@@ -134,13 +134,13 @@ export function MonacoEditor({
 
   if (error) {
     return (
-      <div className=\"p-4 border border-red-300 bg-red-50 text-red-700 rounded-lg text-sm\">
-        <p className=\"font-semibold mb-2\">Monaco Editor Error</p>
+      <div className="p-4 border border-red-300 bg-red-50 text-red-700 rounded-lg text-sm">
+        <p className="font-semibold mb-2">Monaco Editor Error</p>
         <p>{error}</p>
-        <p className=\"mt-2 text-xs\">To fix: <code>npm install @monaco-editor/react</code></p>
-        <p className=\"text-xs mt-1\">Or use the fallback code editor below:</p>
+        <p className="mt-2 text-xs">To fix: <code>npm install @monaco-editor/react</code></p>
+        <p className="text-xs mt-1">Or use the fallback code editor below:</p>
         <textarea
-          className=\"mt-2 w-full h-32 p-2 border rounded font-mono text-xs\"
+          className="mt-2 w-full h-32 p-2 border rounded font-mono text-xs"
           value={value}
           onChange={(e) => onChange?.(e.target.value)}
           readOnly={readOnly}
@@ -151,10 +151,10 @@ export function MonacoEditor({
 
   if (isLoading) {
     return (
-      <div className=\"flex items-center justify-center\" style={{ height: typeof height === 'number' ? `${height}px` : height }}>
-        <div className=\"text-center\">
-          <div className=\"animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2\"></div>
-          <div className=\"text-sm text-gray-500\">Loading Monaco Editor...</div>
+      <div className="flex items-center justify-center" style={{ height: typeof height === 'number' ? `${height}px` : height }}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+          <div className="text-sm text-gray-500">Loading Monaco Editor...</div>
         </div>
       </div>
     )
@@ -164,7 +164,7 @@ export function MonacoEditor({
     <div
       ref={containerRef}
       style={{ height: typeof height === 'number' ? `${height}px` : height }}
-      className=\"border border-[var(--border)] rounded-lg overflow-hidden\"
+      className="border border-[var(--border)] rounded-lg overflow-hidden"
     />
   )
 }

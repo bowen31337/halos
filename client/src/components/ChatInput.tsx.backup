@@ -166,240 +166,6 @@ export function ChatInput() {
     }
   }, [setInputMessage])
 
-  // Helper function to stream from a single model
-  const streamFromModel = async (
-    model: string,
-    message: string,
-    convId: string,
-    abortController: AbortController,
-    messageId: string,
-    comparisonGroup?: string
-  ) => {
-    const { appendToMessage, appendToThinking, updateMessage, addMessage } = useConversationStore.getState()
-    const { addArtifact } = useArtifactStore.getState()
-    const { setPanelType, setPanelOpen } = useUIStore.getState()
-    const { setTodos, setFiles } = useChatStore.getState()
-
-    // Get project-specific custom instructions
-    const { conversations } = useConversationStore.getState()
-    const { projects } = useProjectStore.getState()
-    const currentConversation = conversations.find(c => c.id === convId)
-    const projectInstructions = currentConversation?.projectId
-      ? projects.find(p => p.id === currentConversation.projectId)?.custom_instructions
-      : null
-
-    // Use project instructions if available, otherwise use global custom instructions
-    const effectiveInstructions = projectInstructions || customInstructions
-
-    // Prepare message with custom instructions if set
-    let finalMessage = message
-    if (effectiveInstructions.trim()) {
-      finalMessage = `[System Instructions: ${effectiveInstructions}]\n\n${message}`
-    }
-
-    let fullAssistantContent = ''
-    let fullThinkingContent = ''
-    let currentToolCall: { toolName: string; toolInput: Record<string, unknown> } | null = null
-
-    try {
-      // Call the backend SSE API
-      const response = await fetch('/api/agent/stream', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: finalMessage,
-          conversationId: convId,
-          thread_id: convId,
-          extended_thinking: extendedThinkingEnabled,
-          temperature: temperature,
-          max_tokens: maxTokens,
-          custom_instructions: effectiveInstructions,
-          model: model,
-          permission_mode: permissionMode,
-          memory_enabled: memoryEnabled,
-        }),
-        signal: abortController.signal,
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const reader = response.body?.getReader()
-      if (!reader) {
-        throw new Error('No response body')
-      }
-
-      const decoder = new TextDecoder()
-      let buffer = ''
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split('\n')
-        buffer = lines.pop() || ''
-
-        let currentEvent: string | null = null
-        let currentData: string | null = null
-
-        for (const line of lines) {
-          const trimmed = line.trim()
-
-          if (trimmed.startsWith('event:')) {
-            currentEvent = trimmed.slice(6).trim()
-          } else if (trimmed.startsWith('data:')) {
-            currentData = trimmed.slice(5).trim()
-          } else if (trimmed === '') {
-            if (currentEvent && currentData) {
-              try {
-                const eventData = JSON.parse(currentData)
-
-                switch (currentEvent) {
-                  case 'message':
-                    if (eventData.content) {
-                      appendToMessage(messageId, eventData.content)
-                      fullAssistantContent += eventData.content
-                    }
-                    break
-                  case 'thinking':
-                    if (eventData.content) {
-                      fullThinkingContent += eventData.content
-                      appendToThinking(messageId, eventData.content)
-                    }
-                    break
-                  case 'tool_start':
-                    currentToolCall = {
-                      toolName: eventData.tool,
-                      toolInput: eventData.input,
-                    }
-                    break
-                  case 'tool_end':
-                    if (currentToolCall) {
-                      addMessage({
-                        id: `tool-${Date.now()}`,
-                        conversationId: convId,
-                        role: 'tool',
-                        content: '',
-                        createdAt: new Date().toISOString(),
-                        toolName: currentToolCall.toolName,
-                        toolInput: currentToolCall.toolInput,
-                        toolOutput: eventData.output,
-                        comparisonGroup,
-                      })
-                      currentToolCall = null
-                    }
-                    break
-                  case 'todos':
-                    if (eventData.todos) {
-                      setTodos(eventData.todos)
-                    }
-                    break
-                  case 'files':
-                    if (eventData.files) {
-                      setFiles(eventData.files)
-                    }
-                    break
-                  case 'done':
-                    updateMessage(messageId, {
-                      content: fullAssistantContent,
-                      isStreaming: false,
-                      thinkingContent: fullThinkingContent || undefined,
-                      inputTokens: eventData.input_tokens,
-                      outputTokens: eventData.output_tokens,
-                      cacheReadTokens: eventData.cache_read_tokens,
-                      cacheWriteTokens: eventData.cache_write_tokens,
-                      suggestedFollowUps: eventData.suggested_follow_ups,
-                      model: model,
-                    })
-
-                    if (eventData.artifacts && eventData.artifacts.length > 0) {
-                      eventData.artifacts.forEach((artifact: any) => {
-                        addArtifact({
-                          id: artifact.id,
-                          title: artifact.title,
-                          content: artifact.content,
-                          language: artifact.language,
-                          version: artifact.version,
-                          createdAt: artifact.created_at || new Date().toISOString(),
-                          conversationId: convId,
-                          artifact_type: artifact.artifact_type,
-                        })
-                      })
-                      setPanelType('artifacts')
-                      setPanelOpen(true)
-                    }
-                    break
-                  case 'error':
-                    console.error(`Stream error (${model}):`, eventData.error)
-                    break
-                }
-              } catch (e) {
-                console.warn('Failed to parse SSE data:', e)
-              }
-              currentEvent = null
-              currentData = null
-            } else if (currentData) {
-              try {
-                const eventData = JSON.parse(currentData)
-                if (eventData.content) {
-                  appendToMessage(messageId, eventData.content)
-                  fullAssistantContent += eventData.content
-                }
-              } catch (e) {
-                console.warn('Failed to parse SSE data:', e)
-              }
-              currentData = null
-            }
-          }
-        }
-      }
-
-      // Mark message as complete
-      updateMessage(messageId, {
-        isStreaming: false,
-        isThinking: false,
-        model: model,
-      })
-
-      // Persist assistant message to backend
-      try {
-        await api.createMessage(convId, {
-          content: fullAssistantContent,
-          role: 'assistant',
-          thinkingContent: fullThinkingContent || undefined,
-          model: model,
-        })
-      } catch (e) {
-        console.warn('Failed to persist assistant message:', e)
-      }
-
-      // Detect artifacts
-      try {
-        const detectedArtifacts = await detectArtifacts(fullAssistantContent, convId)
-        if (detectedArtifacts.length > 0) {
-          setPanelType('artifacts')
-          setPanelOpen(true)
-        }
-      } catch (e) {
-        console.warn('Failed to detect artifacts:', e)
-      }
-
-    } catch (error: unknown) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        console.log(`Request cancelled for ${model}`)
-      } else {
-        console.error(`Error streaming from ${model}:`, error)
-        updateMessage(messageId, {
-          content: `Error: ${error instanceof Error ? error.message : String(error)}`,
-          isStreaming: false,
-          model: model,
-        })
-      }
-    }
-  }
-
   const handleSend = async () => {
     // If streaming, this is a stop request
     if (isStreaming) {
@@ -413,6 +179,7 @@ export function ChatInput() {
 
     // OFFLINE MODE: Queue actions instead of sending
     if (isOffline) {
+      // Store the message locally for display
       const userMessageId = uuidv4()
       const convId = currentConversationId || 'offline-placeholder'
 
@@ -426,16 +193,18 @@ export function ChatInput() {
 
       addMessage(userMessage)
 
+      // Queue the action for later sync
       queueAction({
         type: 'send_message',
         payload: {
           conversationId: convId,
           content: inputValue,
-          images: images.map(img => img.file.name),
+          images: images.map(img => img.file.name), // Store image names only
           timestamp: new Date().toISOString()
         }
       })
 
+      // Add a system message indicating offline mode
       addMessage({
         id: uuidv4(),
         conversationId: convId,
@@ -444,8 +213,15 @@ export function ChatInput() {
         createdAt: new Date().toISOString(),
       })
 
+      // Clear input
       setInputValue('')
       setImages([])
+
+      console.log('Message queued for offline mode:', {
+        content: inputValue,
+        queueSize: actionQueue.length + 1
+      })
+
       return
     }
 
@@ -471,6 +247,7 @@ export function ChatInput() {
     // Ensure we have a conversation ID
     let convId = currentConversationId
     if (!convId) {
+      // Create a new conversation
       const newConv = await createConversation('New Conversation')
       convId = newConv.id
     }
@@ -487,84 +264,406 @@ export function ChatInput() {
 
     addMessage(userMessage)
     const messageToSend = inputValue
+    // Store the message for potential HITL resume
     interruptedMessageRef.current = messageToSend
     setInputValue('')
-    setImages([])
+    setImages([]) // Clear images after sending
     setLoading(true)
     setStreaming(true)
+
+    // Create assistant message placeholder for streaming
+    const assistantMessageId = uuidv4()
+    const assistantMessage = {
+      id: assistantMessageId,
+      conversationId: convId,
+      role: 'assistant' as const,
+      content: '',
+      createdAt: new Date().toISOString(),
+      isStreaming: true,
+    }
+    addMessage(assistantMessage)
+
+    // Persist user message to backend
+    try {
+      await api.createMessage(convId, {
+        content: messageToSend,
+        role: 'user',
+        attachments: uploadedImages.length > 0 ? uploadedImages : undefined
+      })
+    } catch (e) {
+      console.warn('Failed to persist user message:', e)
+    }
 
     // Create abort controller for cancellation
     const abortController = new AbortController()
     abortControllerRef.current = abortController
 
     try {
-      // Persist user message to backend
-      try {
-        await api.createMessage(convId, {
-          content: messageToSend,
-          role: 'user',
-          attachments: uploadedImages.length > 0 ? uploadedImages : undefined
-        })
-      } catch (e) {
-        console.warn('Failed to persist user message:', e)
+      // Get project-specific custom instructions
+      const { conversations } = useConversationStore.getState()
+      const { projects } = useProjectStore.getState()
+      const currentConversation = conversations.find(c => c.id === convId)
+      const projectInstructions = currentConversation?.projectId
+        ? projects.find(p => p.id === currentConversation.projectId)?.custom_instructions
+        : null
+
+      // Use project instructions if available, otherwise use global custom instructions
+      const effectiveInstructions = projectInstructions || customInstructions
+
+      // Prepare message with custom instructions if set
+      let finalMessage = messageToSend
+      if (effectiveInstructions.trim()) {
+        finalMessage = `[System Instructions: ${effectiveInstructions}]\n\n${messageToSend}`
       }
 
-      if (comparisonMode && comparisonModels.length === 2) {
-        // COMPARISON MODE: Stream from multiple models
-        const comparisonGroup = `comparison-${Date.now()}`
-
-        // Create placeholder messages for both models
-        const messageIds: string[] = []
-        for (const model of comparisonModels) {
-          const assistantMessageId = uuidv4()
-          messageIds.push(assistantMessageId)
-          const assistantMessage = {
-            id: assistantMessageId,
-            conversationId: convId,
-            role: 'assistant' as const,
-            content: '',
-            createdAt: new Date().toISOString(),
-            isStreaming: true,
-            model: model,
-            comparisonGroup: comparisonGroup,
-          }
-          addMessage(assistantMessage)
-        }
-
-        // Stream from both models in parallel
-        const streamPromises = comparisonModels.map((model, index) =>
-          streamFromModel(
-            model,
-            messageToSend,
-            convId,
-            abortController,
-            messageIds[index],
-            comparisonGroup
-          )
-        )
-
-        await Promise.all(streamPromises)
-
-      } else {
-        // SINGLE MODEL MODE: Original behavior
-        const assistantMessageId = uuidv4()
-        const assistantMessage = {
-          id: assistantMessageId,
+      // Call the backend SSE API with conversation ID
+      const response = await fetch('/api/agent/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: finalMessage,
           conversationId: convId,
-          role: 'assistant' as const,
-          content: '',
-          createdAt: new Date().toISOString(),
-          isStreaming: true,
-        }
-        addMessage(assistantMessage)
+          thread_id: convId,
+          extended_thinking: extendedThinkingEnabled,
+          temperature: temperature,
+          max_tokens: maxTokens,
+          custom_instructions: effectiveInstructions,
+          model: useUIStore.getState().selectedModel,
+          permission_mode: permissionMode,
+          memory_enabled: memoryEnabled,
+        }),
+        signal: abortController.signal,
+      })
 
-        await streamFromModel(
-          useUIStore.getState().selectedModel,
-          messageToSend,
-          convId,
-          abortController,
-          assistantMessageId
-        )
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const reader = response.body?.getReader()
+      if (!reader) {
+        throw new Error('No response body')
+      }
+
+      const decoder = new TextDecoder()
+      let buffer = ''
+      let fullAssistantContent = ''
+      let fullThinkingContent = ''
+      let currentToolCall: { toolName: string; toolInput: Record<string, unknown> } | null = null
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || '' // Keep incomplete line in buffer
+
+        // SSE events can span multiple lines: event: X \n data: Y \n\n
+        // We need to buffer event and data lines together
+        let currentEvent: string | null = null
+        let currentData: string | null = null
+
+        for (const line of lines) {
+          const trimmed = line.trim()
+
+          if (trimmed.startsWith('event:')) {
+            currentEvent = trimmed.slice(6).trim()
+          } else if (trimmed.startsWith('data:')) {
+            currentData = trimmed.slice(5).trim()
+          } else if (trimmed === '') {
+            // Empty line indicates end of event, process what we have
+            if (currentEvent && currentData) {
+              try {
+                const eventData = JSON.parse(currentData)
+
+                switch (currentEvent) {
+                  case 'message':
+                    if (eventData.content) {
+                      appendToLastMessage(eventData.content)
+                      fullAssistantContent += eventData.content
+                    }
+                    break
+                  case 'thinking':
+                    // Handle thinking events
+                    if (eventData.status === 'thinking') {
+                      // Show thinking indicator
+                      const { messages } = useConversationStore.getState()
+                      const currentIndex = messages.findIndex(m => m.id === assistantMessageId)
+                      if (currentIndex >= 0) {
+                        const updatedMessages = [...messages]
+                        updatedMessages[currentIndex] = {
+                          ...updatedMessages[currentIndex],
+                          isThinking: true
+                        }
+                        useConversationStore.setState({ messages: updatedMessages })
+                      }
+                    }
+                    if (eventData.content) {
+                      fullThinkingContent += eventData.content
+                      // Update thinking content in real-time with isThinking flag
+                      const { messages } = useConversationStore.getState()
+                      const currentIndex = messages.findIndex(m => m.id === assistantMessageId)
+                      if (currentIndex >= 0) {
+                        const updatedMessages = [...messages]
+                        updatedMessages[currentIndex] = {
+                          ...updatedMessages[currentIndex],
+                          thinkingContent: fullThinkingContent,
+                          isThinking: true
+                        }
+                        useConversationStore.setState({ messages: updatedMessages })
+                      }
+                    }
+                    break
+                  case 'tool_start':
+                    // Store tool call info for when it completes
+                    currentToolCall = {
+                      toolName: eventData.tool,
+                      toolInput: eventData.input,
+                    }
+                    break
+                  case 'tool_end':
+                    // Create a tool message when tool completes
+                    if (currentToolCall) {
+                      const { addMessage } = useConversationStore.getState()
+                      addMessage({
+                        id: `tool-${Date.now()}`,
+                        conversationId: convId,
+                        role: 'tool',
+                        content: '',
+                        createdAt: new Date().toISOString(),
+                        toolName: currentToolCall.toolName,
+                        toolInput: currentToolCall.toolInput,
+                        toolOutput: eventData.output,
+                      })
+                      currentToolCall = null
+                    }
+                    break
+                  case 'todos':
+                    // Handle todos update from agent
+                    if (eventData.todos) {
+                      const { setTodos, todos } = useChatStore.getState()
+                      const previousTodos = todos
+                      setTodos(eventData.todos)
+                      // Auto-open todo panel if this is the first time todos are set
+                      if (previousTodos.length === 0 && eventData.todos.length > 0) {
+                        const { setPanelType, setPanelOpen } = useUIStore.getState()
+                        setPanelType('todos')
+                        setPanelOpen(true)
+                      }
+                    }
+                    break
+                  case 'files':
+                    // Handle files update from agent
+                    if (eventData.files) {
+                      const { setFiles, files } = useChatStore.getState()
+                      const previousFiles = files
+                      setFiles(eventData.files)
+                      // Auto-open files panel if this is the first time files are set
+                      if (previousFiles.length === 0 && eventData.files.length > 0) {
+                        const { setPanelType, setPanelOpen } = useUIStore.getState()
+                        setPanelType('files')
+                        setPanelOpen(true)
+                      }
+                    }
+                    break
+                  case 'interrupt':
+                    // Handle HITL interrupt - show approval dialog
+                    if (eventData.tool && eventData.input) {
+                      setHitlApproval({
+                        threadId: convId,
+                        tool: eventData.tool,
+                        input: eventData.input,
+                        reason: eventData.reason || 'Tool execution requires approval',
+                      })
+                      // Mark streaming as stopped since we're waiting for approval
+                      setStreaming(false)
+                    }
+                    break
+                  case 'subagent_start':
+                    // Handle sub-agent delegation start
+                    if (eventData.subagent) {
+                      const { setSubAgentDelegated } = useChatStore.getState()
+                      setSubAgentDelegated(eventData.subagent, eventData.reason || 'Task delegated')
+                      console.log(`Subagent ${eventData.subagent} started: ${eventData.reason}`)
+                    }
+                    break
+                  case 'subagent_progress':
+                    // Handle sub-agent progress update
+                    if (eventData.subagent !== undefined && eventData.progress !== undefined) {
+                      const { setSubAgentProgress } = useChatStore.getState()
+                      setSubAgentProgress(eventData.progress, 'working')
+                    }
+                    break
+                  case 'subagent_end':
+                    // Handle sub-agent completion
+                    if (eventData.subagent) {
+                      const { setSubAgentResult, clearSubAgent } = useChatStore.getState()
+                      if (eventData.output) {
+                        setSubAgentResult(eventData.output)
+                      } else {
+                        clearSubAgent()
+                      }
+                      console.log(`Subagent ${eventData.subagent} completed: ${eventData.output}`)
+
+                      // Add a message to show sub-agent result
+                      const { addMessage } = useConversationStore.getState()
+                      addMessage({
+                        id: `subagent-${Date.now()}`,
+                        conversationId: convId,
+                        role: 'assistant' as const,
+                        content: `**Subagent ${eventData.subagent} Result:**\\n\\n${eventData.output}`,
+                        createdAt: new Date().toISOString(),
+                      })
+
+                      // Clear sub-agent delegation after a delay
+                      setTimeout(() => {
+                        const { clearSubAgent } = useChatStore.getState()
+                        clearSubAgent()
+                      }, 5000)
+                    }
+                    break
+                  case 'memory_saved':
+                    // Handle memory save confirmation
+                    console.log('Memory saved:', eventData.content)
+                    // Optionally show a toast or notification
+                    break
+                  case 'memories':
+                    // Handle retrieved memories
+                    console.log('Memories retrieved:', eventData.memories)
+                    // Optionally display memories in the chat or in a panel
+                    if (eventData.memories && eventData.memories.length > 0) {
+                      const { addMessage } = useConversationStore.getState()
+                      const memoryText = eventData.memories
+                        .map((m: any) => `- ${m.content} (${m.category})`)
+                        .join('\n')
+                      addMessage({
+                        id: `memory-${Date.now()}`,
+                        conversationId: convId,
+                        role: 'assistant' as const,
+                        content: `**Recalling from memory:**\n\n${memoryText}`,
+                        createdAt: new Date().toISOString(),
+                      })
+                    }
+                    break
+                  case 'done':
+                    console.log('Stream completed')
+                    // Update the assistant message with final content
+                    const { updateMessage } = useConversationStore.getState()
+                    updateMessage(assistantMessageId, {
+                      content: fullAssistantContent,
+                      isStreaming: false,
+                      thinkingContent: fullThinkingContent || undefined,
+                      // Include token information if available
+                      inputTokens: eventData.input_tokens,
+                      outputTokens: eventData.output_tokens,
+                      cacheReadTokens: eventData.cache_read_tokens,
+                      cacheWriteTokens: eventData.cache_write_tokens,
+                      // Include suggested follow-ups
+                      suggestedFollowUps: eventData.suggested_follow_ups,
+                    })
+
+                    // Store thinking content if present
+                    if (eventData.thinking_content) {
+                      fullThinkingContent = eventData.thinking_content
+                    }
+                    // Handle artifacts created by backend
+                    if (eventData.artifacts && eventData.artifacts.length > 0) {
+                      // Add artifacts to the store
+                      const { addArtifact } = useArtifactStore.getState()
+                      eventData.artifacts.forEach((artifact: any) => {
+                        addArtifact({
+                          id: artifact.id,
+                          title: artifact.title,
+                          content: artifact.content,
+                          language: artifact.language,
+                          version: artifact.version,
+                          createdAt: artifact.created_at || new Date().toISOString(),
+                          conversationId: convId,
+                          artifact_type: artifact.artifact_type,
+                        })
+                      })
+                      // Open the artifact panel
+                      const { setPanelType } = useUIStore.getState()
+                      setPanelType('artifacts')
+                    }
+                    // Handle todos from done event (fallback if no todos event was emitted)
+                    if (eventData.todos) {
+                      const { setTodos } = useChatStore.getState()
+                      setTodos(eventData.todos)
+                    }
+                    // Handle files from done event (fallback if no files event was emitted)
+                    if (eventData.files) {
+                      const { setFiles } = useChatStore.getState()
+                      setFiles(eventData.files)
+                    }
+                    break
+                  case 'error':
+                    console.error('Stream error:', eventData.error)
+                    break
+                  case 'start':
+                    // Start event - could be used for initialization
+                    break
+                }
+              } catch (e) {
+                console.warn('Failed to parse SSE data:', e)
+              }
+
+              // Reset for next event
+              currentEvent = null
+              currentData = null
+            } else if (currentData) {
+              // Handle data-only lines (fallback for non-standard format)
+              try {
+                const eventData = JSON.parse(currentData)
+                if (eventData.content) {
+                  appendToLastMessage(eventData.content)
+                  fullAssistantContent += eventData.content
+                }
+              } catch (e) {
+                console.warn('Failed to parse SSE data:', e)
+              }
+              currentData = null
+            }
+          }
+        }
+      }
+
+      // Mark message as no longer streaming
+      const { messages } = useConversationStore.getState()
+      const currentIndex = messages.findIndex(m => m.id === assistantMessageId)
+      if (currentIndex >= 0) {
+        const updatedMessages = [...messages]
+        updatedMessages[currentIndex] = {
+          ...updatedMessages[currentIndex],
+          isStreaming: false,
+          isThinking: false,
+          thinkingContent: fullThinkingContent || undefined
+        }
+        useConversationStore.setState({ messages: updatedMessages })
+      }
+
+      // Persist assistant message to backend
+      try {
+        await api.createMessage(convId, {
+          content: fullAssistantContent,
+          role: 'assistant',
+          thinkingContent: fullThinkingContent || undefined
+        })
+      } catch (e) {
+        console.warn('Failed to persist assistant message:', e)
+      }
+
+      // Detect artifacts in the assistant response
+      try {
+        const detectedArtifacts = await detectArtifacts(fullAssistantContent, convId)
+        if (detectedArtifacts.length > 0) {
+          // Auto-open the artifacts panel
+          setPanelType('artifacts')
+          setPanelOpen(true)
+          console.log(`Detected ${detectedArtifacts.length} artifact(s)`)
+        }
+      } catch (e) {
+        console.warn('Failed to detect artifacts:', e)
       }
 
     } catch (error: unknown) {
@@ -572,6 +671,7 @@ export function ChatInput() {
         console.log('Request cancelled by user')
       } else {
         console.error('Error sending message:', error)
+        // Add error message
         const errorMsg = `Error: ${error instanceof Error ? error.message : String(error)}. The backend may not be running or API key not configured.`
         addMessage({
           id: uuidv4(),
@@ -580,6 +680,7 @@ export function ChatInput() {
           content: errorMsg,
           createdAt: new Date().toISOString(),
         })
+        // Persist error message
         try {
           await api.createMessage(convId, { content: errorMsg, role: 'assistant' })
         } catch (e) {

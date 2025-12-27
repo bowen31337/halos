@@ -11,6 +11,8 @@ import { SkipNavigation } from './SkipNavigation'
 import { ResizableHandle } from './ResizableHandle'
 import { NetworkStatusIndicator } from './NetworkStatusIndicator'
 import { useNetworkStore } from '../stores/networkStore'
+import { ToastManager } from './ToastManager'
+import { ContextMenu } from './ContextMenu'
 
 export function Layout() {
   const { sidebarOpen, sidebarWidth, setSidebarOpen, setSidebarWidth } = useUIStore()
@@ -194,6 +196,12 @@ export function Layout() {
 
       {/* Onboarding Tour */}
       <OnboardingTour />
+
+      {/* Toast notifications - positioned top-right */}
+      <ToastManager />
+
+      {/* Context menu - for right-click actions */}
+      <ContextMenu />
     </div>
   )
 }

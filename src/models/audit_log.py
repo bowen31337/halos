@@ -23,6 +23,8 @@ class AuditActionType(enum.Enum):
     CONVERSATION_DUPLICATE = "conversation_duplicate"
     CONVERSATION_EXPORT = "conversation_export"
     CONVERSATION_BRANCH = "conversation_branch"
+    CONVERSATION_READ = "conversation_read"
+    CONVERSATION_UNREAD = "conversation_unread"
 
     # Message actions
     MESSAGE_CREATE = "message_create"
@@ -97,6 +99,11 @@ class AuditActionType(enum.Enum):
     PROMPT_UPDATE = "prompt_update"
     PROMPT_DELETE = "prompt_delete"
     PROMPT_USE = "prompt_use"
+
+    # Tag actions
+    TAG_CREATE = "tag_create"
+    TAG_UPDATE = "tag_update"
+    TAG_DELETE = "tag_delete"
 
     # Settings actions
     SETTINGS_UPDATE = "settings_update"

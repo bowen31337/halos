@@ -19,6 +19,10 @@ interface UIState {
   // Model
   selectedModel: string
 
+  // Model Comparison Mode
+  comparisonMode: boolean
+  comparisonModels: string[]  // Array of 2 model IDs for comparison
+
   // Extended thinking
   extendedThinkingEnabled: boolean
 
@@ -69,6 +73,10 @@ interface UIState {
   setContentFilterLevel: (level: 'off' | 'low' | 'medium' | 'high') => void
   setContentFilterCategories: (categories: string[]) => void
   setLocale: (locale: string) => void
+  // Comparison mode actions
+  setComparisonMode: (enabled: boolean) => void
+  toggleComparisonMode: () => void
+  setComparisonModels: (models: string[]) => void
 }
 
 export const useUIStore = create<UIState>()(
@@ -84,6 +92,8 @@ export const useUIStore = create<UIState>()(
       panelType: null,
       panelWidth: 450,
       selectedModel: 'claude-sonnet-4-5-20250929',
+      comparisonMode: false,
+      comparisonModels: ['claude-sonnet-4-5-20250929', 'claude-opus-4-1-20250805'],
       extendedThinkingEnabled: false,
       fontSize: 16,
       customInstructions: '',
@@ -182,6 +192,11 @@ export const useUIStore = create<UIState>()(
       setMaxTokens: (tokens) => set({ maxTokens: tokens }),
       setContentFilterLevel: (level) => set({ contentFilterLevel: level }),
       setContentFilterCategories: (categories) => set({ contentFilterCategories: categories }),
+
+      // Comparison mode actions
+      setComparisonMode: (enabled) => set({ comparisonMode: enabled }),
+      toggleComparisonMode: () => set((state) => ({ comparisonMode: !state.comparisonMode })),
+      setComparisonModels: (models) => set({ comparisonModels: models }),
     }),
     {
       name: 'claude-ui-settings',
@@ -192,6 +207,8 @@ export const useUIStore = create<UIState>()(
         sidebarWidth: state.sidebarWidth,
         panelWidth: state.panelWidth,
         selectedModel: state.selectedModel,
+        comparisonMode: state.comparisonMode,
+        comparisonModels: state.comparisonModels,
         extendedThinkingEnabled: state.extendedThinkingEnabled,
         fontSize: state.fontSize,
         locale: state.locale,

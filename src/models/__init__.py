@@ -7,6 +7,8 @@ class Base(DeclarativeBase):
     """Base class for SQLAlchemy models."""
     pass
 
+# Import tag models first (needed for the conversation_tags association table used by Conversation)
+from src.models.tag import Tag, conversation_tags
 from src.models.conversation import Conversation
 from src.models.message import Message
 from src.models.project import Project
@@ -27,5 +29,5 @@ __all__ = [
     "Checkpoint", "Memory", "SharedConversation", "Prompt", "MCPServer",
     "Folder", "FolderItem", "BackgroundTask", "TaskStatus", "AuditLog",
     "AuditActionType", "AuditAction", "User", "Session", "PasswordResetToken",
-    "APIKey", "UserStatus"
+    "APIKey", "UserStatus", "Tag", "conversation_tags"
 ]

@@ -221,7 +221,8 @@ export function ProjectFiles({ project }: ProjectFilesProps) {
                   </button>
                 </div>
               </div>
-            ))
+            )
+          })
           )}
         </div>
       </div>

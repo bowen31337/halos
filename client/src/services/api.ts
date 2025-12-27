@@ -2,7 +2,7 @@
  * API Service for backend communication
  */
 
-import type { Conversation, Message } from '@/stores/conversationStore'
+import type { Conversation, Message, Tag } from '@/stores/conversationStore'
 
 const API_BASE = '/api'
 
@@ -1302,6 +1302,71 @@ class APIService {
     if (!response.ok) {
       const error = await response.json().catch(() => ({ detail: 'Unknown error' }))
       throw new Error(error.detail || `Failed to delete account: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  // Tag APIs
+  async listTags(): Promise<Tag[]> {
+    const response = await fetch(`${API_BASE}/tags`)
+    if (!response.ok) {
+      throw new Error(`Failed to list tags: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async createTag(data: { name: string; color?: string }): Promise<Tag> {
+    const response = await fetch(`${API_BASE}/tags`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Unknown error' }))
+      throw new Error(error.detail || `Failed to create tag: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async updateTag(tagId: string, data: { name?: string; color?: string }): Promise<Tag> {
+    const response = await fetch(`${API_BASE}/tags/${tagId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Unknown error' }))
+      throw new Error(error.detail || `Failed to update tag: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async deleteTag(tagId: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/tags/${tagId}`, {
+      method: 'DELETE',
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to delete tag: ${response.status}`)
+    }
+  }
+
+  async updateConversationTags(conversationId: string, tagIds: string[]): Promise<{ conversation_id: string; tag_ids: string[]; tags: Tag[] }> {
+    const response = await fetch(`${API_BASE}/tags/conversations/${conversationId}/tags`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tag_ids: tagIds }),
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Unknown error' }))
+      throw new Error(error.detail || `Failed to update conversation tags: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async filterConversationsByTags(tagIds: string[]): Promise<Conversation[]> {
+    const response = await fetch(`${API_BASE}/tags/conversations/filter/by-tags?tag_ids=${encodeURIComponent(tagIds.join(','))}`)
+    if (!response.ok) {
+      throw new Error(`Failed to filter conversations by tags: ${response.status}`)
     }
     return response.json()
   }

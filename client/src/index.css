@@ -1667,6 +1667,718 @@ textarea:focus-visible {
   --text-muted: #FFFFFF;
 }
 
+/* ==================== TOOLTIP STYLES ==================== */
+
+/* Base tooltip container */
+.tooltip-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Tooltip bubble */
+.tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-primary);
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+}
+
+/* Tooltip arrow */
+.tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--bg-elevated);
+}
+
+/* Show tooltip on hover/focus with delay */
+.tooltip-container:hover .tooltip,
+.tooltip-container:focus-within .tooltip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-12px);
+  transition-delay: 0.2s;
+}
+
+/* Tooltip variants */
+.tooltip.primary {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary-active);
+}
+
+.tooltip.primary::after {
+  border-top-color: var(--primary);
+}
+
+.tooltip.success {
+  background-color: var(--success);
+  color: white;
+  border-color: #0D9488;
+}
+
+.tooltip.success::after {
+  border-top-color: var(--success);
+}
+
+.tooltip.error {
+  background-color: var(--error);
+  color: white;
+  border-color: #DC2626;
+}
+
+.tooltip.error::after {
+  border-top-color: var(--error);
+}
+
+/* Keyboard shortcut hint in tooltip */
+.tooltip kbd {
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-family: monospace;
+  font-size: 0.7rem;
+  margin-left: 0.5rem;
+}
+
+/* Tooltip positioning variants */
+.tooltip.top {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+}
+
+.tooltip.bottom {
+  top: 100%;
+  bottom: auto;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+}
+
+.tooltip.left {
+  left: auto;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%) translateX(-8px);
+}
+
+.tooltip.right {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%) translateX(8px);
+}
+
+.tooltip-container:hover .tooltip.bottom,
+.tooltip-container:focus-within .tooltip.bottom {
+  transform: translateX(-50%) translateY(12px);
+}
+
+.tooltip-container:hover .tooltip.left,
+.tooltip-container:focus-within .tooltip.left {
+  transform: translateY(-50%) translateX(-12px);
+}
+
+.tooltip-container:hover .tooltip.right,
+.tooltip-container:focus-within .tooltip.right {
+  transform: translateY(-50%) translateX(12px);
+}
+
+/* ==================== TOAST NOTIFICATION STYLES ==================== */
+
+/* Toast container - fixed position */
+.toast-container {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  pointer-events: none;
+}
+
+/* Individual toast */
+.toast {
+  min-width: 280px;
+  max-width: 400px;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-primary);
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  pointer-events: auto;
+  animation: slideInFromRight 0.3s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Toast variants */
+.toast.success {
+  background-color: var(--success);
+  color: white;
+  border-color: #0D9488;
+}
+
+.toast.error {
+  background-color: var(--error);
+  color: white;
+  border-color: #DC2626;
+}
+
+.toast.warning {
+  background-color: var(--warning);
+  color: white;
+  border-color: #D97706;
+}
+
+.toast.info {
+  background-color: var(--info);
+  color: white;
+  border-color: #2563EB;
+}
+
+/* Toast icon */
+.toast-icon {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-top: 0.125rem;
+}
+
+/* Toast content */
+.toast-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.toast-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.toast-message {
+  font-size: 0.75rem;
+  opacity: 0.95;
+}
+
+/* Toast close button */
+.toast-close {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toast-close:hover {
+  opacity: 1;
+}
+
+/* Toast progress bar */
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background-color: currentColor;
+  opacity: 0.5;
+  animation: toast-progress 3s linear forwards;
+}
+
+@keyframes toast-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+/* Toast dismiss animation */
+.toast.dismissing {
+  animation: slideOutToRight 0.2s ease-out forwards;
+}
+
+@keyframes slideOutToRight {
+  to {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+}
+
+/* ==================== CONTEXT MENU STYLES ==================== */
+
+/* Context menu overlay backdrop */
+.context-menu-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9998;
+}
+
+/* Context menu container */
+.context-menu {
+  position: fixed;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  max-width: 320px;
+  z-index: 9999;
+  padding: 0.25rem;
+  animation: fadeIn 0.15s ease-out;
+}
+
+/* Context menu items */
+.context-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  user-select: none;
+}
+
+.context-menu-item:hover {
+  background-color: var(--bg-secondary);
+}
+
+.context-menu-item:active {
+  background-color: var(--bg-elevated);
+}
+
+/* Context menu item with danger action */
+.context-menu-item.danger {
+  color: var(--error);
+}
+
+.context-menu-item.danger:hover {
+  background-color: color-mix(in srgb, var(--error) 10%, transparent);
+}
+
+/* Context menu item icons */
+.context-menu-item .icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+/* Context menu keyboard shortcuts */
+.context-menu-shortcut {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
+/* Context menu divider */
+.context-menu-divider {
+  height: 1px;
+  background-color: var(--border-primary);
+  margin: 0.25rem 0;
+}
+
+/* Context menu disabled state */
+.context-menu-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==================== ENHANCED THINKING ANIMATIONS ==================== */
+
+/* Thinking block with progress indicator */
+.thinking-block {
+  position: relative;
+  padding: 1rem;
+  margin: 0.5rem 0 1rem 0;
+  background-color: var(--surface-elevated);
+  border: 1px solid var(--border-primary);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+/* Thinking progress bar */
+.thinking-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--primary-hover));
+  animation: thinking-progress 2s ease-in-out infinite;
+  opacity: 0.8;
+}
+
+@keyframes thinking-progress {
+  0% {
+    width: 0%;
+    left: 0%;
+  }
+  50% {
+    width: 70%;
+    left: 10%;
+  }
+  100% {
+    width: 0%;
+    left: 100%;
+  }
+}
+
+/* Thinking indicator with progress dots */
+.thinking-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.thinking-indicator .progress-dots {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.thinking-indicator .progress-dots span {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background-color: var(--primary);
+  animation: thinking-pulse 1.4s infinite ease-in-out;
+}
+
+.thinking-indicator .progress-dots span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.thinking-indicator .progress-dots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.thinking-indicator .progress-dots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes thinking-pulse {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Thinking completion state */
+.thinking-complete {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--success);
+  font-size: 0.875rem;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Thinking content with fade-in */
+.thinking-content {
+  animation: fadeIn 0.5s ease-out;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* ==================== BADGE CONSISTENCY ==================== */
+
+/* Model badges - consistent styling */
+.badge-model {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+}
+
+.badge-model .model-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+}
+
+/* Model-specific badge colors */
+.badge-model.claude {
+  background-color: color-mix(in srgb, var(--primary) 15%, transparent);
+  border-color: var(--primary);
+  color: var(--primary-active);
+}
+
+.badge-model.gpt {
+  background-color: color-mix(in srgb, #10B981 15%, transparent);
+  border-color: #10B981;
+  color: #0D9488;
+}
+
+.badge-model.llama {
+  background-color: color-mix(in srgb, #8B5CF6 15%, transparent);
+  border-color: #8B5CF6;
+  color: #7C3AED;
+}
+
+/* Status badges - consistent with existing but enhanced */
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.badge-status.pending {
+  background-color: var(--warning);
+  color: white;
+}
+
+.badge-status.complete {
+  background-color: var(--success);
+  color: white;
+}
+
+.badge-status.error {
+  background-color: var(--error);
+  color: white;
+}
+
+.badge-status.in-progress {
+  background-color: var(--info);
+  color: white;
+}
+
+/* Small badge variant */
+.badge-sm {
+  padding: 0.0625rem 0.375rem;
+  font-size: 0.7rem;
+}
+
+/* Large badge variant */
+.badge-lg {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* ==================== ICON CONSISTENCY ==================== */
+
+/* Icon base styles */
+.icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.icon-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.icon-lg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.icon-xl {
+  width: 2rem;
+  height: 2rem;
+}
+
+/* Icon alignment with text */
+.icon-text-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Icon button consistency */
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease-out;
+}
+
+.icon-button:hover {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.icon-button:active {
+  background-color: var(--bg-elevated);
+}
+
+.icon-button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+
+/* Mobile-first responsive utilities */
+@media (max-width: 640px) {
+  /* Hide non-essential UI on mobile */
+  .desktop-only {
+    display: none !important;
+  }
+
+  /* Adjust toast for mobile */
+  .toast-container {
+    left: 0.5rem;
+    right: 0.5rem;
+    top: 0.5rem;
+  }
+
+  .toast {
+    min-width: auto;
+    max-width: none;
+  }
+
+  /* Adjust context menu for mobile */
+  .context-menu {
+    min-width: 180px;
+    max-width: calc(100vw - 2rem);
+  }
+
+  /* Adjust tooltip for mobile */
+  .tooltip {
+    font-size: 0.7rem;
+    padding: 0.375rem 0.5rem;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .tablet\:flex {
+    display: flex;
+  }
+}
+
+/* Desktop-only content */
+@media (max-width: 1023px) {
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+/* ==================== ANIMATION QUALITY ==================== */
+
+/* Smooth transitions for all interactive elements */
+.smooth-transition {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .tooltip,
+  .toast,
+  .context-menu {
+    animation: none !important;
+  }
+}
+
+/* High performance animations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* ==================== VISUAL CONSISTENCY ==================== */
+
+/* Consistent spacing system */
+.space-xs { margin: 0.25rem; }
+.space-sm { margin: 0.5rem; }
+.space-md { margin: 1rem; }
+.space-lg { margin: 1.5rem; }
+.space-xl { margin: 2rem; }
+
+/* Consistent border radius */
+.rounded-xs { border-radius: 0.125rem; }
+.rounded-sm { border-radius: 0.25rem; }
+.rounded-md { border-radius: 0.375rem; }
+.rounded-lg { border-radius: 0.5rem; }
+.rounded-xl { border-radius: 0.75rem; }
+
+/* Consistent shadows */
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
 /* Print Styles */
 @media print {
   /* Hide UI elements */

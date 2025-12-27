@@ -18,6 +18,15 @@ export interface Message {
   cacheReadTokens?: number
   cacheWriteTokens?: number
   suggestedFollowUps?: string[]  // Suggested follow-up questions
+  model?: string  // Model ID that generated this message (for comparison mode)
+  comparisonGroup?: string  // Group ID for comparison messages (links multiple assistant messages)
+}
+
+export interface Tag {
+  id: string
+  name: string
+  color: string
+  createdAt: string
 }
 
 export interface Conversation {
@@ -29,6 +38,7 @@ export interface Conversation {
   isPinned: boolean
   messageCount: number
   unreadCount: number
+  tags: Tag[]
   createdAt: string
   updatedAt: string
 }
@@ -72,7 +82,9 @@ interface ConversationState {
   addMessage: (message: Message) => void
   updateMessage: (id: string, updates: Partial<Message>) => void
   appendToLastMessage: (content: string) => void
+  appendToMessage: (id: string, content: string) => void
   appendToLastThinking: (content: string) => void
+  appendToThinking: (id: string, content: string) => void
   markThinkingComplete: () => void
   regenerateLastResponse: (messageId: string) => Promise<void>
   editAndResend: (messageId: string, newContent: string) => Promise<void>
@@ -108,6 +120,7 @@ const transformConversation = (apiConv: any): Conversation => ({
   isPinned: apiConv.is_pinned,
   messageCount: apiConv.message_count,
   unreadCount: apiConv.unread_count || 0,
+  tags: apiConv.tags || [],
   createdAt: apiConv.created_at,
   updatedAt: apiConv.updated_at,
 })
@@ -130,6 +143,8 @@ const transformMessage = (apiMsg: any): Message => ({
   cacheReadTokens: apiMsg.cache_read_tokens,
   cacheWriteTokens: apiMsg.cache_write_tokens,
   suggestedFollowUps: apiMsg.suggested_follow_ups || apiMsg.suggestedFollowUps,
+  model: apiMsg.model,
+  comparisonGroup: apiMsg.comparisonGroup || apiMsg.comparison_group,
 })
 
 export const useConversationStore = create<ConversationState>((set) => ({
@@ -269,6 +284,19 @@ export const useConversationStore = create<ConversationState>((set) => ({
       return { messages }
     }),
 
+  appendToMessage: (id: string, content: string) =>
+    set((state) => {
+      const messages = [...state.messages]
+      const index = messages.findIndex(m => m.id === id)
+      if (index >= 0 && messages[index].role === 'assistant') {
+        messages[index] = {
+          ...messages[index],
+          content: messages[index].content + content,
+        }
+      }
+      return { messages }
+    }),
+
   appendToLastThinking: (content) =>
     set((state) => {
       const messages = [...state.messages]
@@ -277,6 +305,20 @@ export const useConversationStore = create<ConversationState>((set) => ({
         messages[messages.length - 1] = {
           ...lastMessage,
           thinkingContent: (lastMessage.thinkingContent || '') + content,
+          isThinking: true,
+        }
+      }
+      return { messages }
+    }),
+
+  appendToThinking: (id: string, content: string) =>
+    set((state) => {
+      const messages = [...state.messages]
+      const index = messages.findIndex(m => m.id === id)
+      if (index >= 0 && messages[index].role === 'assistant') {
+        messages[index] = {
+          ...messages[index],
+          thinkingContent: (messages[index].thinkingContent || '') + content,
           isThinking: true,
         }
       }

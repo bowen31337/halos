@@ -15,11 +15,12 @@ import { MemoryPanel } from '../components/MemoryPanel'
 import { PromptCacheIndicator } from '../components/PromptCacheIndicator'
 import { TokenUsageDisplay } from '../components/TokenUsageDisplay'
 import { UsageDashboard } from '../components/UsageDashboard'
+import { ComparisonView } from '../components/ComparisonView'
 
 export function ChatPage() {
   const { conversationId } = useParams()
   const { messages, currentConversationId, setCurrentConversation, loadMessages } = useConversationStore()
-  const { panelOpen, panelType, setPanelOpen } = useUIStore()
+  const { panelOpen, panelType, setPanelOpen, comparisonMode } = useUIStore()
   const { loadArtifactsForConversation, clearArtifacts } = useArtifactStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [isTablet, setIsTablet] = useState(false)
@@ -77,6 +78,8 @@ export function ChatPage() {
           <div className="h-full overflow-y-auto">
             <WelcomeScreen />
           </div>
+        ) : comparisonMode ? (
+          <ComparisonMessageList messages={messages} />
         ) : (
           <MessageList />
         )}

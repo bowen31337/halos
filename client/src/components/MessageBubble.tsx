@@ -10,6 +10,7 @@ import { useConversationStore } from '../stores/conversationStore'
 import { useBranchingStore } from '../stores/branchingStore'
 import { OptimizedImage } from './OptimizedImage'
 import { SuggestedFollowUps } from './SuggestedFollowUps'
+import { useToast } from './ToastManager'
 
 // Helper function to format relative time
 function formatRelativeTime(dateString: string): string {
@@ -216,10 +217,10 @@ export function MessageBubble({ message, onRegenerate, onEdit, onSuggestionClick
         {!isUser && (
           <div className="flex items-center gap-2 mb-2">
             <div className="w-6 h-6 rounded-full bg-[var(--primary)] flex items-center justify-center text-white text-xs">
-              C
+              {message.model ? message.model.charAt(0).toUpperCase() : 'C'}
             </div>
             <span className="text-sm font-medium text-[var(--text-secondary)]">
-              Claude
+              {message.model ? message.model.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Claude'}
             </span>
             {/* Thinking indicator badge */}
             {isThinking && (

@@ -108,6 +108,21 @@ async def client(test_db: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     app.dependency_overrides.clear()
 
 
+@pytest_asyncio.fixture(scope="function")
+async def async_client(test_db: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
+    """Create an async HTTP client for testing (alias for client)."""
+
+    async def override_get_db() -> AsyncGenerator[AsyncSession, None]:
+        yield test_db
+
+    app.dependency_overrides[get_db] = override_get_db
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        yield ac
+
+    app.dependency_overrides.clear()
+
+
 @pytest.fixture(scope="function")
 def browser_context():
     """Create a browser context for testing."""

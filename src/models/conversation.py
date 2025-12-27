@@ -48,4 +48,5 @@ class Conversation(Base):
     checkpoints = relationship("Checkpoint", back_populates="conversation", cascade="all, delete-orphan")
     memories = relationship("Memory", back_populates="source_conversation", cascade="all, delete-orphan")
     shares = relationship("SharedConversation", back_populates="conversation", cascade="all, delete-orphan")
+    tags = relationship("Tag", secondary="conversation_tags", back_populates="conversations")
     parent_conversation = relationship("Conversation", remote_side=[id], backref="branches")

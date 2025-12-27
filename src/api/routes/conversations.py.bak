@@ -128,7 +128,7 @@ async def create_conversation(
 
     db.add(conversation)
     await db.commit()
-    await db.refresh(conversation, attribute_names=["tags"])
+    await db.refresh(conversation)
 
     # Audit log
     ip_address, user_agent = get_request_info(request)
@@ -166,7 +166,6 @@ async def get_conversation(
     """Get a specific conversation."""
     result = await db.execute(
         select(ConversationModel)
-        .options(selectinload(ConversationModel.tags))
         .where(ConversationModel.id == conversation_id)
         .where(ConversationModel.is_deleted == False)
     )
@@ -201,7 +200,6 @@ async def update_conversation(
     """Update a conversation."""
     result = await db.execute(
         select(ConversationModel)
-        .options(selectinload(ConversationModel.tags))
         .where(ConversationModel.id == conversation_id)
         .where(ConversationModel.is_deleted == False)
     )
@@ -264,7 +262,6 @@ async def delete_conversation(
     """Delete a conversation (soft delete)."""
     result = await db.execute(
         select(ConversationModel)
-        .options(selectinload(ConversationModel.tags))
         .where(ConversationModel.id == conversation_id)
         .where(ConversationModel.is_deleted == False)
     )
@@ -299,7 +296,6 @@ async def mark_conversation_read(
     """Mark a conversation as read and clear unread count."""
     result = await db.execute(
         select(ConversationModel)
-        .options(selectinload(ConversationModel.tags))
         .where(ConversationModel.id == conversation_id)
         .where(ConversationModel.is_deleted == False)
     )
@@ -345,7 +341,6 @@ async def increment_unread_count(
     """Manually increment unread count for testing purposes."""
     result = await db.execute(
         select(ConversationModel)
-        .options(selectinload(ConversationModel.tags))
         .where(ConversationModel.id == conversation_id)
         .where(ConversationModel.is_deleted == False)
     )
@@ -377,7 +372,6 @@ async def duplicate_conversation(
     """Duplicate a conversation."""
     result = await db.execute(
         select(ConversationModel)
-        .options(selectinload(ConversationModel.tags))
         .where(ConversationModel.id == conversation_id)
         .where(ConversationModel.is_deleted == False)
     )
@@ -438,7 +432,6 @@ async def move_conversation(
     """Move a conversation to a different project (or remove from project)."""
     result = await db.execute(
         select(ConversationModel)
-        .options(selectinload(ConversationModel.tags))
         .where(ConversationModel.id == conversation_id)
         .where(ConversationModel.is_deleted == False)
     )
@@ -491,7 +484,6 @@ async def export_conversation(
     # Get conversation
     result = await db.execute(
         select(ConversationModel)
-        .options(selectinload(ConversationModel.tags))
         .where(ConversationModel.id == conversation_id)
         .where(ConversationModel.is_deleted == False)
     )
@@ -828,7 +820,6 @@ async def get_branch_tree(
     # Get the conversation
     result = await db.execute(
         select(ConversationModel)
-        .options(selectinload(ConversationModel.tags))
         .where(ConversationModel.id == conversation_id)
         .where(ConversationModel.is_deleted == False)
     )

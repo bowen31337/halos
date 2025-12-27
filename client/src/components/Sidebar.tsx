@@ -6,6 +6,8 @@ import { useState, useEffect } from 'react'
 import { api } from '../services/api'
 import { ProjectSelector } from './ProjectSelector'
 import type { Project } from '../stores/projectStore'
+import { useContextMenu, createConversationMenuItems } from './ContextMenu'
+import { useToast } from './ToastManager'
 
 export function Sidebar() {
   const {
@@ -36,6 +38,8 @@ export function Sidebar() {
   const [showArchived, setShowArchived] = useState(false)
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
   const [showMoveModal, setShowMoveModal] = useState<string | null>(null)
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
+  const [availableTags, setAvailableTags] = useState<Tag[]>([])
 
   const handleArchive = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
@@ -75,6 +79,22 @@ export function Sidebar() {
     loadConversations()
   }, [loadConversations])
 
+  // Load available tags
+  useEffect(() => {
+    const loadTags = async () => {
+      try {
+        const response = await fetch('/api/tags')
+        if (response.ok) {
+          const tags = await response.json()
+          setAvailableTags(tags)
+        }
+      } catch (error) {
+        console.error('Failed to load tags:', error)
+      }
+    }
+    loadTags()
+  }, [])
+
   const handleNewConversation = async () => {
     setIsCreating(true)
     try {
@@ -86,6 +106,18 @@ export function Sidebar() {
     } finally {
       setIsCreating(false)
     }
+  }
+
+  const handleTagFilter = (tagId: string) => {
+    setSelectedTagIds(prev =>
+      prev.includes(tagId)
+        ? prev.filter(id => id !== tagId)
+        : [...prev, tagId]
+    )
+  }
+
+  const handleClearTagFilter = () => {
+    setSelectedTagIds([])
   }
 
   const handleSelectConversation = (conv: Conversation) => {
@@ -265,6 +297,14 @@ export function Sidebar() {
     if (showArchived && !conv.isArchived) return false
     if (!showArchived && conv.isArchived) return false
     if (selectedProjectId && conv.projectId !== selectedProjectId) return false
+
+    // Filter by tags - must have ALL selected tags
+    if (selectedTagIds.length > 0) {
+      const convTagIds = conv.tags?.map(tag => tag.id) || []
+      const hasAllSelectedTags = selectedTagIds.every(tagId => convTagIds.includes(tagId))
+      if (!hasAllSelectedTags) return false
+    }
+
     if (!searchQuery.trim()) return true
     const query = searchQuery.toLowerCase()
     return conv.title.toLowerCase().includes(query)
@@ -309,6 +349,42 @@ export function Sidebar() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
+
+        {/* Tags filter section */}
+        {availableTags.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs text-[var(--text-secondary)]">
+              <span>Filter by tags:</span>
+              {selectedTagIds.length > 0 && (
+                <button
+                  onClick={handleClearTagFilter}
+                  className="text-[var(--primary)] hover:text-[var(--primary-hover)]"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
+              {availableTags.map((tag) => (
+                <button
+                  key={tag.id}
+                  onClick={() => handleTagFilter(tag.id)}
+                  className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border transition-colors ${
+                    selectedTagIds.includes(tag.id)
+                      ? `bg-[var(--primary)] text-white border-[var(--primary)]`
+                      : `bg-[var(--bg-primary)] text-[var(--text-primary)] border-[var(--border)] hover:bg-[var(--bg-secondary)]`
+                  }`}
+                  style={selectedTagIds.includes(tag.id) ? {} : { borderColor: tag.color, color: tag.color }}
+                >
+                  {tag.name}
+                  {selectedTagIds.includes(tag.id) && (
+                    <span className="ml-1">✓</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
           <button
@@ -504,6 +580,8 @@ function ConversationItem({
   const [showActions, setShowActions] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editTitle, setEditTitle] = useState(conv.title)
+  const { openContextMenu } = useContextMenu()
+  const { showSuccess } = useToast()
 
   const handleStartEdit = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -532,6 +610,70 @@ function ConversationItem({
     }
   }
 
+  const handleContextMenu = (e: React.MouseEvent) => {
+    if (isEditing) return
+
+    const items = createConversationMenuItems(
+      () => handleStartEdit(e),
+      () => onArchive(e),
+      () => onDelete(e),
+      () => {
+        onExport(e, 'json')
+        showSuccess('Exported', 'Conversation exported as JSON')
+      }
+    )
+
+    // Add additional items
+    items.splice(1, 0, {
+      id: 'duplicate',
+      label: 'Duplicate',
+      icon: (
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+      ),
+      onClick: () => onDuplicate(e),
+    })
+
+    items.splice(2, 0, {
+      id: 'pin',
+      label: conv.isPinned ? 'Unpin' : 'Pin',
+      icon: (
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+        </svg>
+      ),
+      onClick: () => onPin(e),
+    })
+
+    items.splice(3, 0, {
+      id: 'export-md',
+      label: 'Export as Markdown',
+      icon: (
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      ),
+      onClick: () => {
+        onExport(e, 'markdown')
+        showSuccess('Exported', 'Conversation exported as Markdown')
+      },
+    })
+
+    items.splice(4, 0, {
+      id: 'move',
+      label: 'Move to Project',
+      icon: (
+        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+        </svg>
+      ),
+      onClick: () => onMove(),
+    })
+
+    openContextMenu(e, items)
+  }
+
   return (
     <div
       className={`group relative flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
@@ -547,6 +689,7 @@ function ConversationItem({
           handleCancelEdit()
         }
       }}
+      onContextMenu={handleContextMenu}
     >
       {isEditing ? (
         <form
@@ -593,6 +736,26 @@ function ConversationItem({
               <span className="text-xs text-[var(--text-secondary)] min-w-[16px] text-right">
                 {conv.unreadCount}
               </span>
+            </div>
+          )}
+
+          {/* Tags display */}
+          {conv.tags && conv.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 ml-2">
+              {conv.tags.slice(0, 3).map((tag) => (
+                <span
+                  key={tag.id}
+                  className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                  style={{ backgroundColor: `${tag.color}20`, color: tag.color, borderColor: tag.color }}
+                >
+                  {tag.name}
+                </span>
+              ))}
+              {conv.tags.length > 3 && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--bg-primary)] text-[var(--text-secondary)] border border-[var(--border)]">
+                  +{conv.tags.length - 3}
+                </span>
+              )}
             </div>
           )}
 

@@ -4,6 +4,7 @@ import { ThinkingIndicator } from './ThinkingIndicator'
 import { VariableSizeList as List } from 'react-window'
 import { useRef, useCallback, useEffect, useState } from 'react'
 import type { Message } from '../stores/conversationStore'
+import { useUIStore } from '../stores/uiStore'
 
 // Default height for messages before measurement
 const DEFAULT_ROW_HEIGHT = 150
@@ -11,6 +12,50 @@ const DEFAULT_ROW_HEIGHT = 150
 const MAX_ROW_HEIGHT = 800
 // Threshold for switching to virtualized mode
 const VIRTUALIZATION_THRESHOLD = 15
+
+
+// Helper to group messages by comparison group
+interface GroupedMessages {
+  type: 'single' | 'comparison'
+  messages: Message[]
+  comparisonGroup?: string
+}
+
+function groupMessagesForDisplay(messages: Message[]): GroupedMessages[] {
+  const result: GroupedMessages[] = []
+  let i = 0
+
+  while (i < messages.length) {
+    const currentMsg = messages[i]
+
+    // Check if this is part of a comparison group
+    if (currentMsg.comparisonGroup) {
+      const group = currentMsg.comparisonGroup
+      const groupMessages: Message[] = []
+
+      // Collect all messages with the same comparison group
+      while (i < messages.length && messages[i].comparisonGroup === group) {
+        groupMessages.push(messages[i])
+        i++
+      }
+
+      result.push({
+        type: 'comparison',
+        messages: groupMessages,
+        comparisonGroup: group,
+      })
+    } else {
+      // Single message
+      result.push({
+        type: 'single',
+        messages: [currentMsg],
+      })
+      i++
+    }
+  }
+
+  return result
+}
 
 interface RowProps {
   index: number
@@ -127,17 +172,48 @@ export function MessageList() {
 
   // For small message lists, use regular rendering for better performance
   if (messages.length < VIRTUALIZATION_THRESHOLD) {
+    const groupedMessages = groupMessagesForDisplay(messages)
+    
     return (
       <div className="max-w-3xl mx-auto py-8 px-4">
-        {messages.map((message) => (
-          <MessageBubble
-            key={message.id}
-            message={message}
-            onRegenerate={regenerateLastResponse}
-            onEdit={editAndResend}
-            onSuggestionClick={handleSuggestionClick}
-          />
-        ))}
+        {groupedMessages.map((group, groupIndex) => {
+          if (group.type === 'comparison') {
+            // Render comparison group side-by-side
+            return (
+              <div key={group.comparisonGroup || groupIndex} className="mb-6">
+                <div className="grid grid-cols-2 gap-4">
+                  {group.messages.map((message) => (
+                    <div key={message.id} className="bg-[var(--bg-secondary)] rounded-lg border border-[var(--border)] overflow-hidden">
+                      <div className="px-4 py-2 bg-[var(--surface-elevated)] border-b border-[var(--border)] text-xs font-medium text-[var(--text-secondary)] flex justify-between items-center">
+                        <span>{message.model || 'Model'}</span>
+                        {message.isStreaming && <span className="loading-dots"><span></span><span></span><span></span></span>}
+                      </div>
+                      <div className="px-4 py-3">
+                        <MessageBubble
+                          message={message}
+                          onRegenerate={regenerateLastResponse}
+                          onEdit={editAndResend}
+                          onSuggestionClick={handleSuggestionClick}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )
+          } else {
+            // Render single message
+            return group.messages.map((message) => (
+              <MessageBubble
+                key={message.id}
+                message={message}
+                onRegenerate={regenerateLastResponse}
+                onEdit={editAndResend}
+                onSuggestionClick={handleSuggestionClick}
+              />
+            ))
+          }
+        })}
         {(isStreaming || isLastMessageThinking) && (
           <div className="py-4 flex justify-center">
             <ThinkingIndicator />

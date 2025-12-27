@@ -346,8 +346,107 @@ console.log(greet("World"));
             }
             await asyncio.sleep(0.1)
 
+        # Check if user wants to use glob to find files
+        glob_keywords = ["glob", "find files", "search for files", "list all files", "file pattern"]
+        if any(word in actual_message.lower() for word in glob_keywords):
+            tool_name = "glob"
+
+            # Extract glob pattern from message
+            # Look for patterns like **/*.py or src/**/*.ts
+            import re
+            pattern_match = re.search(r'[\*{}\[\]\?]+[^\s]*', actual_message)
+            if pattern_match:
+                glob_pattern = pattern_match.group(0)
+            elif "python" in actual_message.lower() or ".py" in actual_message:
+                glob_pattern = "**/*.py"
+            elif "typescript" in actual_message.lower() or ".ts" in actual_message:
+                glob_pattern = "**/*.ts"
+            elif "markdown" in actual_message.lower() or ".md" in actual_message:
+                glob_pattern = "**/*.md"
+            elif "test" in actual_message.lower():
+                glob_pattern = "**/*test*.py"
+            elif "src" in actual_message.lower():
+                glob_pattern = "src/**/*.py"
+            else:
+                glob_pattern = "**/*"
+
+            tool_input = {"pattern": glob_pattern}
+
+            # Tool start - matches LangGraph format
+            yield {
+                "event": "on_tool_start",
+                "name": tool_name,
+                "data": {"input": tool_input},
+            }
+            await asyncio.sleep(0.1)
+
+            # Tool end - return mock results based on pattern
+            # Simulate finding files
+            mock_files = []
+            if ".py" in glob_pattern:
+                mock_files = ["main.py", "app.py", "utils.py", "config.py"]
+                if "src" in glob_pattern:
+                    mock_files = ["src/main.py", "src/utils.py", "src/config.py"]
+            elif ".ts" in glob_pattern:
+                mock_files = ["index.ts", "App.tsx", "utils.ts"]
+                if "src" in glob_pattern:
+                    mock_files = ["src/index.ts", "src/App.tsx", "src/components/Header.tsx"]
+            elif ".md" in glob_pattern:
+                mock_files = ["README.md", "CHANGELOG.md", "docs/api.md"]
+            else:
+                mock_files = ["file1.txt", "file2.txt", "file3.txt"]
+
+            yield {
+                "event": "on_tool_end",
+                "name": tool_name,
+                "data": {"output": f"Found {len(mock_files)} files matching pattern '{glob_pattern}':\n" + "\n".join(f"  {f}" for f in mock_files)},
+            }
+            await asyncio.sleep(0.1)
+
+        # Check if user wants to use grep to search file contents
+        grep_keywords = ["grep", "search in files", "find in files", "search for", "search content"]
+        if any(word in actual_message.lower() for word in grep_keywords) and not any(word in actual_message.lower() for word in ["glob", "find files"]):
+            tool_name = "grep"
+
+            # Extract search pattern
+            # Look for quoted strings or keywords
+            pattern_match = re.search(r'"([^"]+)"', actual_message)
+            if pattern_match:
+                search_pattern = pattern_match.group(1)
+            elif re.search(r"'([^']+)'", actual_message):
+                search_pattern = re.search(r"'([^']+)'", actual_message).group(1)
+            else:
+                # Extract key search term
+                words = actual_message.lower().split()
+                stop_words = ["search", "find", "grep", "for", "in", "files", "content", "with", "pattern"]
+                search_pattern = next((w for w in words if w not in stop_words and len(w) > 2), "pattern")
+
+            tool_input = {"pattern": search_pattern, "path": "."}
+
+            # Tool start
+            yield {
+                "event": "on_tool_start",
+                "name": tool_name,
+                "data": {"input": tool_input},
+            }
+            await asyncio.sleep(0.1)
+
+            # Tool end - return mock results
+            mock_matches = [
+                f"main.py:42: def {search_pattern}()",
+                f"utils.py:15: # TODO: Implement {search_pattern}",
+                f"app.py:78: {search_pattern} = True",
+            ]
+
+            yield {
+                "event": "on_tool_end",
+                "name": tool_name,
+                "data": {"output": f"Found {len(mock_matches)} matches for '{search_pattern}':\n" + "\n".join(f"  {m}" for m in mock_matches)},
+            }
+            await asyncio.sleep(0.1)
+
         # Check if we should simulate file tool usage
-        elif any(word in actual_message.lower() for word in ["read", "file", "write", "edit"]):
+        elif any(word in actual_message.lower() for word in ["read", "write", "edit"]):
             tool_name = "write_file" if any(word in actual_message.lower() for word in ["write", "edit"]) else "read_file"
             tool_input = {"path": "/example/file.txt", "content": "example content"} if tool_name == "write_file" else {"path": "/example/file.txt"}
 
