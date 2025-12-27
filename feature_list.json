@@ -2701,8 +2701,9 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
-    "notes": "Implemented: Batch API endpoints created with full CRUD operations, export, and frontend components. See BATCH_API_IMPLEMENTATION.md for details."
+    "is_qa_passed": true,
+    "notes": "Implemented: Backend batch endpoints (export, delete, archive, duplicate, move) with frontend batch selection UI and progress indicators",
+    "test_date": "2025-12-28"
   },
   {
     "category": "functional",

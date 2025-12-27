@@ -33,6 +33,15 @@ async def test_batch_export_conversations(async_client: AsyncClient, test_db: As
 
     await test_db.commit()
 
+    # Debug: check if conversations exist in DB
+    result = await test_db.execute(select(ConversationModel))
+    all_convs = result.scalars().all()
+    print(f"DEBUG: Conversations in DB: {len(all_convs)}, IDs: {[c.id for c in all_convs]}")
+
+    result2 = await test_db.execute(select(MessageModel))
+    all_msgs = result2.scalars().all()
+    print(f"DEBUG: Messages in DB: {len(all_msgs)}")
+
     # Test batch export
     response = await async_client.post(
         "/api/conversations/batch/export",
