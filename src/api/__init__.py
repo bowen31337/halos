@@ -31,7 +31,11 @@ router.include_router(conversations.router, prefix="/conversations", tags=["Conv
 router.include_router(conversation_branching.router, prefix="/conversations", tags=["Conversation Branching"])
 router.include_router(sharing.router, prefix="/conversations", tags=["Sharing"])
 
-router.include_router(messages.router, prefix="/messages", tags=["Messages"])
+# Message routes - split into two routers for different path patterns
+# 1. Conversation-specific: /api/conversations/{id}/messages
+router.include_router(messages.conversation_messages_router, prefix="/conversations", tags=["Messages"])
+# 2. Message operations: /api/messages/{id}
+router.include_router(messages.message_operations_router, prefix="/messages", tags=["Messages"])
 
 router.include_router(agent.router, prefix="/agent", tags=["Agent"])
 router.include_router(artifacts.router, prefix="/artifacts", tags=["Artifacts"])
