@@ -1,10 +1,13 @@
 """Project management endpoints."""
 
 import json
+import os
+from pathlib import Path
 from typing import Optional
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, UploadFile, File
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,8 +15,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.database import get_db
 from src.models.project import Project
 from src.models.conversation import Conversation
+from src.models.project_file import ProjectFile
 
 router = APIRouter()
+
+# Directory for project files
+PROJECT_FILES_DIR = Path("data/project_files")
 
 
 class ProjectCreate(BaseModel):
