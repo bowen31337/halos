@@ -637,7 +637,7 @@ async def stream_agent(
                         continue
 
                     # Stream message content
-                    elif event_kind == "on_chat_model_stream":
+                    if event_kind == "on_chat_model_stream":
                         chunk = event.get("data", {}).get("chunk", {})
                         content = chunk.content if hasattr(chunk, 'content') else ""
                         if content:
@@ -669,10 +669,10 @@ async def stream_agent(
 
                     # Interrupt event (HITL - Human in the Loop)
                     elif event_kind == "on_interrupt":
-                    event_data = event.get("data", {})
-                    tool_name = event_data.get("tool", event.get("name", ""))
-                    tool_input = event_data.get("input", {})
-                    reason = event_data.get("reason", "Tool execution requires approval")
+                        event_data = event.get("data", {})
+                        tool_name = event_data.get("tool", event.get("name", ""))
+                        tool_input = event_data.get("input", {})
+                        reason = event_data.get("reason", "Tool execution requires approval")
 
                     # Store in pending approvals
                     pending_approvals[thread_id] = {
