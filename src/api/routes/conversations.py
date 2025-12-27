@@ -139,7 +139,11 @@ async def get_conversation(
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Get a specific conversation."""
-    result = await db.execute(select(ConversationModel).where(ConversationModel.id == conversation_id))
+    result = await db.execute(
+        select(ConversationModel)
+        .where(ConversationModel.id == conversation_id)
+        .where(ConversationModel.is_deleted == False)
+    )
     conversation = result.scalar_one_or_none()
 
     if not conversation:
@@ -165,7 +169,11 @@ async def update_conversation(
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Update a conversation."""
-    result = await db.execute(select(ConversationModel).where(ConversationModel.id == conversation_id))
+    result = await db.execute(
+        select(ConversationModel)
+        .where(ConversationModel.id == conversation_id)
+        .where(ConversationModel.is_deleted == False)
+    )
     conversation = result.scalar_one_or_none()
 
     if not conversation:
@@ -201,7 +209,11 @@ async def delete_conversation(
     db: AsyncSession = Depends(get_db),
 ) -> None:
     """Delete a conversation (soft delete)."""
-    result = await db.execute(select(ConversationModel).where(ConversationModel.id == conversation_id))
+    result = await db.execute(
+        select(ConversationModel)
+        .where(ConversationModel.id == conversation_id)
+        .where(ConversationModel.is_deleted == False)
+    )
     conversation = result.scalar_one_or_none()
 
     if not conversation:
@@ -217,7 +229,11 @@ async def duplicate_conversation(
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Duplicate a conversation."""
-    result = await db.execute(select(ConversationModel).where(ConversationModel.id == conversation_id))
+    result = await db.execute(
+        select(ConversationModel)
+        .where(ConversationModel.id == conversation_id)
+        .where(ConversationModel.is_deleted == False)
+    )
     original = result.scalar_one_or_none()
 
     if not original:

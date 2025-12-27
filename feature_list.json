@@ -1462,9 +1462,9 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
+    "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "Verified working via API tests"
+    "notes": "Verified working via API tests. All 7 tests passed: permission modes, interrupt events, approve/reject/edit decisions, auto mode, pending approval endpoint."
   },
   {
     "category": "functional",

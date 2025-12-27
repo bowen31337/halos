@@ -9,6 +9,7 @@ from src.api.routes import (
     checkpoints,
     conversation_branching,
     conversations,
+    folders,
     health,
     memory,
     messages,
@@ -43,6 +44,7 @@ router.include_router(artifacts.router, prefix="/artifacts", tags=["Artifacts"])
 router.include_router(checkpoints.conversation_router, prefix="/conversations", tags=["Checkpoints"])
 router.include_router(checkpoints.checkpoint_router, prefix="/checkpoints", tags=["Checkpoints"])
 router.include_router(projects.router, prefix="/projects", tags=["Projects"])
+router.include_router(folders.router, prefix="/folders", tags=["Folders"])
 router.include_router(memory.router, prefix="/memory", tags=["Memory"])
 router.include_router(search.router, prefix="/search", tags=["Search"])
 router.include_router(settings.router, prefix="/settings", tags=["Settings"])
