@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from src.api.routes import (
+    activity,
     agent,
     artifacts,
     audit,
@@ -68,3 +69,4 @@ router.include_router(comments.router, prefix="/comments", tags=["Comments"])
 router.include_router(tags.router, prefix="/tags", tags=["Tags"])
 router.include_router(batch.router, tags=["Batch Operations"])
 router.include_router(collaboration.router, prefix="/collaboration", tags=["Collaboration"])
+router.include_router(activity.router, prefix="/activity", tags=["Activity Feed"])
