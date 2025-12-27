@@ -41,7 +41,7 @@ async def verify_react_preview():
             }
         )
 
-        if conv_response.status_code != 200:
+        if conv_response.status_code not in [200, 201]:
             print(f"❌ Failed to create conversation: {conv_response.status_code}")
             return False
 
@@ -70,17 +70,16 @@ export default function Counter() {
 """
 
         artifact_response = await client.post(
-            f"/api/conversations/{conversation_id}/artifacts",
+            "/api/artifacts/create",
             json={
                 "title": "Counter Component",
                 "content": react_code,
-                "artifact_type": "react",
                 "language": "jsx",
-                "identifier": "counter",
+                "conversation_id": conversation_id,
             }
         )
 
-        if artifact_response.status_code != 200:
+        if artifact_response.status_code not in [200, 201]:
             print(f"❌ Failed to create artifact: {artifact_response.status_code}")
             print(f"Response: {artifact_response.text}")
             return False
@@ -95,7 +94,7 @@ export default function Counter() {
         print("\n[3/5] Verifying artifact was saved...")
 
         get_response = await client.get(
-            f"/api/conversations/{conversation_id}/artifacts"
+            f"/api/artifacts/conversations/{conversation_id}/artifacts"
         )
 
         if get_response.status_code != 200:
@@ -161,17 +160,16 @@ export default function Counter() {
 
         for type_name, code, lang in component_types:
             response = await client.post(
-                f"/api/conversations/{conversation_id}/artifacts",
+                "/api/artifacts/create",
                 json={
                     "title": f"{type_name} Component",
                     "content": code,
-                    "artifact_type": "react",
                     "language": lang,
-                    "identifier": f"{lang.lower()}-app",
+                    "conversation_id": conversation_id,
                 }
             )
 
-            if response.status_code == 200:
+            if response.status_code in [200, 201]:
                 print(f"  ✓ {type_name} component created")
             else:
                 print(f"  ❌ {type_name} component failed: {response.status_code}")

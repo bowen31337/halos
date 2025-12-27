@@ -21,7 +21,10 @@ export function ArtifactPanel() {
     forkArtifact,
     getArtifactVersions,
     versions,
-    downloadArtifact: downloadArtifactAPI
+    downloadArtifact: downloadArtifactAPI,
+    executeArtifact: executeArtifactAPI,
+    executionResults,
+    clearExecutionResult
   } = useArtifactStore()
 
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
@@ -32,6 +35,12 @@ export function ArtifactPanel() {
   const [isEditing, setIsEditing] = useState(false)
   const [mermaidReady, setMermaidReady] = useState(false)
   const mermaidRef = useRef<HTMLDivElement>(null)
+
+  // Code execution state
+  const [showExecuteConfirm, setShowExecuteConfirm] = useState(false)
+  const [isExecuting, setIsExecuting] = useState(false)
+  const [executionResult, setExecutionResult] = useState<any>(null)
+  const [showExecutionResult, setShowExecutionResult] = useState(false)
 
   // Feature #46: Full-screen artifact view toggle
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -206,6 +215,44 @@ export function ArtifactPanel() {
       console.error('Get versions failed:', err)
     }
   }
+
+  const handleExecute = async (timeout: number = 10) => {
+    if (!currentArtifact) return
+
+    setIsExecuting(true)
+    setShowExecuteConfirm(false)
+    setShowExecutionResult(true)
+
+    try {
+      const result = await executeArtifactAPI(currentArtifact.id, timeout)
+      setExecutionResult({ execution: result })
+    } catch (err) {
+      console.error('Execution error:', err)
+      setExecutionResult({
+        error: `Failed to execute code: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        execution: {
+          success: false,
+          output: '',
+          error: err instanceof Error ? err.message : 'Unknown error',
+          execution_time: 0,
+          return_code: -1
+        }
+      })
+    } finally {
+      setIsExecuting(false)
+    }
+  }
+
+  const handleClearExecutionResult = () => {
+    if (currentArtifact) {
+      clearExecutionResult(currentArtifact.id)
+    }
+    setExecutionResult(null)
+    setShowExecutionResult(false)
+  }
+
+  // Get execution result for current artifact
+  const currentExecutionResult = currentArtifact ? executionResults[currentArtifact.id] : null
 
   const openEditModal = () => {
     if (!currentArtifact) return
@@ -560,6 +607,17 @@ export function ArtifactPanel() {
                     >
                       🾱
                     </button>
+                    {/* Feature #148: Code execution in sandbox - only for code artifacts */}
+                    {currentArtifact.artifact_type === 'code' && (
+                      <button
+                        onClick={() => setShowExecuteConfirm(true)}
+                        className="p-1.5 hover:bg-[var(--bg-tertiary)] rounded text-sm transition-colors"
+                        title="Execute code"
+                        disabled={isExecuting}
+                      >
+                        {isExecuting ? '⏳' : '▶️'}
+                      </button>
+                    )}
                     <button
                       onClick={handleShowVersions}
                       className="p-1.5 hover:bg-[var(--bg-tertiary)] rounded text-sm transition-colors"
@@ -579,6 +637,49 @@ export function ArtifactPanel() {
 
                 {/* Content Display */}
                 {renderContent()}
+
+                {/* Execution Result Display */}
+                {showExecutionResult && (executionResult || currentExecutionResult) && (
+                  <div className="px-4 py-3 border-t border-[var(--border-primary)] bg-[var(--bg-secondary)]">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold text-[var(--text-primary)]">Execution Result</span>
+                      <button
+                        onClick={handleClearExecutionResult}
+                        className="text-xs px-2 py-1 hover:bg-[var(--bg-tertiary)] rounded transition-colors"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                    {(() => {
+                      const result = executionResult?.execution || currentExecutionResult
+                      if (!result) return null
+
+                      return (
+                        <div className="space-y-2 font-mono text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-0.5 rounded ${result.success ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>
+                              {result.success ? '✓ SUCCESS' : '✗ FAILED'}
+                            </span>
+                            <span className="text-[var(--text-secondary)]">Time: {result.execution_time?.toFixed(3)}s</span>
+                            <span className="text-[var(--text-secondary)]">Exit: {result.return_code ?? 'N/A'}</span>
+                          </div>
+                          {result.output && (
+                            <div className="bg-[var(--bg-primary)] p-2 rounded border border-[var(--border-primary)] overflow-auto max-h-48">
+                              <div className="text-[var(--text-secondary)] mb-1 text-[10px] uppercase">Output:</div>
+                              <pre className="whitespace-pre-wrap text-[var(--text-primary)]">{result.output}</pre>
+                            </div>
+                          )}
+                          {result.error && (
+                            <div className="bg-[var(--bg-primary)] p-2 rounded border border-red-500/30 overflow-auto max-h-48">
+                              <div className="text-red-400 mb-1 text-[10px] uppercase">Error:</div>
+                              <pre className="whitespace-pre-wrap text-red-300">{result.error}</pre>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })()}
+                  </div>
+                )}
 
                 {/* Metadata */}
                 <div className="px-4 py-2 border-t border-[var(--border-primary)] bg-[var(--bg-secondary)] text-xs text-[var(--text-secondary)]">
@@ -714,6 +815,142 @@ export function ArtifactPanel() {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Feature #148: Code Execution Confirmation Dialog (HITL) */}
+      {showExecuteConfirm && currentArtifact && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg shadow-xl max-w-lg w-full">
+            <div className="px-4 py-3 border-b border-[var(--border-primary)]">
+              <h3 className="font-semibold text-[var(--text-primary)]">⚠️ Execute Code?</h3>
+            </div>
+            <div className="p-4 space-y-3">
+              <p className="text-sm text-[var(--text-secondary)]">
+                You are about to execute code in a sandboxed environment:
+              </p>
+              <div className="p-3 bg-[var(--bg-secondary)] rounded border border-[var(--border-primary)]">
+                <div className="font-medium text-[var(--text-primary)]">{currentArtifact.title}</div>
+                <div className="text-xs text-[var(--text-secondary)] mt-1">
+                  Language: {currentArtifact.language}
+                </div>
+              </div>
+              <div className="text-xs text-[var(--text-secondary)] space-y-1">
+                <p>⏱️ Execution timeout: <strong>10 seconds</strong></p>
+                <p>🔒 The code will run in a temporary, isolated directory</p>
+                <p>⚠️ Only run code from trusted sources</p>
+              </div>
+            </div>
+            <div className="px-4 py-3 border-t border-[var(--border-primary)] flex justify-end gap-2">
+              <button
+                onClick={() => setShowExecuteConfirm(false)}
+                className="px-4 py-2 hover:bg-[var(--bg-tertiary)] rounded transition-colors"
+                disabled={isExecuting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleExecute(10)}
+                disabled={isExecuting}
+                className="px-4 py-2 bg-[var(--primary)] text-white rounded hover:opacity-90 transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {isExecuting ? (
+                  <>
+                    <span className="inline-block animate-spin">⏳</span>
+                    <span>Executing...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>▶️</span>
+                    <span>Execute Code</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Feature #148: Code Execution Result Display */}
+      {showExecutionResult && executionResult && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div className="px-4 py-3 border-b border-[var(--border-primary)] flex items-center justify-between">
+              <h3 className="font-semibold text-[var(--text-primary)] flex items-center gap-2">
+                {executionResult.execution?.success ? '✅ Execution Result' : '❌ Execution Failed'}
+              </h3>
+              <button
+                onClick={() => setShowExecutionResult(false)}
+                className="p-1 hover:bg-[var(--bg-tertiary)] rounded"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-4 space-y-3">
+              {/* Metadata */}
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span className="text-[var(--text-secondary)]">Language:</span>
+                  <span className="ml-2 text-[var(--text-primary)] font-medium">{executionResult.language}</span>
+                </div>
+                <div>
+                  <span className="text-[var(--text-secondary)]">Time:</span>
+                  <span className="ml-2 text-[var(--text-primary)] font-medium">
+                    {executionResult.execution?.execution_time}s
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[var(--text-secondary)]">Status:</span>
+                  <span className={`ml-2 font-medium ${
+                    executionResult.execution?.success ? 'text-green-500' : 'text-red-500'
+                  }`}>
+                    {executionResult.execution?.success ? 'Success' : 'Failed'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[var(--text-secondary)]">Return Code:</span>
+                  <span className="ml-2 text-[var(--text-primary)] font-medium">
+                    {executionResult.execution?.return_code ?? 'N/A'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Output */}
+              {executionResult.execution?.output && (
+                <div>
+                  <h4 className="text-sm font-medium text-[var(--text-primary)] mb-2">📤 Output</h4>
+                  <pre className="p-3 bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded text-sm text-[var(--text-primary)] overflow-x-auto whitespace-pre-wrap">
+                    {executionResult.execution.output}
+                  </pre>
+                </div>
+              )}
+
+              {/* Error */}
+              {executionResult.execution?.error && (
+                <div>
+                  <h4 className="text-sm font-medium text-red-400 mb-2">⚠️ Error</h4>
+                  <pre className="p-3 bg-red-500/10 border border-red-500/30 rounded text-sm text-red-300 overflow-x-auto whitespace-pre-wrap">
+                    {executionResult.execution.error}
+                  </pre>
+                </div>
+              )}
+
+              {/* API Error */}
+              {executionResult.error && !executionResult.execution?.error && (
+                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded text-sm text-red-300">
+                  {executionResult.error}
+                </div>
+              )}
+            </div>
+            <div className="px-4 py-3 border-t border-[var(--border-primary)] flex justify-end">
+              <button
+                onClick={() => setShowExecutionResult(false)}
+                className="px-4 py-2 bg-[var(--primary)] text-white rounded hover:opacity-90 transition-colors"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
