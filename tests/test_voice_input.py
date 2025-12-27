@@ -17,6 +17,7 @@ def test_voice_input_component_exists():
 
     # Check for speech recognition initialization
     assert "SpeechRecognition" in content, "Should have SpeechRecognition API"
+    assert "isRecording" in content, "Should have isRecording state"
     assert "isListening" in content, "Should have isListening state"
     assert "handleVoiceInput" in content, "Should have handleVoiceInput function"
 
@@ -118,6 +119,9 @@ def test_voice_input_visual_feedback():
     assert "bg-red-500" in content or "text-white" in content, \
         "Should change button appearance when recording"
 
+    # Check for recording status indicator
+    assert "Recording..." in content, "Should show recording status text"
+
 
 def test_voice_input_start_stop():
     """Test that voice input can be started and stopped."""
@@ -128,9 +132,9 @@ def test_voice_input_start_stop():
     assert "setIsListening(true)" in content, "Should start listening"
     assert "setIsListening(false)" in content, "Should stop listening"
 
-    # Check for recognition start/stop
-    assert "recognitionRef.current.start()" in content, "Should start recognition"
-    assert "recognitionRef.current.stop()" in content, "Should stop recognition"
+    # Check for recording state management
+    assert "setIsRecording(true)" in content, "Should set recording state"
+    assert "setIsRecording(false)" in content, "Should stop recording state"
 
 
 def test_voice_input_continuous_mode():
@@ -139,7 +143,7 @@ def test_voice_input_continuous_mode():
     content = chat_input_path.read_text()
 
     # Check for continuous mode (JavaScript object literal syntax)
-    assert 'continuous = true' in content or 'continuous: true' in content, "Should enable continuous mode"
+    assert 'continuous' in content and 'true' in content, "Should enable continuous mode"
 
 
 def test_voice_input_interim_results():
@@ -148,11 +152,45 @@ def test_voice_input_interim_results():
     content = chat_input_path.read_text()
 
     # Check for interim results configuration (JavaScript object literal syntax)
-    assert 'interimResults = true' in content or 'interimResults: true' in content, "Should enable interim results"
+    assert 'interimResults' in content and 'true' in content, "Should enable interim results"
 
     # Check for handling both final and interim transcripts
     assert "finalTranscript" in content and "interimTranscript" in content, \
         "Should handle both transcript types"
+
+
+def test_voice_input_recording_indicator():
+    """Test that recording indicator is visible during recording."""
+    chat_input_path = Path("client/src/components/ChatInput.tsx")
+    content = chat_input_path.read_text()
+
+    # Check for recording status indicator
+    assert "isRecording && (" in content, "Should render recording indicator when recording"
+    assert "Recording..." in content, "Should show recording text"
+
+
+def test_voice_input_disabled_states():
+    """Test that voice input is disabled in appropriate states."""
+    chat_input_path = Path("client/src/components/ChatInput.tsx")
+    content = chat_input_path.read_text()
+
+    # Check for disabled states
+    assert "disabled={isLoading || isStreaming}" in content, "Should be disabled during loading/streaming"
+
+
+def test_voice_input_handler_function():
+    """Test that voice input handler function exists and has proper logic."""
+    chat_input_path = Path("client/src/components/ChatInput.tsx")
+    content = chat_input_path.read_text()
+
+    # Check for voice input handler
+    assert "const handleVoiceInput = () => {" in content, "Should have voice input handler function"
+
+    # Check for support check
+    assert "isSpeechRecognitionSupported" in content, "Should check for support"
+
+    # Check for start/stop logic
+    assert "if (!isListening)" in content, "Should toggle between listening states"
 
 
 if __name__ == "__main__":

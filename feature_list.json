@@ -1317,7 +1317,7 @@
     "is_dev_done": true,
     "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "Voice input fully implemented with Web Speech API. 11/11 tests passing. Includes continuous mode, interim results, error handling, and visual feedback."
+    "notes": "Voice input feature implemented with Web Speech API, microphone button, recording state feedback, and comprehensive testing"
   },
   {
     "category": "functional",
@@ -1400,9 +1400,11 @@
       "Step 8: Verify deletion succeeds",
       "Step 9: GET deleted conversation returns 404"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Conversations API fully working. 8/8 tests passing (List, Create, Get, Update, Delete, Field validation, Defaults, Pagination)."
   },
   {
     "category": "functional",

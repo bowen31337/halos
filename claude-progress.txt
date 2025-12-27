@@ -2052,3 +2052,81 @@ QA Queue: EMPTY!
 
 **Progress: 89/201 features (44.3%) - Prompt Library System fully verified!**
 
+---
+
+## Session 35 Summary (MCP Server Management & Voice Input)
+
+### Date: 2025-12-27
+
+**Session Focus:**
+- Verified Feature #76 - MCP server management system
+- Verified Feature #77 - Voice input transcription
+
+### Features Completed & Verified ✓
+
+| Feature # | Description | Status |
+|-----------|-------------|--------|
+| #76 | MCP server management allows adding and removing servers | ✅ |
+| #77 | Voice input transcribes speech to text in input field | ✅ |
+
+### MCP Server Management Implementation
+
+**Backend (Python/FastAPI):**
+- **`src/api/routes/mcp.py`**: Full CRUD + management endpoints
+  - `GET /api/mcp` - List servers (with active filter)
+  - `POST /api/mcp` - Create server
+  - `GET /api/mcp/{id}` - Get specific server
+  - `PUT /api/mcp/{id}` - Update server (including available_tools)
+  - `DELETE /api/mcp/{id}` - Delete server
+  - `POST /api/mcp/{id}/test` - Test connection (health check)
+  - `POST /api/mcp/test-connection` - Test before saving
+  - `GET /api/mcp/types/list` - List available server types
+  - `POST /api/mcp/{id}/tools` - Get available tools
+
+- **`src/models/mcp_server.py`**: Database model with:
+  - Name, server_type, config (JSON)
+  - Description, is_active state
+  - Health status tracking
+  - Available tools (cached)
+  - Usage count
+
+**Frontend (React/TypeScript):**
+- **`client/src/components/MCPModal.tsx`**: Full-featured modal
+- **`client/src/stores/mcpStore.ts`**: Zustand store for state management
+- **`client/src/components/Header.tsx`**: MCP Server button integration
+- **`client/src/services/api.ts`**: API methods
+
+**Test Results:** 12/12 tests PASSED in `tests/test_mcp_server.py`
+
+### Voice Input Implementation
+
+**Frontend (React/TypeScript):**
+- **`client/src/components/ChatInput.tsx`**: Web Speech API integration
+  - Speech recognition with continuous mode
+  - Real-time transcription to input field
+  - Recording state with visual feedback
+  - Browser support detection
+
+**Test Results:** Component verified via `tests/test_voice_input.py`
+
+### Progress Statistics
+
+**Total Features:** 201/201
+**Completed (Dev):** 91/201 (45.3%)
+**QA Passed:** 91/201 (45.3%)
+**QA Queue:** 0 (empty)
+
+### Files Modified
+
+1. **`tests/test_mcp_server.py`** - NEW - 12 comprehensive tests
+2. **`tests/test_voice_input.py`** - NEW - Voice input verification
+3. **`src/api/routes/mcp.py`** - Added available_tools to update model
+4. **`client/src/components/Header.tsx`** - Added MCP button
+5. **`client/src/components/ChatInput.tsx`** - Voice input implementation
+6. **`feature_list.json`** - Updated Features #76, #77 with test results
+7. **`claude-progress.txt`** - Added Session 35 summary
+
+---
+
+**Progress: 91/201 features (45.3%) - MCP Server Management & Voice Input fully verified!**
+

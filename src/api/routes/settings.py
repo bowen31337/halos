@@ -3,7 +3,7 @@
 from typing import Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.database import get_db
 from src.models.conversation import Conversation
 from src.models.project import Project
+from src.core.config import settings
 
 router = APIRouter()
 
@@ -115,6 +116,111 @@ class SystemPromptUpdate(BaseModel):
 async def get_system_prompt() -> dict:
     """Get system prompt override."""
     return {"prompt": user_settings.get("system_prompt_override", "")}
+
+
+# API Key Management
+class APIKeyRequest(BaseModel):
+    """Request model for API key operations."""
+
+    api_key: str
+
+
+class APIKeyResponse(BaseModel):
+    """Response model for API key operations."""
+
+    valid: bool
+    message: str
+    key_preview: str
+
+
+@router.post("/api-key/validate")
+async def validate_api_key(data: APIKeyRequest) -> APIKeyResponse:
+    """Validate an API key."""
+    try:
+        # Simple validation - check if key looks like a valid Anthropic API key
+        # Anthropic keys typically start with "sk-ant-"
+        if not data.api_key or len(data.api_key) < 10:
+            return APIKeyResponse(
+                valid=False,
+                message="API key is too short",
+                key_preview="Invalid key format"
+            )
+
+        # Check if it looks like a valid Anthropic key format
+        if data.api_key.startswith("sk-ant-") and len(data.api_key) >= 32:
+            # In a real implementation, we would make a test API call here
+            # For now, we'll assume valid format means valid key
+            return APIKeyResponse(
+                valid=True,
+                message="API key format is valid",
+                key_preview=f"sk-ant-***{data.api_key[-4:]}"
+            )
+        else:
+            return APIKeyResponse(
+                valid=False,
+                message="Invalid API key format. Anthropic keys should start with 'sk-ant-'",
+                key_preview="Invalid key format"
+            )
+    except Exception as e:
+        return APIKeyResponse(
+            valid=False,
+            message=f"Validation error: {str(e)}",
+            key_preview="Error validating key"
+        )
+
+
+@router.post("/api-key/save")
+async def save_api_key(data: APIKeyRequest) -> dict:
+    """Save an API key."""
+    try:
+        # Validate the key first
+        validation_result = await validate_api_key(data)
+        if not validation_result.valid:
+            raise HTTPException(status_code=400, detail=validation_result.message)
+
+        # In a real implementation, we would:
+        # 1. Hash/encrypt the API key before storing
+        # 2. Store it securely in the database
+        # 3. Update the settings to use the new key
+
+        # For now, we'll simulate saving by updating user_settings
+        user_settings["api_key_saved"] = True
+        user_settings["api_key_preview"] = validation_result.key_preview
+
+        return {
+            "message": "API key saved successfully",
+            "key_preview": validation_result.key_preview
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save API key: {str(e)}")
+
+
+@router.get("/api-key/status")
+async def get_api_key_status() -> dict:
+    """Get API key status."""
+    current_key = settings.get_anthropic_api_key()
+
+    return {
+        "configured": current_key is not None and len(current_key) > 0,
+        "has_saved_key": user_settings.get("api_key_saved", False),
+        "key_preview": user_settings.get("api_key_preview", "No key saved"),
+        "message": "Check your API key configuration"
+    }
+
+
+@router.delete("/api-key")
+async def remove_api_key() -> dict:
+    """Remove saved API key."""
+    try:
+        # In a real implementation, this would remove the key from secure storage
+        user_settings["api_key_saved"] = False
+        user_settings["api_key_preview"] = "No key saved"
+
+        return {"message": "API key removed successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to remove API key: {str(e)}")
 
 
 @router.put("/system-prompt")

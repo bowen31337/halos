@@ -811,6 +811,7 @@ export function ChatInput() {
 
   return (
     <div
+      data-tour="chat-input"
       className={`max-w-3xl mx-auto p-4 ${isDragOver ? 'bg-[var(--bg-secondary)]' : ''}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}

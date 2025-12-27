@@ -294,7 +294,7 @@ export function Header() {
       </div>
 
       {/* Center: Model selector dropdown and thinking toggle */}
-      <div className="flex items-center gap-2 relative">
+      <div className="flex items-center gap-2 relative" data-tour="model-selector">
         <button
           onClick={() => setModelDropdownOpen(!modelDropdownOpen)}
           className="flex items-center gap-2 px-3 py-1.5 bg-[var(--surface-elevated)] hover:bg-[var(--bg-primary)] rounded-full text-sm transition-colors"
@@ -309,6 +309,7 @@ export function Header() {
 
         {/* Extended Thinking Toggle */}
         <button
+          data-tour="thinking-toggle"
           onClick={toggleExtendedThinking}
           className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors border ${
             extendedThinkingEnabled
@@ -533,6 +534,7 @@ export function Header() {
 
         {/* Prompt Library button */}
         <button
+          data-tour="prompt-library"
           onClick={() => setPromptModalOpen(true)}
           className="p-2 hover:bg-[var(--surface-elevated)] rounded-lg transition-colors"
           title="Prompt Library"
@@ -544,6 +546,7 @@ export function Header() {
 
         {/* MCP Server button */}
         <button
+          data-tour="mcp-servers"
           onClick={() => setMcpModalOpen(true)}
           className="p-2 hover:bg-[var(--surface-elevated)] rounded-lg transition-colors"
           title="MCP Servers"
