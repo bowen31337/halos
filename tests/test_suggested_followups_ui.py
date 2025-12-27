@@ -17,7 +17,7 @@ def test_suggested_followups_appear_after_response(page: Page):
     """Test that suggested follow-ups appear after assistant responses."""
 
     # Navigate to the application
-    page.goto("http://localhost:5173")
+    page.goto("http://localhost:3000")
 
     # Wait for the page to load
     page.wait_for_selector("input[placeholder*='message' i]", timeout=5000)
@@ -54,7 +54,7 @@ def test_suggested_followups_appear_after_response(page: Page):
 def test_clicking_suggestion_populates_input(page: Page):
     """Test that clicking a suggestion populates the input field."""
 
-    page.goto("http://localhost:5173")
+    page.goto("http://localhost:3000")
     page.wait_for_selector("textarea, input[placeholder*='message' i]", timeout=5000)
 
     # Send initial message
@@ -86,7 +86,7 @@ def test_clicking_suggestion_populates_input(page: Page):
 def test_suggestions_are_contextually_relevant(page: Page):
     """Test that suggestions are relevant to the conversation context."""
 
-    page.goto("http://localhost:5173")
+    page.goto("http://localhost:3000")
     page.wait_for_selector("textarea", timeout=5000)
 
     # Test 1: Code-related question
@@ -114,7 +114,7 @@ def test_suggestions_are_contextually_relevant(page: Page):
 def test_suggestions_appear_only_for_assistant_messages(page: Page):
     """Test that suggestions only appear for assistant messages, not user messages."""
 
-    page.goto("http://localhost:5173")
+    page.goto("http://localhost:3000")
     page.wait_for_selector("textarea", timeout=5000)
 
     # Send a message
@@ -148,7 +148,7 @@ def test_suggestions_appear_only_for_assistant_messages(page: Page):
 def test_suggestions_display_correctly(page: Page):
     """Test that suggestions are displayed with correct styling and layout."""
 
-    page.goto("http://localhost:5173")
+    page.goto("http://localhost:3000")
     page.wait_for_selector("textarea", timeout=5000)
 
     # Send a message
