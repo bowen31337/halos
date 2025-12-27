@@ -41,6 +41,7 @@ interface ConversationState {
   isLoading: boolean
   isStreaming: boolean
   error: string | null
+  inputMessage: string
 
   // Actions
   setCurrentConversation: (id: string | null) => void
@@ -68,6 +69,7 @@ interface ConversationState {
   setLoading: (loading: boolean) => void
   setStreaming: (streaming: boolean) => void
   setError: (error: string | null) => void
+  setInputMessage: (message: string) => void
 
   reset: () => void
 }
@@ -80,6 +82,7 @@ const initialState = {
   isLoading: false,
   isStreaming: false,
   error: null,
+  inputMessage: '',
 }
 
 export const useConversationStore = create<ConversationState>((set) => ({
@@ -204,6 +207,7 @@ export const useConversationStore = create<ConversationState>((set) => ({
   setLoading: (isLoading) => set({ isLoading }),
   setStreaming: (isStreaming) => set({ isStreaming }),
   setError: (error) => set({ error }),
+  setInputMessage: (message) => set({ inputMessage: message }),
 
   regenerateLastResponse: async (messageId: string) => {
     const state = useConversationStore.getState()

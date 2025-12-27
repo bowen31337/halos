@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        #response { white-space: pre-wrap; background: #f8f9fa; padding: 10px; border: 1px solid #dee2e6; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Frontend API Test</h1>
+        <p>Testing connectivity between frontend and backend API.</p>
+
+        <div id="status" class="info">Ready to test</div>
+
+        <button onclick="testHealth()">Test Health Check</button>
+        <button onclick="testConversation()">Test Conversation Creation</button>
+        <button onclick="testAgent()">Test Agent Streaming</button>
+
+        <div id="response"></div>
+    </div>
+
+    <script>
+        const responseDiv = document.getElementById('response');
+        const statusDiv = document.getElementById('status');
+
+        function setStatus(text, type = 'info') {
+            statusDiv.textContent = text;
+            statusDiv.className = type;
+        }
+
+        function addResponse(text) {
+            responseDiv.textContent += '\n\n' + text;
+        }
+
+        async function testHealth() {
+            setStatus('Testing health check...', 'info');
+            try {
+                const response = await fetch('http://localhost:8002/health');
+                const data = await response.json();
+                setStatus('Health check successful!', 'success');
+                addResponse('Health Check Response: ' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                setStatus('Health check failed: ' + error.message, 'error');
+                addResponse('Error: ' + error.message);
+            }
+        }
+
+        async function testConversation() {
+            setStatus('Testing conversation creation...', 'info');
+            try {
+                const response = await fetch('http://localhost:8002/api/conversations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: 'Test Conversation',
+                        model: 'claude-sonnet-4-5-20250929'
+                    })
+                });
+                const data = await response.json();
+                setStatus('Conversation created successfully!', 'success');
+                addResponse('Conversation Response: ' + JSON.stringify(data, null, 2));
+            } catch (error) {
+                setStatus('Conversation creation failed: ' + error.message, 'error');
+                addResponse('Error: ' + error.message);
+            }
+        }
+
+        async function testAgent() {
+            setStatus('Testing agent streaming...', 'info');
+            addResponse('Starting agent streaming test...');
+
+            try {
+                const response = await fetch('http://localhost:8002/api/agent/stream', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: 'Hello, this is a test message from the frontend!',
+                        thread_id: 'test-thread-' + Date.now(),
+                        permission_mode: 'default'
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const reader = response.body?.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let receivedMessages = [];
+
+                setStatus('Streaming response received, reading data...', 'success');
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const dataStr = line.slice(6);
+                            if (!dataStr) continue;
+
+                            try {
+                                const eventData = JSON.parse(dataStr);
+                                receivedMessages.push(eventData);
+
+                                if (eventData.content) {
+                                    addResponse('Message chunk: ' + eventData.content);
+                                } else if (eventData.event) {
+                                    addResponse('Event: ' + eventData.event);
+                                }
+                            } catch (e) {
+                                addResponse('Parse error: ' + e.message);
+                            }
+                        }
+                    }
+                }
+
+                setStatus('Agent streaming completed!', 'success');
+                addResponse('Total messages received: ' + receivedMessages.length);
+                addResponse('All received data: ' + JSON.stringify(receivedMessages, null, 2));
+
+            } catch (error) {
+                setStatus('Agent streaming failed: ' + error.message, 'error');
+                addResponse('Error: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

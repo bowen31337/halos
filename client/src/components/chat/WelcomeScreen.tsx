@@ -1,4 +1,4 @@
-import { useUIStore } from '../../stores/uiStore'
+
 import { useConversationStore } from '../../stores/conversationStore'
 
 const suggestions = [
@@ -9,8 +9,7 @@ const suggestions = [
 ]
 
 export function WelcomeScreen() {
-  const { theme } = useUIStore()
-  const { setInputMessage } = useConversationStore()
+  const { } = useConversationStore()
 
   const handleSuggestion = (prompt: string) => {
     setInputMessage(prompt)

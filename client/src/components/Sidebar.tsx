@@ -15,7 +15,7 @@ export function Sidebar() {
     updateConversation,
   } = useConversationStore()
 
-  const { sidebarOpen, setSidebarOpen } = useUIStore()
+  const { setSidebarOpen } = useUIStore()
   const navigate = useNavigate()
   const { conversationId } = useParams()
   const [isCreating, setIsCreating] = useState(false)
@@ -85,6 +85,38 @@ export function Sidebar() {
     }
   }
 
+  const handlePin = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    try {
+      const conv = conversations.find(c => c.id === id)
+      if (conv) {
+        await updateConversation(id, { isPinned: !conv.isPinned })
+      }
+    } catch (error) {
+      console.error('Failed to pin conversation:', error)
+    }
+  }
+
+  const handleDuplicate = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    setDuplicatingId(id)
+    try {
+      const response = await fetch(`/api/conversations/${id}/duplicate`, {
+        method: 'POST',
+      })
+      if (response.ok) {
+        const duplicate = await response.json()
+        // Add to local state
+        const { addConversation } = useConversationStore.getState()
+        addConversation(duplicate)
+      }
+    } catch (error) {
+      console.error('Failed to duplicate conversation:', error)
+    } finally {
+      setDuplicatingId(null)
+    }
+  }
+
   // Group conversations by date
   const groupByDate = (conversations: Conversation[]) => {
     const now = new Date()
@@ -114,12 +146,26 @@ export function Sidebar() {
     return groups
   }
 
-  const grouped = groupByDate(conversations)
+  // Filter conversations by search query
+  const filteredConversations = conversations.filter(conv => {
+    if (!searchQuery.trim()) return true
+    const query = searchQuery.toLowerCase()
+    return conv.title.toLowerCase().includes(query)
+  })
+
+  // Sort pinned conversations first
+  const sortedConversations = [...filteredConversations].sort((a, b) => {
+    if (a.isPinned && !b.isPinned) return -1
+    if (!a.isPinned && b.isPinned) return 1
+    return 0
+  })
+
+  const grouped = groupByDate(sortedConversations)
 
   return (
     <div className="flex flex-col h-full bg-[var(--bg-secondary)] border-r border-[var(--border)]">
       {/* Header */}
-      <div className="p-4 border-b border-[var(--border)]">
+      <div className="p-4 border-b border-[var(--border)] space-y-3">
         <button
           onClick={handleNewConversation}
           disabled={isCreating}
@@ -128,6 +174,20 @@ export function Sidebar() {
           <span>+</span>
           <span>{isCreating ? 'Creating...' : 'New Chat'}</span>
         </button>
+
+        {/* Search input */}
+        <div className="relative">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search conversations..."
+            className="w-full px-3 py-2 pl-9 bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+          />
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
       </div>
 
       {/* Conversation List */}
@@ -151,7 +211,10 @@ export function Sidebar() {
                 onSelect={() => handleSelectConversation(conv)}
                 onDelete={(e) => handleDelete(e, conv.id)}
                 onRename={(newTitle) => handleRename(conv.id, newTitle)}
+                onPin={(e) => handlePin(e, conv.id)}
+                onDuplicate={(e) => handleDuplicate(e, conv.id)}
                 isDeleting={deletingId === conv.id}
+                isDuplicating={duplicatingId === conv.id}
               />
             ))}
 
@@ -168,7 +231,10 @@ export function Sidebar() {
                 onSelect={() => handleSelectConversation(conv)}
                 onDelete={(e) => handleDelete(e, conv.id)}
                 onRename={(newTitle) => handleRename(conv.id, newTitle)}
+                onPin={(e) => handlePin(e, conv.id)}
+                onDuplicate={(e) => handleDuplicate(e, conv.id)}
                 isDeleting={deletingId === conv.id}
+                isDuplicating={duplicatingId === conv.id}
               />
             ))}
 
@@ -185,7 +251,10 @@ export function Sidebar() {
                 onSelect={() => handleSelectConversation(conv)}
                 onDelete={(e) => handleDelete(e, conv.id)}
                 onRename={(newTitle) => handleRename(conv.id, newTitle)}
+                onPin={(e) => handlePin(e, conv.id)}
+                onDuplicate={(e) => handleDuplicate(e, conv.id)}
                 isDeleting={deletingId === conv.id}
+                isDuplicating={duplicatingId === conv.id}
               />
             ))}
           </>
@@ -212,16 +281,21 @@ interface ConversationItemProps {
   onSelect: () => void
   onDelete: (e: React.MouseEvent) => void
   onRename: (newTitle: string) => Promise<void>
+  onPin: (e: React.MouseEvent) => void
+  onDuplicate: (e: React.MouseEvent) => void
   isDeleting: boolean
+  isDuplicating: boolean
 }
 
 function ConversationItem({
   conv,
-  isSelected,
   onSelect,
   onDelete,
   onRename,
+  onPin,
+  onDuplicate,
   isDeleting,
+  isDuplicating,
 }: ConversationItemProps) {
   const [showActions, setShowActions] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -307,7 +381,7 @@ function ConversationItem({
           </span>
 
           {/* Actions - show on hover or when selected */}
-          {(showActions || isSelected) && !isDeleting && (
+          {(showActions || isSelected) && !isDeleting && !isDuplicating && (
             <div className="flex gap-1">
               <button
                 onClick={handleStartEdit}
@@ -317,6 +391,24 @@ function ConversationItem({
                 }`}
               >
                 ✏️
+              </button>
+              <button
+                onClick={onPin}
+                title={conv.isPinned ? 'Unpin' : 'Pin'}
+                className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
+                  isSelected ? 'hover:bg-white/20' : ''
+                }`}
+              >
+                {conv.isPinned ? '📌' : '📍'}
+              </button>
+              <button
+                onClick={onDuplicate}
+                title="Duplicate"
+                className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
+                  isSelected ? 'hover:bg-white/20' : ''
+                }`}
+              >
+                📋
               </button>
               <button
                 onClick={onDelete}
@@ -332,6 +424,10 @@ function ConversationItem({
 
           {isDeleting && (
             <span className="text-xs">Deleting...</span>
+          )}
+
+          {isDuplicating && (
+            <span className="text-xs">Duplicating...</span>
           )}
         </>
       )}

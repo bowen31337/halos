@@ -140,6 +140,11 @@ class APIService {
     let buffer = ''
 
     try {
+      // SSE events can span multiple lines: event: X \n data: Y \n\n
+      // We need to buffer event and data lines together
+      let currentEvent: string | null = null
+      let currentData: string | null = null
+
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
@@ -149,21 +154,19 @@ class APIService {
         buffer = lines.pop() || '' // Keep incomplete line in buffer
 
         for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const dataStr = line.slice(6)
-            if (!dataStr) continue
+          const trimmed = line.trim()
 
-            try {
-              // Handle SSE format: event: name\ndata: {...}
-              // The line might be just data or have event prefix
-              const eventMatch = line.match(/^event:\s*(\w+)/)
-              const dataMatch = line.match(/data:\s*(.+)/)
+          if (trimmed.startsWith('event:')) {
+            currentEvent = trimmed.slice(6).trim()
+          } else if (trimmed.startsWith('data:')) {
+            currentData = trimmed.slice(5).trim()
+          } else if (trimmed === '') {
+            // Empty line indicates end of event, process what we have
+            if (currentEvent && currentData) {
+              try {
+                const eventData = JSON.parse(currentData)
 
-              if (eventMatch && dataMatch) {
-                const event = eventMatch[1]
-                const eventData = JSON.parse(dataMatch[1])
-
-                switch (event) {
+                switch (currentEvent) {
                   case 'message':
                     if (eventData.content) onMessage(eventData.content)
                     break
@@ -179,14 +182,26 @@ class APIService {
                   case 'error':
                     onError?.(eventData.error)
                     break
+                  case 'start':
+                    // Start event - could be used for initialization
+                    break
                 }
-              } else if (dataMatch) {
-                // Handle just data line
-                const eventData = JSON.parse(dataMatch[1])
-                if (eventData.content) onMessage(eventData.content)
+              } catch (e) {
+                console.warn('Failed to parse SSE data:', e)
               }
-            } catch (e) {
-              console.warn('Failed to parse SSE data:', e)
+
+              // Reset for next event
+              currentEvent = null
+              currentData = null
+            } else if (currentData) {
+              // Handle data-only lines (fallback for non-standard format)
+              try {
+                const eventData = JSON.parse(currentData)
+                if (eventData.content) onMessage(eventData.content)
+              } catch (e) {
+                console.warn('Failed to parse SSE data:', e)
+              }
+              currentData = null
             }
           }
         }

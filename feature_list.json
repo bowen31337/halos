@@ -282,9 +282,9 @@
       "Step 7: Search for content within messages",
       "Step 8: Verify conversations containing that content are shown"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -298,9 +298,9 @@
       "Step 6: Unpin the conversation",
       "Step 7: Verify it returns to its original position"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -330,9 +330,9 @@
       "Step 5: Verify the new conversation contains all messages from original",
       "Step 6: Verify the title indicates it's a copy"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",

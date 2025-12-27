@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { useConversationStore } from '../stores/conversationStore'
+import { api } from '../services/api'
 import { v4 as uuidv4 } from 'uuid'
 
 export function ChatInput() {
   const [inputValue, setInputValue] = useState('')
-  const { isStreaming, isLoading, addMessage, appendToLastMessage, setStreaming, setLoading, currentConversationId } = useConversationStore()
+  const { isStreaming, isLoading, addMessage, appendToLastMessage, setStreaming, setLoading, currentConversationId, createConversation } = useConversationStore()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
 
@@ -91,21 +92,25 @@ export function ChatInput() {
         const lines = buffer.split('\n')
         buffer = lines.pop() || '' // Keep incomplete line in buffer
 
+        // SSE events can span multiple lines: event: X \n data: Y \n\n
+        // We need to buffer event and data lines together
+        let currentEvent: string | null = null
+        let currentData: string | null = null
+
         for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const dataStr = line.slice(6)
-            if (!dataStr) continue
+          const trimmed = line.trim()
 
-            try {
-              // Check if line has event prefix
-              const eventMatch = line.match(/^event:\s*(\w+)/)
-              const dataMatch = line.match(/data:\s*(.+)/)
+          if (trimmed.startsWith('event:')) {
+            currentEvent = trimmed.slice(6).trim()
+          } else if (trimmed.startsWith('data:')) {
+            currentData = trimmed.slice(5).trim()
+          } else if (trimmed === '') {
+            // Empty line indicates end of event, process what we have
+            if (currentEvent && currentData) {
+              try {
+                const eventData = JSON.parse(currentData)
 
-              if (eventMatch && dataMatch) {
-                const event = eventMatch[1]
-                const eventData = JSON.parse(dataMatch[1])
-
-                switch (event) {
+                switch (currentEvent) {
                   case 'message':
                     if (eventData.content) {
                       appendToLastMessage(eventData.content)
@@ -123,16 +128,28 @@ export function ChatInput() {
                   case 'error':
                     console.error('Stream error:', eventData.error)
                     break
+                  case 'start':
+                    // Start event - could be used for initialization
+                    break
                 }
-              } else if (dataMatch) {
-                // Handle just data line
-                const eventData = JSON.parse(dataMatch[1])
+              } catch (e) {
+                console.warn('Failed to parse SSE data:', e)
+              }
+
+              // Reset for next event
+              currentEvent = null
+              currentData = null
+            } else if (currentData) {
+              // Handle data-only lines (fallback for non-standard format)
+              try {
+                const eventData = JSON.parse(currentData)
                 if (eventData.content) {
                   appendToLastMessage(eventData.content)
                 }
+              } catch (e) {
+                console.warn('Failed to parse SSE data:', e)
               }
-            } catch (e) {
-              console.warn('Failed to parse SSE data:', e)
+              currentData = null
             }
           }
         }
