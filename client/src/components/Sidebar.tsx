@@ -10,7 +10,7 @@ export function Sidebar() {
     setCurrentConversation,
     addConversation,
     deleteConversation,
-    setConversations,
+    updateConversation,
   } = useConversationStore()
 
   const { sidebarOpen, setSidebarOpen } = useUIStore()
@@ -107,9 +107,7 @@ export function Sidebar() {
         body: JSON.stringify({ title: newTitle }),
       })
       if (response.ok) {
-        const updated = await response.json()
-        // Update in store - need to add updateConversation method
-        setConversations(conversations.map(c => c.id === id ? { ...c, title: newTitle } : c))
+        updateConversation(id, { title: newTitle })
       }
     } catch (error) {
       console.error('Failed to rename conversation:', error)

@@ -91,15 +91,10 @@ async def create_conversation(
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Create a new conversation."""
-    now = datetime.utcnow()
-
     conversation = ConversationModel(
         title=data.title or "New Conversation",
         model=data.model,
         project_id=str(data.project_id) if data.project_id else None,
-        created_at=now,
-        updated_at=now,
-        last_message_at=now,
     )
 
     db.add(conversation)
