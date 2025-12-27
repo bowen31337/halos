@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import { useEffect } from 'react'
 import { Layout } from './components/Layout'
 import { ChatPage } from './pages/ChatPage'
+import { SharedView } from './pages/SharedView'
 import { useUIStore } from './stores/uiStore'
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
         <Route index element={<ChatPage />} />
         <Route path="c/:conversationId" element={<ChatPage />} />
       </Route>
+      <Route path="/share/:shareToken" element={<SharedView />} />
     </Routes>
   )
 }

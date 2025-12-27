@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_db
 from src.models.conversation import Conversation, Message
-from src.models.share import ShareLink
+from src.models.shared_conversation import SharedConversation
 
 router = APIRouter()
 
@@ -65,10 +65,10 @@ async def create_share_link(
         expires_at = datetime.utcnow() + timedelta(days=config.expires_in_days)
 
     # Create share link record
-    share_link = ShareLink(
+    share_link = SharedConversation(
         share_token=share_token,
         conversation_id=config.conversation_id,
-        read_only=config.read_only,
+        access_level="read" if config.read_only else "edit",
         expires_at=expires_at,
     )
 
@@ -100,7 +100,7 @@ async def get_shared_conversation(
     """
     # Find the share link
     result = await db.execute(
-        select(ShareLink).where(ShareLink.share_token == share_token)
+        select(SharedConversation).where(SharedConversation.share_token == share_token)
     )
     share_link = result.scalar_one_or_none()
 
@@ -137,14 +137,21 @@ async def get_shared_conversation(
     )
     messages = result.scalars().all()
 
+    # Increment view count
+    share_link.view_count += 1
+    share_link.last_viewed_at = datetime.utcnow()
+    await db.commit()
+
     return {
         "id": str(conversation.id),
         "title": conversation.title,
         "model": conversation.model,
-        "read_only": share_link.read_only,
-        "created_at": conversation.created_at,
-        "messages": [msg.to_dict() for msg in messages],
-        "expires_at": share_link.expires_at,
+        "read_only": share_link.access_level == "read",
+        "access_level": share_link.access_level,
+        "created_at": conversation.created_at.isoformat(),
+        "messages": [{"id": msg.id, "role": msg.role, "content": msg.content, "created_at": msg.created_at.isoformat()} for msg in messages],
+        "expires_at": share_link.expires_at.isoformat() if share_link.expires_at else None,
+        "allow_comments": share_link.allow_comments,
     }
 
 
@@ -159,7 +166,7 @@ async def revoke_share_link(
     This prevents the link from being used to access the conversation.
     """
     result = await db.execute(
-        select(ShareLink).where(ShareLink.share_token == share_token)
+        select(SharedConversation).where(SharedConversation.share_token == share_token)
     )
     share_link = result.scalar_one_or_none()
 
@@ -182,10 +189,24 @@ async def list_conversation_shares(
     List all share links for a conversation.
     """
     result = await db.execute(
-        select(ShareLink)
-        .where(ShareLink.conversation_id == conversation_id)
-        .order_by(ShareLink.created_at.desc())
+        select(SharedConversation)
+        .where(SharedConversation.conversation_id == conversation_id)
+        .order_by(SharedConversation.created_at.desc())
     )
     shares = result.scalars().all()
 
-    return [share.to_dict() for share in shares]
+    return [
+        {
+            "id": share.id,
+            "share_token": share.share_token,
+            "conversation_id": share.conversation_id,
+            "access_level": share.access_level,
+            "allow_comments": share.allow_comments,
+            "is_public": share.is_public,
+            "created_at": share.created_at.isoformat(),
+            "expires_at": share.expires_at.isoformat() if share.expires_at else None,
+            "view_count": share.view_count,
+            "last_viewed_at": share.last_viewed_at.isoformat() if share.last_viewed_at else None,
+        }
+        for share in shares
+    ]

@@ -660,6 +660,27 @@ class APIService {
     return response.json()
   }
 
+  async getConversationUsage(conversationId: string): Promise<{
+    conversation_id: string
+    total_tokens: number
+    input_tokens: number
+    output_tokens: number
+    cache_read_tokens: number
+    cache_write_tokens: number
+    estimated_cost: number
+    cache_hits: number
+    cache_misses: number
+    hit_rate: number
+    tokens_saved: number
+    cost_saved: number
+  }> {
+    const response = await fetch(`${API_BASE}/usage/conversations/${conversationId}`)
+    if (!response.ok) {
+      throw new Error(`Failed to get conversation usage: ${response.status}`)
+    }
+    return response.json()
+  }
+
   // Usage dashboard APIs
   async getDailyUsage(): Promise<{
     date: string
@@ -711,6 +732,90 @@ class APIService {
       throw new Error(`Failed to get usage by model: ${response.status}`)
     }
     return response.json()
+  }
+
+  // Sharing APIs
+  async createShareLink(conversationId: string, data: {
+    access_level?: 'read' | 'comment' | 'edit'
+    allow_comments?: boolean
+    expires_in_days?: number
+  }): Promise<{
+    id: string
+    conversation_id: string
+    share_token: string
+    access_level: string
+    allow_comments: boolean
+    is_public: boolean
+    created_at: string
+    expires_at: string | null
+    view_count: number
+  }> {
+    const response = await fetch(`${API_BASE}/conversations/${conversationId}/share`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to create share link: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async getSharedConversation(shareToken: string): Promise<{
+    id: string
+    title: string
+    model: string
+    messages: Array<{
+      id: string
+      role: string
+      content: string
+      created_at: string
+    }>
+    access_level: string
+    allow_comments: boolean
+  }> {
+    const response = await fetch(`${API_BASE}/conversations/share/${shareToken}`)
+    if (!response.ok) {
+      throw new Error(`Failed to get shared conversation: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async listShares(conversationId: string): Promise<Array<{
+    id: string
+    share_token: string
+    conversation_id: string
+    access_level: string
+    allow_comments: boolean
+    is_public: boolean
+    created_at: string
+    expires_at: string | null
+    view_count: number
+    last_viewed_at: string | null
+  }>> {
+    const response = await fetch(`${API_BASE}/conversations/${conversationId}/shares`)
+    if (!response.ok) {
+      throw new Error(`Failed to list shares: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async revokeShareLink(shareToken: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/conversations/share/${shareToken}`, {
+      method: 'DELETE',
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to revoke share link: ${response.status}`)
+    }
+  }
+
+  async revokeAllShares(conversationId: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/conversations/${conversationId}/shares`, {
+      method: 'DELETE',
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to revoke all shares: ${response.status}`)
+    }
   }
 }
 
