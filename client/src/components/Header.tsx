@@ -12,6 +12,7 @@ import { SubAgentModal } from './SubAgentModal'
 import { MemoryManager } from './MemoryManager'
 import { ShareModal } from './ShareModal'
 import { PromptModal } from './PromptModal'
+import { MCPModal } from './MCPModal'
 
 const MODELS = [
   { id: 'claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5', description: 'Balanced' },

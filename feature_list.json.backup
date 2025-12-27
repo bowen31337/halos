@@ -1267,7 +1267,7 @@
     "description": "Prompt library stores and retrieves saved prompts",
     "steps": [
       "Step 1: Open prompt library modal",
-      "Step 2: Click \"Create New Prompt\"",
+      "Step 2: Click 'Create New Prompt'",
       "Step 3: Enter title and prompt template",
       "Step 4: Add category tags",
       "Step 5: Save the prompt",
@@ -1275,11 +1275,9 @@
       "Step 7: Use the prompt in a conversation",
       "Step 8: Verify template is inserted correctly"
     ],
-    "passes": true,
-    "is_dev_done": true,
-    "is_qa_passed": true,
-    "test_date": "2025-12-27",
-    "notes": "Backend API (src/api/routes/prompts.py) with 8 endpoints. Frontend PromptModal.tsx integrated. ChatInput handles usePrompt events. 13 pytest tests all passing."
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
   },
   {
     "category": "functional",

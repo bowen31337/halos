@@ -903,6 +903,109 @@ class APIService {
     const response = await fetch(`${API_BASE}/prompts/categories/list`)
     return response.json()
   }
+
+  // MCP Server APIs
+  async listMCPServers(activeOnly: boolean = false): Promise<any[]> {
+    const response = await fetch(`${API_BASE}/mcp?active_only=${activeOnly}`)
+    if (!response.ok) {
+      throw new Error(`Failed to list MCP servers: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async createMCPServer(data: {
+    name: string
+    server_type: string
+    config: Record<string, any>
+    description?: string
+  }): Promise<any> {
+    const response = await fetch(`${API_BASE}/mcp`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to create MCP server: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async getMCPServer(serverId: string): Promise<any> {
+    const response = await fetch(`${API_BASE}/mcp/${serverId}`)
+    if (!response.ok) {
+      throw new Error(`Failed to get MCP server: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async updateMCPServer(
+    serverId: string,
+    data: {
+      name?: string
+      config?: Record<string, any>
+      description?: string
+      is_active?: boolean
+    }
+  ): Promise<any> {
+    const response = await fetch(`${API_BASE}/mcp/${serverId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to update MCP server: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async deleteMCPServer(serverId: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/mcp/${serverId}`, {
+      method: 'DELETE',
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to delete MCP server: ${response.status}`)
+    }
+  }
+
+  async testMCPServer(serverId: string): Promise<any> {
+    const response = await fetch(`${API_BASE}/mcp/${serverId}/test`, {
+      method: 'POST',
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to test MCP server: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async testMCPConnection(serverType: string, config: Record<string, any>): Promise<any> {
+    const response = await fetch(`${API_BASE}/mcp/test-connection`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ server_type: serverType, config }),
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to test MCP connection: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async listMCPServerTypes(): Promise<any[]> {
+    const response = await fetch(`${API_BASE}/mcp/types/list`)
+    if (!response.ok) {
+      throw new Error(`Failed to list MCP server types: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async getMCPServerTools(serverId: string): Promise<any> {
+    const response = await fetch(`${API_BASE}/mcp/${serverId}/tools`, {
+      method: 'POST',
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to get MCP server tools: ${response.status}`)
+    }
+    return response.json()
+  }
 }
 
 export const api = new APIService()
