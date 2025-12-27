@@ -79,7 +79,9 @@ export function ChatPage() {
             <WelcomeScreen />
           </div>
         ) : comparisonMode ? (
-          <ComparisonMessageList messages={messages} />
+          <div className="h-full overflow-hidden">
+            <ComparisonView />
+          </div>
         ) : (
           <MessageList />
         )}

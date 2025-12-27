@@ -20,7 +20,7 @@ import { ComparisonModal } from './ComparisonModal'
 import { Tooltip, IconButtonWithTooltip } from './Tooltip'
 import { useToast } from './ToastManager'
 
-const MODELS = [
+export const MODELS = [
   {
     id: 'claude-sonnet-4-5-20250929',
     name: 'Claude Sonnet 4.5',

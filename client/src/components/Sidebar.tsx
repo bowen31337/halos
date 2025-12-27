@@ -24,10 +24,20 @@ export function Sidebar() {
     markConversationRead,
   } = useConversationStore()
 
-  const { setSidebarOpen } = useUIStore()
+  const {
+    setSidebarOpen,
+    batchSelectMode,
+    setBatchSelectMode,
+    selectedConversationIds,
+    toggleConversationSelection,
+    clearSelection,
+    selectAllConversations
+  } = useUIStore()
   const { projects, fetchProjects } = useProjectStore()
   const navigate = useNavigate()
   const { conversationId } = useParams()
+  const { showSuccess, showError } = useToast()
+
   const [isCreating, setIsCreating] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -40,6 +50,10 @@ export function Sidebar() {
   const [showMoveModal, setShowMoveModal] = useState<string | null>(null)
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([])
   const [availableTags, setAvailableTags] = useState<Tag[]>([])
+
+  // Batch selection state (using UI store for shared state)
+  const [batchProgress, setBatchProgress] = useState<{ total: number; completed: number; operation: string } | null>(null)
+  const [showBatchMoveModal, setShowBatchMoveModal] = useState(false)
 
   const handleArchive = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
@@ -121,6 +135,12 @@ export function Sidebar() {
   }
 
   const handleSelectConversation = (conv: Conversation) => {
+    // If in batch mode, toggle selection instead
+    if (batchSelectMode) {
+      toggleConversationSelection(conv.id)
+      return
+    }
+
     setCurrentConversation(conv.id)
     navigate(`/c/${conv.id}`)
     if (window.innerWidth < 768) {
@@ -258,6 +278,187 @@ export function Sidebar() {
     } finally {
       setMovingId(null)
       setShowMoveModal(null)
+    }
+  }
+
+  // ==================== BATCH OPERATIONS ====================
+
+  const toggleBatchMode = () => {
+    setBatchSelectMode(!batchSelectMode)
+    clearSelection()
+  }
+
+  const selectAllVisible = () => {
+    const visibleIds = filteredConversations.map(c => c.id)
+    const allSelected = visibleIds.every(id => selectedConversationIds.includes(id))
+    if (allSelected) {
+      clearSelection()
+    } else {
+      selectAllConversations(visibleIds)
+    }
+  }
+
+  const handleBatchExport = async (format: 'json' | 'markdown') => {
+    if (selectedConversationIds.length === 0) return
+
+    setBatchProgress({ total: selectedConversationIds.length, completed: 0, operation: 'Exporting' })
+    setBatchAction('export')
+    try {
+      const blob = await api.batchExportConversations(selectedConversationIds, format)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `batch_export_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.${format}`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      showSuccess('Batch Export Complete', `Successfully exported ${selectedConversationIds.length} conversations`)
+    } catch (error) {
+      console.error('Batch export failed:', error)
+      showError('Batch Export Failed', 'An error occurred during batch export')
+    } finally {
+      setBatchProgress(null)
+      setBatchAction(null)
+      setBatchSelectMode(false)
+      clearSelection()
+    }
+  }
+
+  const handleBatchDelete = async () => {
+    if (selectedConversationIds.length === 0) return
+    if (!confirm(`Delete ${selectedConversationIds.length} conversations? This cannot be undone.`)) return
+
+    setBatchProgress({ total: selectedConversationIds.length, completed: 0, operation: 'Deleting' })
+    setBatchAction('delete')
+    try {
+      const result = await api.batchDeleteConversations(selectedConversationIds)
+
+      // Update store
+      for (const id of selectedConversationIds) {
+        removeConversation(id)
+      }
+
+      // Clear selection if current conversation was deleted
+      if (selectedConversationIds.includes(currentConversationId || '')) {
+        setCurrentConversation(null)
+        navigate('/')
+      }
+
+      showSuccess(
+        'Batch Delete Complete',
+        `Deleted ${result.success_count} conversations${result.failure_count > 0 ? ` (${result.failure_count} failed)` : ''}`
+      )
+    } catch (error) {
+      console.error('Batch delete failed:', error)
+      showError('Batch Delete Failed', 'An error occurred during batch delete')
+    } finally {
+      setBatchProgress(null)
+      setBatchAction(null)
+      setBatchSelectMode(false)
+      clearSelection()
+    }
+  }
+
+  const handleBatchArchive = async () => {
+    if (selectedConversationIds.length === 0) return
+
+    setBatchProgress({ total: selectedConversationIds.length, completed: 0, operation: 'Archiving' })
+    setBatchAction('archive')
+    try {
+      const result = await api.batchArchiveConversations(selectedConversationIds)
+
+      // Update store
+      for (const id of selectedConversationIds) {
+        archiveConversation(id)
+      }
+
+      showSuccess(
+        'Batch Archive Complete',
+        `Archived ${result.success_count} conversations${result.failure_count > 0 ? ` (${result.failure_count} failed)` : ''}`
+      )
+    } catch (error) {
+      console.error('Batch archive failed:', error)
+      showError('Batch Archive Failed', 'An error occurred during batch archive')
+    } finally {
+      setBatchProgress(null)
+      setBatchAction(null)
+      setBatchSelectMode(false)
+      clearSelection()
+    }
+  }
+
+  const handleBatchDuplicate = async () => {
+    if (selectedConversationIds.length === 0) return
+
+    setBatchProgress({ total: selectedConversationIds.length, completed: 0, operation: 'Duplicating' })
+    setBatchAction('duplicate')
+    try {
+      const result = await api.batchDuplicateConversations(selectedConversationIds)
+
+      // Add duplicates to store
+      for (const item of result.results) {
+        if (item.new_id) {
+          const { addConversation } = useConversationStore.getState()
+          addConversation({
+            id: item.new_id,
+            title: item.title,
+            model: 'claude-sonnet-4-5-20250929',
+            projectId: null,
+            isArchived: false,
+            isPinned: false,
+            messageCount: 0,
+            unreadCount: 0,
+            tags: [],
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          })
+        }
+      }
+
+      showSuccess(
+        'Batch Duplicate Complete',
+        `Duplicated ${result.success_count} conversations${result.failure_count > 0 ? ` (${result.failure_count} failed)` : ''}`
+      )
+    } catch (error) {
+      console.error('Batch duplicate failed:', error)
+      showError('Batch Duplicate Failed', 'An error occurred during batch duplicate')
+    } finally {
+      setBatchProgress(null)
+      setBatchAction(null)
+      setBatchSelectMode(false)
+      clearSelection()
+    }
+  }
+
+  const handleBatchMove = async (projectId: string | null) => {
+    if (selectedConversationIds.length === 0) return
+
+    setBatchProgress({ total: selectedConversationIds.length, completed: 0, operation: 'Moving' })
+    setBatchAction('move')
+    try {
+      const result = await api.batchMoveConversations(selectedConversationIds, projectId)
+
+      // Update store
+      for (const item of result.results) {
+        if (item.conversation_id) {
+          updateConversation(item.conversation_id, { projectId })
+        }
+      }
+
+      showSuccess(
+        'Batch Move Complete',
+        `Moved ${result.success_count} conversations${result.failure_count > 0 ? ` (${result.failure_count} failed)` : ''}`
+      )
+    } catch (error) {
+      console.error('Batch move failed:', error)
+      showError('Batch Move Failed', 'An error occurred during batch move')
+    } finally {
+      setBatchProgress(null)
+      setBatchAction(null)
+      setBatchSelectMode(false)
+      clearSelection()
+      setShowBatchMoveModal(false)
     }
   }
 
@@ -400,8 +601,126 @@ export function Sidebar() {
             <span>📦</span>
             <span>{showArchived ? 'Hide' : 'Show'} Archived</span>
           </button>
+          <button
+          aria-label="Toggle batch selection mode"
+          tabIndex={0}
+            onClick={toggleBatchMode}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+              batchSelectMode
+                ? 'bg-[var(--primary)] text-white'
+                : 'bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)]'
+            }`}
+          >
+            <span>☑️</span>
+            <span>{batchSelectMode ? 'Exit' : 'Batch'} Select</span>
+          </button>
         </div>
       </div>
+
+      {/* Batch actions toolbar - shown when items are selected */}
+      {batchSelectMode && selectedConversationIds.length > 0 && (
+        <div className="px-4 py-3 bg-[var(--surface-elevated)] border-b border-[var(--border)]">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium text-[var(--text-primary)]">
+              {selectedConversationIds.length} conversation{selectedConversationIds.length !== 1 ? 's' : ''} selected
+            </span>
+            <button
+              aria-label="Clear selection"
+              tabIndex={0}
+              onClick={clearSelection}
+              className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+            >
+              Clear all
+            </button>
+          </div>
+
+          {/* Progress indicator */}
+          {batchProgress && (
+            <div className="mb-3 p-2 bg-[var(--bg-primary)] rounded-lg border border-[var(--border)]">
+              <div className="flex items-center justify-between text-xs mb-1">
+                <span className="text-[var(--text-secondary)]">
+                  {batchProgress.operation}...
+                </span>
+                <span className="font-medium text-[var(--text-primary)]">
+                  {batchProgress.completed} / {batchProgress.total}
+                </span>
+              </div>
+              <div className="w-full bg-[var(--bg-secondary)] rounded-full h-1.5 overflow-hidden">
+                <div
+                  className="bg-[var(--primary)] h-full transition-all duration-300 ease-out"
+                  style={{
+                    width: `${(batchProgress.completed / batchProgress.total) * 100}%`
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Action buttons */}
+          <div className="flex flex-wrap gap-2">
+            <button
+              aria-label="Export selected as JSON"
+              tabIndex={0}
+              onClick={() => handleBatchExport('json')}
+              disabled={!!batchProgress}
+              className="flex-1 min-w-[100px] px-3 py-2 bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg text-xs font-medium text-[var(--text-primary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+            >
+              <span>📥</span>
+              <span>Export JSON</span>
+            </button>
+            <button
+              aria-label="Export selected as Markdown"
+              tabIndex={0}
+              onClick={() => handleBatchExport('markdown')}
+              disabled={!!batchProgress}
+              className="flex-1 min-w-[100px] px-3 py-2 bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg text-xs font-medium text-[var(--text-primary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+            >
+              <span>📄</span>
+              <span>Export MD</span>
+            </button>
+            <button
+              aria-label="Archive selected"
+              tabIndex={0}
+              onClick={handleBatchArchive}
+              disabled={!!batchProgress}
+              className="flex-1 min-w-[100px] px-3 py-2 bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg text-xs font-medium text-[var(--text-primary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+            >
+              <span>📦</span>
+              <span>Archive</span>
+            </button>
+            <button
+              aria-label="Duplicate selected"
+              tabIndex={0}
+              onClick={handleBatchDuplicate}
+              disabled={!!batchProgress}
+              className="flex-1 min-w-[100px] px-3 py-2 bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg text-xs font-medium text-[var(--text-primary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+            >
+              <span>📋</span>
+              <span>Duplicate</span>
+            </button>
+            <button
+              aria-label="Move selected"
+              tabIndex={0}
+              onClick={() => setShowBatchMoveModal(true)}
+              disabled={!!batchProgress}
+              className="flex-1 min-w-[100px] px-3 py-2 bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg text-xs font-medium text-[var(--text-primary)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+            >
+              <span>📁</span>
+              <span>Move</span>
+            </button>
+            <button
+              aria-label="Delete selected"
+              tabIndex={0}
+              onClick={handleBatchDelete}
+              disabled={!!batchProgress}
+              className="flex-1 min-w-[100px] px-3 py-2 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg text-xs font-medium text-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+            >
+              <span>🗑️</span>
+              <span>Delete</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {conversations.length === 0 ? (
@@ -455,6 +774,9 @@ export function Sidebar() {
                 isArchiving={archivingId === conv.id}
                 isExporting={exportingId === conv.id}
                 isMoving={movingId === conv.id}
+                batchSelectMode={batchSelectMode}
+                isBatchSelected={selectedConversationIds.includes(conv.id)}
+                onBatchToggle={() => toggleConversationSelection(conv.id)}
               />
             ))}
 
@@ -482,6 +804,9 @@ export function Sidebar() {
                 isArchiving={archivingId === conv.id}
                 isExporting={exportingId === conv.id}
                 isMoving={movingId === conv.id}
+                batchSelectMode={batchSelectMode}
+                isBatchSelected={selectedConversationIds.includes(conv.id)}
+                onBatchToggle={() => toggleConversationSelection(conv.id)}
               />
             ))}
 
@@ -509,6 +834,9 @@ export function Sidebar() {
                 isArchiving={archivingId === conv.id}
                 isExporting={exportingId === conv.id}
                 isMoving={movingId === conv.id}
+                batchSelectMode={batchSelectMode}
+                isBatchSelected={selectedConversationIds.includes(conv.id)}
+                onBatchToggle={() => toggleConversationSelection(conv.id)}
               />
             ))}
           </>
@@ -557,6 +885,10 @@ interface ConversationItemProps {
   isArchiving: boolean
   isExporting: boolean
   isMoving: boolean
+  // Batch mode props
+  batchSelectMode: boolean
+  isBatchSelected: boolean
+  onBatchToggle: () => void
 }
 
 function ConversationItem({
@@ -576,6 +908,9 @@ function ConversationItem({
   isArchiving,
   isExporting,
   isMoving,
+  batchSelectMode,
+  isBatchSelected,
+  onBatchToggle,
 }: ConversationItemProps) {
   const [showActions, setShowActions] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -676,12 +1011,19 @@ function ConversationItem({
 
   return (
     <div
-      className={`group relative flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-colors ${
-        isSelected
-          ? 'bg-[var(--primary)] text-white'
-          : 'hover:bg-[var(--bg-primary)] text-[var(--text-primary)]'
+      className={`group relative flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+        batchSelectMode
+          ? 'cursor-pointer hover:bg-[var(--bg-primary)]'
+          : `cursor-pointer ${isSelected ? 'bg-[var(--primary)] text-white' : 'hover:bg-[var(--bg-primary)] text-[var(--text-primary)]'}`
       } ${isDeleting ? 'opacity-50' : ''}`}
-      onClick={!isEditing ? onSelect : undefined}
+      onClick={(e) => {
+        if (isEditing) return
+        if (batchSelectMode) {
+          onBatchToggle()
+        } else {
+          onSelect()
+        }
+      }}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => {
         setShowActions(false)
@@ -725,6 +1067,18 @@ function ConversationItem({
         </form>
       ) : (
         <>
+          {/* Batch mode checkbox */}
+          {batchSelectMode && (
+            <div className="mr-2" onClick={(e) => e.stopPropagation()}>
+              <input
+                type="checkbox"
+                checked={isBatchSelected}
+                onChange={onBatchToggle}
+                className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)] cursor-pointer"
+              />
+            </div>
+          )}
+
           <span className="flex-1 truncate text-sm">
             {conv.title || 'Untitled'}
           </span>
@@ -759,7 +1113,8 @@ function ConversationItem({
             </div>
           )}
 
-          {(showActions || isSelected) && !isDeleting && !isDuplicating && !isArchiving && !isExporting && !isMoving && (
+          {/* Regular actions - hidden in batch mode */}
+          {!batchSelectMode && (showActions || isSelected) && !isDeleting && !isDuplicating && !isArchiving && !isExporting && !isMoving && (
             <div className="flex gap-1">
               <button
           aria-label="New conversation"

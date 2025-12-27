@@ -49,6 +49,10 @@ interface UIState {
   // Locale preference for timestamp formatting
   locale: string
 
+  // Batch selection mode
+  batchSelectMode: boolean
+  selectedConversationIds: string[]
+
   // Actions
   setTheme: (theme: 'light' | 'dark' | 'system') => void
   setHighContrast: (enabled: boolean) => void
@@ -77,6 +81,13 @@ interface UIState {
   setComparisonMode: (enabled: boolean) => void
   toggleComparisonMode: () => void
   setComparisonModels: (models: string[]) => void
+  // Batch selection actions
+  setBatchSelectMode: (enabled: boolean) => void
+  toggleBatchSelectMode: () => void
+  toggleConversationSelection: (conversationId: string) => void
+  selectAllConversations: (conversationIds: string[]) => void
+  clearSelection: () => void
+  getSelectedConversations: () => string[]
 }
 
 export const useUIStore = create<UIState>()(
@@ -104,6 +115,8 @@ export const useUIStore = create<UIState>()(
       contentFilterLevel: 'low',
       contentFilterCategories: ['violence', 'hate', 'sexual', 'self-harm', 'illegal'],
       locale: 'en-US',
+      batchSelectMode: false,
+      selectedConversationIds: [],
 
       // Actions
       setTheme: (theme) => {
@@ -197,6 +210,29 @@ export const useUIStore = create<UIState>()(
       setComparisonMode: (enabled) => set({ comparisonMode: enabled }),
       toggleComparisonMode: () => set((state) => ({ comparisonMode: !state.comparisonMode })),
       setComparisonModels: (models) => set({ comparisonModels: models }),
+
+      // Batch selection actions
+      setBatchSelectMode: (enabled) => set({ batchSelectMode: enabled, selectedConversationIds: enabled ? [] : [] }),
+      toggleBatchSelectMode: () => set((state) => ({
+        batchSelectMode: !state.batchSelectMode,
+        selectedConversationIds: !state.batchSelectMode ? [] : state.selectedConversationIds
+      })),
+      toggleConversationSelection: (conversationId: string) => set((state) => {
+        const isSelected = state.selectedConversationIds.includes(conversationId)
+        return {
+          selectedConversationIds: isSelected
+            ? state.selectedConversationIds.filter(id => id !== conversationId)
+            : [...state.selectedConversationIds, conversationId]
+        }
+      }),
+      selectAllConversations: (conversationIds: string[]) => set({ selectedConversationIds: conversationIds }),
+      clearSelection: () => set({ selectedConversationIds: [] }),
+      getSelectedConversations: () => {
+        // This is a getter that returns the current selection
+        // Note: In Zustand, this won't work directly - users should access state.selectedConversationIds
+        // But we provide it for consistency
+        return useUIStore.getState().selectedConversationIds
+      },
     }),
     {
       name: 'claude-ui-settings',
@@ -219,6 +255,8 @@ export const useUIStore = create<UIState>()(
         memoryEnabled: state.memoryEnabled,
         contentFilterLevel: state.contentFilterLevel,
         contentFilterCategories: state.contentFilterCategories,
+        // Note: batchSelectMode and selectedConversationIds are not persisted
+        // as they are session-specific states
       }),
     }
   )

@@ -353,7 +353,6 @@ console.log(greet("World"));
 
             # Extract glob pattern from message
             # Look for patterns like **/*.py or src/**/*.ts
-            import re
             pattern_match = re.search(r'[\*{}\[\]\?]+[^\s]*', actual_message)
             if pattern_match:
                 glob_pattern = pattern_match.group(0)

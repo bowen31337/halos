@@ -106,6 +106,81 @@ class APIService {
     return response.blob()
   }
 
+  // Batch Operations
+  async batchExportConversations(
+    conversationIds: string[],
+    format: 'json' | 'markdown' = 'json'
+  ): Promise<Blob> {
+    const response = await fetch(`${API_BASE}/conversations/batch/export?format=${format}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ conversation_ids: conversationIds }),
+    })
+    if (!response.ok) {
+      throw new Error(`Batch export failed: ${response.status}`)
+    }
+    return response.blob()
+  }
+
+  async batchDeleteConversations(
+    conversationIds: string[]
+  ): Promise<{ success_count: number; failure_count: number; deleted_ids: string[] }> {
+    const response = await fetch(`${API_BASE}/conversations/batch/delete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ conversation_ids: conversationIds }),
+    })
+    if (!response.ok) {
+      throw new Error(`Batch delete failed: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async batchArchiveConversations(
+    conversationIds: string[]
+  ): Promise<{ success_count: number; failure_count: number; deleted_ids: string[] }> {
+    const response = await fetch(`${API_BASE}/conversations/batch/archive`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ conversation_ids: conversationIds }),
+    })
+    if (!response.ok) {
+      throw new Error(`Batch archive failed: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async batchDuplicateConversations(
+    conversationIds: string[]
+  ): Promise<{ success_count: number; failure_count: number; results: any[] }> {
+    const response = await fetch(`${API_BASE}/conversations/batch/duplicate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ conversation_ids: conversationIds }),
+    })
+    if (!response.ok) {
+      throw new Error(`Batch duplicate failed: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async batchMoveConversations(
+    conversationIds: string[],
+    projectId: string | null
+  ): Promise<{ success_count: number; failure_count: number; results: any[] }> {
+    const params = new URLSearchParams()
+    if (projectId) params.append('project_id', projectId)
+    const response = await fetch(`${API_BASE}/conversations/batch/move?${params.toString()}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ conversation_ids: conversationIds }),
+    })
+    if (!response.ok) {
+      throw new Error(`Batch move failed: ${response.status}`)
+    }
+    return response.json()
+  }
+
   async createConversationBranch(
     conversationId: string,
     branchPointMessageId: string,

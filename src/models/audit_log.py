@@ -25,6 +25,8 @@ class AuditActionType(enum.Enum):
     CONVERSATION_BRANCH = "conversation_branch"
     CONVERSATION_READ = "conversation_read"
     CONVERSATION_UNREAD = "conversation_unread"
+    BATCH_OPERATION = "batch_operation"
+    BATCH_EXPORT = "batch_export"
 
     # Message actions
     MESSAGE_CREATE = "message_create"

@@ -1068,3 +1068,449 @@ async def filter_conversations_by_tags(
         }
         for conv in conversations
     ]
+
+
+# ==================== BATCH OPERATIONS ====================
+
+
+class BatchRequest(BaseModel):
+    """Request model for batch operations."""
+
+    conversation_ids: list[str]
+
+
+class BatchExportResponse(BaseModel):
+    """Response model for batch export."""
+
+    success_count: int
+    failure_count: int
+    results: list[dict]
+
+
+class BatchDeleteResponse(BaseModel):
+    """Response model for batch delete."""
+
+    success_count: int
+    failure_count: int
+    deleted_ids: list[str]
+
+
+@router.post("/batch/export", status_code=status.HTTP_200_OK)
+async def batch_export_conversations(
+    request: BatchRequest,
+    format: str = "json",
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    """Export multiple conversations in a single batch.
+
+    Returns a JSON array of exported conversations.
+    """
+    results = []
+    success_count = 0
+    failure_count = 0
+
+    for conversation_id in request.conversation_ids:
+        try:
+            # Get conversation
+            result = await db.execute(
+                select(ConversationModel)
+                .options(selectinload(ConversationModel.tags))
+                .where(ConversationModel.id == conversation_id)
+                .where(ConversationModel.is_deleted == False)
+            )
+            conversation = result.scalar_one_or_none()
+
+            if not conversation:
+                failure_count += 1
+                results.append({"conversation_id": conversation_id, "error": "Not found"})
+                continue
+
+            # Get messages
+            messages_result = await db.execute(
+                select(MessageModel)
+                .where(MessageModel.conversation_id == conversation_id)
+                .order_by(MessageModel.created_at)
+            )
+            messages = messages_result.scalars().all()
+
+            if format.lower() == "json":
+                export_data = {
+                    "id": conversation.id,
+                    "title": conversation.title,
+                    "model": conversation.model,
+                    "created_at": conversation.created_at.isoformat(),
+                    "updated_at": conversation.updated_at.isoformat(),
+                    "messages": [
+                        {
+                            "id": msg.id,
+                            "role": msg.role,
+                            "content": msg.content,
+                            "created_at": msg.created_at.isoformat(),
+                            "edited_at": msg.edited_at.isoformat() if msg.edited_at else None,
+                            "tool_calls": msg.tool_calls,
+                            "tool_results": msg.tool_results,
+                            "thinking_content": msg.thinking_content,
+                            "attachments": msg.attachments,
+                            "input_tokens": msg.input_tokens,
+                            "output_tokens": msg.output_tokens,
+                            "cache_read_tokens": msg.cache_read_tokens,
+                            "cache_write_tokens": msg.cache_write_tokens,
+                        }
+                        for msg in messages
+                    ],
+                    "metadata": {
+                        "message_count": len(messages),
+                        "token_count": conversation.token_count,
+                        "is_archived": conversation.is_archived,
+                        "is_pinned": conversation.is_pinned,
+                    }
+                }
+                results.append(export_data)
+                success_count += 1
+            else:
+                # Markdown format
+                md_lines = [
+                    f"# {conversation.title}",
+                    "",
+                    f"**Model:** {conversation.model}",
+                    f"**Created:** {conversation.created_at.strftime('%Y-%m-%d %H:%M:%S')}",
+                    f"**Updated:** {conversation.updated_at.strftime('%Y-%m-%d %H:%M:%S')}",
+                    f"**Message Count:** {len(messages)}",
+                    "",
+                    "---",
+                    "",
+                ]
+
+                for msg in messages:
+                    if msg.role == "user":
+                        md_lines.append("## 👤 User")
+                    elif msg.role == "assistant":
+                        md_lines.append("## 🤖 Assistant")
+                    elif msg.role == "system":
+                        md_lines.append("## ⚙️ System")
+                    elif msg.role == "tool":
+                        tool_name = "unknown"
+                        if msg.tool_calls and "name" in msg.tool_calls:
+                            tool_name = msg.tool_calls["name"]
+                        md_lines.append(f"## 🔧 Tool: {tool_name}")
+
+                    md_lines.append("")
+                    md_lines.append(msg.content)
+                    md_lines.append("")
+
+                    if msg.thinking_content:
+                        md_lines.append("<details>")
+                        md_lines.append("<summary>Thinking Process</summary>")
+                        md_lines.append("")
+                        md_lines.append(msg.thinking_content)
+                        md_lines.append("")
+                        md_lines.append("</details>")
+                        md_lines.append("")
+
+                    if msg.tool_results:
+                        md_lines.append("**Tool Results:**")
+                        md_lines.append("```json")
+                        md_lines.append(json.dumps(msg.tool_results, indent=2))
+                        md_lines.append("```")
+                        md_lines.append("")
+
+                    if msg.tool_calls:
+                        md_lines.append("**Tool Call:**")
+                        md_lines.append("```json")
+                        md_lines.append(json.dumps(msg.tool_calls, indent=2))
+                        md_lines.append("```")
+                        md_lines.append("")
+
+                    if msg.input_tokens or msg.output_tokens:
+                        total = msg.input_tokens + msg.output_tokens
+                        md_lines.append(f"*Tokens: {msg.input_tokens} in, {msg.output_tokens} out, {total} total*")
+                        md_lines.append("")
+
+                    md_lines.append("---")
+                    md_lines.append("")
+
+                results.append({
+                    "id": conversation.id,
+                    "title": conversation.title,
+                    "markdown": "\n".join(md_lines)
+                })
+                success_count += 1
+
+        except Exception as e:
+            failure_count += 1
+            results.append({"conversation_id": conversation_id, "error": str(e)})
+
+    if format.lower() == "json":
+        # Return combined JSON
+        json_str = json.dumps({
+            "success_count": success_count,
+            "failure_count": failure_count,
+            "results": results
+        }, indent=2, ensure_ascii=False)
+        filename = f"batch_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
+
+        return Response(
+            content=json_str,
+            media_type="application/json",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"'
+            }
+        )
+    else:
+        # Return combined markdown
+        md_content = "\n\n".join([r.get("markdown", "") for r in results if "markdown" in r])
+        filename = f"batch_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.md"
+
+        return Response(
+            content=md_content,
+            media_type="text/markdown",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"'
+            }
+        )
+
+
+@router.post("/batch/delete", status_code=status.HTTP_200_OK)
+async def batch_delete_conversations(
+    request: BatchRequest,
+    request_http: Request,
+    db: AsyncSession = Depends(get_db),
+) -> BatchDeleteResponse:
+    """Delete multiple conversations in a single batch (soft delete)."""
+
+    success_count = 0
+    failure_count = 0
+    deleted_ids = []
+
+    for conversation_id in request.conversation_ids:
+        try:
+            result = await db.execute(
+                select(ConversationModel)
+                .where(ConversationModel.id == conversation_id)
+                .where(ConversationModel.is_deleted == False)
+            )
+            conversation = result.scalar_one_or_none()
+
+            if not conversation:
+                failure_count += 1
+                continue
+
+            conversation.is_deleted = True
+            deleted_ids.append(conversation_id)
+            success_count += 1
+
+            # Audit log
+            ip_address, user_agent = get_request_info(request_http)
+            await log_audit(
+                db=db,
+                user_id="default-user",
+                action=AuditAction.CONVERSATION_DELETE,
+                resource_type="conversation",
+                resource_id=conversation.id,
+                details={"title": conversation.title, "batch_operation": True},
+                ip_address=ip_address,
+                user_agent=user_agent,
+            )
+
+        except Exception:
+            failure_count += 1
+
+    await db.commit()
+
+    return BatchDeleteResponse(
+        success_count=success_count,
+        failure_count=failure_count,
+        deleted_ids=deleted_ids
+    )
+
+
+@router.post("/batch/archive", status_code=status.HTTP_200_OK)
+async def batch_archive_conversations(
+    request: BatchRequest,
+    request_http: Request,
+    db: AsyncSession = Depends(get_db),
+) -> BatchDeleteResponse:
+    """Archive multiple conversations in a single batch."""
+
+    success_count = 0
+    failure_count = 0
+    archived_ids = []
+
+    for conversation_id in request.conversation_ids:
+        try:
+            result = await db.execute(
+                select(ConversationModel)
+                .where(ConversationModel.id == conversation_id)
+                .where(ConversationModel.is_deleted == False)
+            )
+            conversation = result.scalar_one_or_none()
+
+            if not conversation:
+                failure_count += 1
+                continue
+
+            conversation.is_archived = True
+            conversation.updated_at = datetime.utcnow()
+            archived_ids.append(conversation_id)
+            success_count += 1
+
+            # Audit log
+            ip_address, user_agent = get_request_info(request_http)
+            await log_audit(
+                db=db,
+                user_id="default-user",
+                action=AuditAction.CONVERSATION_UPDATE,
+                resource_type="conversation",
+                resource_id=conversation.id,
+                details={"is_archived": True, "batch_operation": True},
+                ip_address=ip_address,
+                user_agent=user_agent,
+            )
+
+        except Exception:
+            failure_count += 1
+
+    await db.commit()
+
+    return BatchDeleteResponse(
+        success_count=success_count,
+        failure_count=failure_count,
+        deleted_ids=archived_ids
+    )
+
+
+@router.post("/batch/duplicate", status_code=status.HTTP_201_CREATED)
+async def batch_duplicate_conversations(
+    request: BatchRequest,
+    request_http: Request,
+    db: AsyncSession = Depends(get_db),
+) -> BatchExportResponse:
+    """Duplicate multiple conversations in a single batch."""
+
+    success_count = 0
+    failure_count = 0
+    results = []
+
+    for conversation_id in request.conversation_ids:
+        try:
+            result = await db.execute(
+                select(ConversationModel)
+                .options(selectinload(ConversationModel.tags))
+                .where(ConversationModel.id == conversation_id)
+                .where(ConversationModel.is_deleted == False)
+            )
+            original = result.scalar_one_or_none()
+
+            if not original:
+                failure_count += 1
+                results.append({"conversation_id": conversation_id, "error": "Not found"})
+                continue
+
+            now = datetime.utcnow()
+
+            duplicate = ConversationModel(
+                title=f"{original.title} (Copy)",
+                model=original.model,
+                project_id=original.project_id,
+                created_at=now,
+                updated_at=now,
+                last_message_at=now,
+            )
+
+            db.add(duplicate)
+            await db.flush()  # Get ID before commit
+
+            # Audit log
+            ip_address, user_agent = get_request_info(request_http)
+            await log_audit(
+                db=db,
+                user_id="default-user",
+                action=AuditAction.CONVERSATION_CREATE,
+                resource_type="conversation",
+                resource_id=duplicate.id,
+                details={"title": duplicate.title, "original_id": original.id, "batch_operation": True},
+                ip_address=ip_address,
+                user_agent=user_agent,
+            )
+
+            results.append({
+                "original_id": original.id,
+                "new_id": duplicate.id,
+                "title": duplicate.title
+            })
+            success_count += 1
+
+        except Exception as e:
+            failure_count += 1
+            results.append({"conversation_id": conversation_id, "error": str(e)})
+
+    await db.commit()
+
+    return BatchExportResponse(
+        success_count=success_count,
+        failure_count=failure_count,
+        results=results
+    )
+
+
+@router.post("/batch/move", status_code=status.HTTP_200_OK)
+async def batch_move_conversations(
+    request: BatchRequest,
+    request_http: Request,
+    project_id: Optional[str] = None,
+    db: AsyncSession = Depends(get_db),
+) -> BatchExportResponse:
+    """Move multiple conversations to a project in a single batch."""
+
+    success_count = 0
+    failure_count = 0
+    results = []
+
+    for conversation_id in request.conversation_ids:
+        try:
+            result = await db.execute(
+                select(ConversationModel)
+                .where(ConversationModel.id == conversation_id)
+                .where(ConversationModel.is_deleted == False)
+            )
+            conversation = result.scalar_one_or_none()
+
+            if not conversation:
+                failure_count += 1
+                results.append({"conversation_id": conversation_id, "error": "Not found"})
+                continue
+
+            old_project_id = conversation.project_id
+            conversation.project_id = project_id
+            conversation.updated_at = datetime.utcnow()
+
+            # Audit log
+            ip_address, user_agent = get_request_info(request_http)
+            await log_audit(
+                db=db,
+                user_id="default-user",
+                action=AuditAction.CONVERSATION_UPDATE,
+                resource_type="conversation",
+                resource_id=conversation.id,
+                details={"project_id": {"from": old_project_id, "to": project_id}, "batch_operation": True},
+                ip_address=ip_address,
+                user_agent=user_agent,
+            )
+
+            results.append({
+                "conversation_id": conversation.id,
+                "project_id": project_id
+            })
+            success_count += 1
+
+        except Exception as e:
+            failure_count += 1
+            results.append({"conversation_id": conversation_id, "error": str(e)})
+
+    await db.commit()
+
+    return BatchExportResponse(
+        success_count=success_count,
+        failure_count=failure_count,
+        results=results
+    )

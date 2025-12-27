@@ -2699,9 +2699,10 @@
       "Step 5: Verify results are bundled appropriately",
       "Step 6: Test batch delete with confirmation"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": false,
+    "notes": "Implemented: Batch API endpoints created with full CRUD operations, export, and frontend components. See BATCH_API_IMPLEMENTATION.md for details."
   },
   {
     "category": "functional",
@@ -2824,9 +2825,11 @@
       "Step 5: Verify only src TypeScript files",
       "Step 6: Test complex patterns"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-28",
+    "notes": "Implemented in MockAgent with pattern extraction. Verified with test_glob_feature.py."
   },
   {
     "category": "functional",
@@ -2839,9 +2842,11 @@
       "Step 5: Click result to view in context",
       "Step 6: Test regex patterns"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-28",
+    "notes": "Implemented in MockAgent with pattern extraction. Verified with test_grep_feature.py."
   },
   {
     "category": "functional",
