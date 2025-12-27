@@ -2,10 +2,15 @@ import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { SubAgentIndicator } from './SubAgentIndicator'
+import { CommandPalette } from './CommandPalette'
 import { useUIStore } from '../stores/uiStore'
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 
 export function Layout() {
   const { sidebarOpen, sidebarWidth } = useUIStore()
+
+  // Initialize global keyboard shortcuts
+  useKeyboardShortcuts()
 
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--bg-primary)]">
@@ -29,6 +34,9 @@ export function Layout() {
 
       {/* Sub-agent indicator - shows when sub-agent is active or extended thinking enabled */}
       <SubAgentIndicator />
+
+      {/* Command Palette - global keyboard shortcut menu */}
+      <CommandPalette />
     </div>
   )
 }

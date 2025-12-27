@@ -1134,9 +1134,10 @@
       "Step 5: Verify conversation continues smoothly",
       "Step 6: Verify summary preserves important context"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27"
   },
   {
     "category": "functional",
@@ -1150,9 +1151,10 @@
       "Step 6: Continue conversation",
       "Step 7: Verify AI maintains context understanding"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27"
   },
   {
     "category": "functional",
@@ -1165,9 +1167,10 @@
       "Step 5: Verify cache write tokens are displayed",
       "Step 6: Verify cost savings estimate shows"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27"
   },
   {
     "category": "functional",
@@ -1180,9 +1183,10 @@
       "Step 5: Verify total is calculated",
       "Step 6: Hover for detailed breakdown"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27"
   },
   {
     "category": "functional",
@@ -1196,9 +1200,10 @@
       "Step 6: Export usage report",
       "Step 7: Verify export file contains all data"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27"
   },
   {
     "category": "functional",
@@ -1230,9 +1235,10 @@
       "Step 7: Verify command executes",
       "Step 8: Press Escape to close"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27"
   },
   {
     "category": "functional",
@@ -1248,9 +1254,10 @@
       "Step 8: Press Cmd/Ctrl+D to toggle dark mode",
       "Step 9: Verify theme changes"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27"
   },
   {
     "category": "functional",
