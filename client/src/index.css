@@ -15,6 +15,7 @@
   --bg-secondary: #F5F5F5;
   --bg-elevated: #FAFAFA;
   --surface-elevated: #FAFAFA;
+  --surface-secondary: #F5F5F5;
 
   /* Text colors */
   --text-primary: #1A1A1A;
@@ -49,6 +50,7 @@
   --bg-secondary: #2A2A2A;
   --bg-elevated: #333333;
   --surface-elevated: #333333;
+  --surface-secondary: #2A2A2A;
   --text-primary: #E5E5E5;
   --text-secondary: #9CA3AF;
   --text-muted: #6B7280;
