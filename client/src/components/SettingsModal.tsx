@@ -56,12 +56,15 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         if (settings.extended_thinking_enabled !== undefined && settings.extended_thinking_enabled !== extendedThinkingEnabled) {
           toggleExtendedThinking()
         }
+        if (settings.memory_enabled !== undefined && settings.memory_enabled !== memoryEnabled) {
+          toggleMemoryEnabled()
+        }
       } catch (error) {
         console.warn('Could not load settings from backend:', error)
       }
     }
     loadSettings()
-  }, [setTheme, setFontSize, setCustomInstructions, setSystemPromptOverride, setTemperature, setMaxTokens, toggleExtendedThinking, extendedThinkingEnabled])
+  }, [setTheme, setFontSize, setCustomInstructions, setSystemPromptOverride, setTemperature, setMaxTokens, toggleExtendedThinking, extendedThinkingEnabled, memoryEnabled, toggleMemoryEnabled])
 
   // Save settings to backend helper
   const saveSettings = async (updates: any) => {
