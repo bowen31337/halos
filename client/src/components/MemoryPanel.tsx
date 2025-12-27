@@ -185,8 +185,9 @@ export function MemoryPanel({ onClose }: MemoryPanelProps) {
       {/* Memory List */}
       <div className="flex-1 overflow-y-auto">
         {loading ? (
-          <div className="flex items-center justify-center h-full text-[var(--text-secondary)]">
-            Loading memories...
+          <div className="flex flex-col items-center justify-center h-full text-[var(--text-secondary)]">
+            <div className="loading-spinner primary mb-2"></div>
+            <span>Loading memories...</span>
           </div>
         ) : filteredMemories.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-[var(--text-secondary)] space-y-2">

@@ -411,7 +411,7 @@ export function Sidebar() {
         <span>{conversations.length} conversations</span>
         <button
           onClick={() => setSidebarOpen(false)}
-          className="md:hidden px-2 py-1 bg-[var(--bg-primary)] rounded hover:bg-[var(--border)]"
+          className="lg:hidden px-2 py-1 bg-[var(--bg-primary)] rounded hover:bg-[var(--border)]"
         >
           Close
         </button>

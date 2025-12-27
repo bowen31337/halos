@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { useUIStore } from '../stores/uiStore'
 import { useProjectStore } from '../stores/projectStore'
@@ -48,10 +48,27 @@ export function Header() {
   const [promptModalOpen, setPromptModalOpen] = useState(false)
   const [mcpModalOpen, setMcpModalOpen] = useState(false)
 
+  // Responsive state
+  const [isMobile, setIsMobile] = useState(false)
+  const [isTablet, setIsTablet] = useState(false)
+
   // Fetch projects on mount
   useEffect(() => {
     fetchProjects()
   }, [fetchProjects])
+
+  // Handle responsive breakpoints
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const width = window.innerWidth
+      setIsMobile(width < 768)
+      setIsTablet(width >= 768 && width < 1024)
+    }
+
+    checkScreenSize()
+    window.addEventListener('resize', checkScreenSize)
+    return () => window.removeEventListener('resize', checkScreenSize)
+  }, [])
 
   const handleExport = async (format: 'json' | 'markdown') => {
     if (!conversationId) return
@@ -339,22 +356,24 @@ export function Header() {
           </svg>
         </button>
 
-        {/* Extended Thinking Toggle */}
-        <button
-          data-tour="thinking-toggle"
-          onClick={toggleExtendedThinking}
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors border ${
-            extendedThinkingEnabled
-              ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
-              : 'bg-[var(--surface-elevated)] hover:bg-[var(--bg-primary)] border-[var(--border-primary)] text-[var(--text-secondary)]'
-          }`}
-          title="Toggle extended thinking mode"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-          </svg>
-          <span>Thinking</span>
-        </button>
+        {/* Extended Thinking Toggle - hidden on mobile */}
+        {!isMobile && (
+          <button
+            data-tour="thinking-toggle"
+            onClick={toggleExtendedThinking}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors border ${
+              extendedThinkingEnabled
+                ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
+                : 'bg-[var(--surface-elevated)] hover:bg-[var(--bg-primary)] border-[var(--border-primary)] text-[var(--text-secondary)]'
+            }`}
+            title="Toggle extended thinking mode"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            <span>Thinking</span>
+          </button>
+        )}
 
         {/* Branch Selector - only show when in a conversation */}
         {currentConversationId && <BranchSelector conversationId={currentConversationId} />}
@@ -411,8 +430,8 @@ export function Header() {
           </button>
         )}
 
-        {/* Todo button - only show when in a conversation */}
-        {conversationId && (
+        {/* Todo button - only show when in a conversation and not mobile */}
+        {conversationId && !isMobile && (
           <button
             onClick={() => {
               const { panelType, setPanelType, panelOpen, setPanelOpen } = useUIStore.getState()
@@ -433,8 +452,8 @@ export function Header() {
           </button>
         )}
 
-        {/* Files button - only show when in a conversation */}
-        {conversationId && (
+        {/* Files button - only show when in a conversation and not mobile */}
+        {conversationId && !isMobile && (
           <button
             onClick={() => {
               const { panelType, setPanelType, panelOpen, setPanelOpen } = useUIStore.getState()
@@ -455,8 +474,8 @@ export function Header() {
           </button>
         )}
 
-        {/* Diff button - only show when in a conversation */}
-        {conversationId && (
+        {/* Diff button - only show when in a conversation and not mobile */}
+        {conversationId && !isMobile && (
           <button
             onClick={() => {
               const { panelType, setPanelType, panelOpen, setPanelOpen } = useUIStore.getState()
@@ -477,8 +496,8 @@ export function Header() {
           </button>
         )}
 
-        {/* Memory button - only show when in a conversation */}
-        {conversationId && (
+        {/* Memory button - only show when in a conversation and not mobile */}
+        {conversationId && !isMobile && (
           <button
             onClick={() => {
               const { panelType, setPanelType, panelOpen, setPanelOpen } = useUIStore.getState()

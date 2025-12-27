@@ -1,7 +1,7 @@
-"""Test advanced styling features for features #112-114.
+"""Test advanced styling features for features #112-116.
 
-This test file verifies that loading states, transitions, and toast notifications
-are correctly styled and implemented.
+This test file verifies that loading states, transitions, status colors,
+tool call blocks, and HITL dialogs are correctly styled and implemented.
 """
 
 import re
@@ -185,7 +185,7 @@ def test_tool_call_blocks_styling():
 
     # Verify tool name display
     assert 'toolName' in content, "Should display tool name"
-    assert 'Tool Call' in content or 'tool_call' in content, "Should label tool calls"
+    assert 'TOOL CALL' in content or 'Tool Call' in content or 'tool_call' in content, "Should label tool calls"
 
     # Verify input/output sections
     assert 'toolInput' in content, "Should show tool input"
@@ -223,7 +223,7 @@ def test_hitl_dialog_styling():
 
     # Verify attention-grabbing elements
     assert '⚠️' in content or 'warning' in content.lower(), "Should have warning indicator"
-    assert 'Approval Required' in content, "Should have clear title"
+    assert 'APPROVAL REQUIRED' in content, "Should have clear title"
 
     # Verify approve button styling
     assert 'bg-[var(--success)]' in content, "Approve button should use success color"

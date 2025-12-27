@@ -189,7 +189,8 @@ export function MemoryModal({ onClose }: MemoryModalProps) {
         {/* Memory List */}
         <div className="flex-1 overflow-y-auto p-6">
           {loading ? (
-            <div className="flex items-center justify-center h-full">
+            <div className="flex flex-col items-center justify-center h-full">
+              <div className="loading-spinner primary mb-2"></div>
               <div className="text-[var(--text-secondary)]">Loading memories...</div>
             </div>
           ) : filteredMemories.length === 0 ? (

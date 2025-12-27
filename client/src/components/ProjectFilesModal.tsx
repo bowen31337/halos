@@ -176,7 +176,10 @@ export function ProjectFilesModal({ isOpen, onClose, projectId, projectName }: P
                   <div className="text-sm">
                     {isUploading ? (
                       <div className="flex flex-col items-center gap-2">
-                        <span>Uploading...</span>
+                        <span className="flex items-center gap-2">
+                          <span className="loading-spinner primary small"></span>
+                          Uploading...
+                        </span>
                         <div className="w-full max-w-xs bg-[var(--border)] rounded-full h-2 overflow-hidden">
                           <div
                             className="bg-[var(--primary)] h-full transition-all"

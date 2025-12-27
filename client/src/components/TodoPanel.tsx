@@ -71,7 +71,7 @@ export function TodoPanel() {
   const progressPercentage = totalTodos > 0 ? (completedTodos / totalTodos) * 100 : 0
 
   return (
-    <div className="fixed right-0 top-14 bottom-0 w-80 bg-[var(--bg-primary)] border-l border-[var(--border)] shadow-xl z-20 flex flex-col">
+    <div className="fixed right-0 top-14 bottom-0 w-80 bg-[var(--bg-primary)] border-l border-[var(--border)] shadow-xl z-20 flex flex-col lg:w-80 md:w-full">
       {/* Header */}
       <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
         <div className="flex items-center gap-2">

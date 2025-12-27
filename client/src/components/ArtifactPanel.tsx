@@ -7,7 +7,7 @@ import katex from 'katex'
 import 'katex/dist/katex.min.css'
 
 export function ArtifactPanel() {
-  const { setPanelType } = useUIStore()
+  const { setPanelType, setPanelOpen } = useUIStore()
   const {
     artifacts,
     currentArtifactId,
@@ -358,7 +358,7 @@ export function ArtifactPanel() {
         className={`fixed flex flex-col shadow-xl z-30 transition-all duration-300 ${
           isFullscreen
             ? 'inset-0 bg-[var(--bg-primary)]'
-            : 'right-0 top-[60px] bottom-0 w-[450px] bg-[var(--bg-primary)] border-l border-[var(--border-primary)]'
+            : 'right-0 top-[60px] bottom-0 w-[450px] bg-[var(--bg-primary)] border-l border-[var(--border-primary)] lg:w-[450px] md:w-full'
         }`}
       >
         {/* Header */}

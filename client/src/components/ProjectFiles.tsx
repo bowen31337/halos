@@ -146,13 +146,16 @@ export function ProjectFiles({ project }: ProjectFilesProps) {
             />
             {isUploading && (
               <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                <div className="w-16 bg-[var(--bg-primary)] rounded-full h-2">
+                <div className="w-16 bg-[var(--border)] rounded-full h-2 overflow-hidden">
                   <div
                     className="bg-[var(--primary)] h-2 rounded-full transition-all"
                     style={{ width: `${uploadProgress}%` }}
                   />
                 </div>
-                <span>Uploading...</span>
+                <span className="flex items-center gap-2">
+                  <span className="loading-spinner primary small"></span>
+                  Uploading...
+                </span>
               </div>
             )}
           </div>

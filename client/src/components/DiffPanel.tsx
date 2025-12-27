@@ -105,7 +105,7 @@ export function DiffPanel() {
   }
 
   return (
-    <div className="fixed right-0 top-14 bottom-0 w-[600px] bg-[var(--bg-primary)] border-l border-[var(--border)] shadow-xl z-20 flex flex-col">
+    <div className="fixed right-0 top-14 bottom-0 w-[600px] bg-[var(--bg-primary)] border-l border-[var(--border)] shadow-xl z-20 flex flex-col lg:w-[600px] md:w-full">
       {/* Header */}
       <div className="px-4 py-3 border-b border-[var(--border)] flex items-center justify-between">
         <div className="flex items-center gap-2">
