@@ -1050,4 +1050,128 @@ User: "Execute: rm -rf /"
 ---
 
 *Last Updated: 2025-12-27*
-*Status: 69/201 features complete (34.3%) - QA Queue empty, ready for Feature #62 (Sub-agent delegation)*
+*Status: 72/201 features complete (35.8%) - 69 QA passed - Sub-agent backend ready, frontend integration pending*
+
+---
+
+## Session 26 Summary (Sub-Agent Backend & HITL Fixes)
+
+**Date:** 2025-12-27
+
+**Session Focus:** Added sub-agent delegation backend support and fixed HITL interrupt handling
+
+### Features Completed
+
+**HITL System (Backend Fixes)** ✓
+
+| Feature # | Description | Status |
+|-----------|-------------|--------|
+| #58 | Human-in-the-loop approval dialog for execute tool | ✓ |
+| #59 | Edit tool input in HITL approval dialog | ✓ |
+| #60 | Reject tool execution in HITL dialog | ✓ |
+| #61 | Permission mode switch (default, acceptEdits, plan, bypass) | ✓ |
+
+**Sub-Agent Delegation (Backend)** ⚠️
+
+| Feature # | Description | Status |
+|-----------|-------------|--------|
+| #62 | Sub-agent delegation indicator | Backend ✓ |
+| #63 | Built-in subagents available | Backend ✓ |
+| #64 | Create custom subagent | Backend ✓ |
+
+### Implementation Summary
+
+#### HITL Fixes (Backend)
+- **`src/api/routes/agent.py`**: Fixed interrupt event parsing
+  - Now correctly extracts `tool` from `event.data.tool` instead of `event.name`
+  - Handles both old and new event formats
+
+- **`src/services/mock_agent.py`**: Added UI permission mode support
+  - Supports `auto` mode (no interrupts)
+  - Supports `manual` mode (all tools require approval)
+  - Maintains original `default`, `acceptEdits`, `plan`, `bypassPermissions`
+
+- **`src/services/agent_service.py`**: Added UI permission mode support
+  - Maps `auto` → no interrupts
+  - Maps `manual` → interrupts for execute, write_file, edit_file
+
+#### Sub-Agent Backend (New)
+- **`src/api/routes/subagents.py`**: New endpoints
+  - `GET /api/subagents/builtin` - List built-in subagents
+  - `GET /api/subagents/{thread_id}` - Get subagent info
+  - `POST /api/subagents/custom` - Create custom subagent
+  - `GET /api/subagents/custom` - List custom subagents
+  - `GET /api/subagent-results/{thread_id}` - Get results
+
+- **`src/models/subagent.py`**: Database model
+  - SubAgent configuration with tools, prompts, model selection
+
+- **`src/services/agent_service.py`**: Subagent configuration
+  - 4 built-in subagents: research, code-review, documentation, test-writing
+
+- **`src/services/mock_agent.py`**: Subagent simulation
+  - Detects delegation keywords (research, review, document, etc.)
+  - Emits `on_subagent_start` and `on_subagent_end` events
+  - Returns simulated subagent results
+
+- **`src/api/routes/agent.py`**: Event handling
+  - Handles `on_subagent_start` events
+  - Handles `on_subagent_end` events
+  - Stores results in thread state
+  - Emits SSE events to frontend
+
+#### Frontend (Existing Components)
+- **`client/src/components/SubAgentIndicator.tsx`**: Already exists
+  - Shows delegation status with progress
+  - Displays subagent name and task description
+
+- **`client/src/components/SubAgentModal.tsx`**: Already exists
+  - Library view for built-in subagents
+  - Create form for custom subagents
+
+- **`client/src/stores/chatStore.ts`**: Added subagent state
+  - `SubAgentDelegation` interface
+  - State management actions
+
+- **`client/src/components/ChatInput.tsx`**: Event handling
+  - Handles `subagent_start`, `subagent_end` events
+  - Updates store and shows results
+
+- **`client/src/services/api.ts`**: API methods
+  - `getSubagents()`, `createSubagent()`, etc.
+
+### Test Results
+
+**HITL Tests:** 12/12 passing ✓
+- `tests/test_hitl_execute.py`: 5/5 ✓
+- `tests/test_hitl_feature.py`: 7/7 ✓
+
+### Progress Statistics
+
+**Total Features:** 201/201
+**Completed (Dev):** 72/201 (35.8%)
+**QA Passed:** 69/201 (34.3%)
+
+**QA Queue:** 3 features (sub-agent backend ready, needs frontend integration)
+
+### Next Steps
+
+1. **Frontend Integration for Sub-Agents:**
+   - Add SubAgentModal to UI store
+   - Add button to open modal (Header or Sidebar)
+   - Render SubAgentModal in Layout
+
+2. **QA Verification:**
+   - Test sub-agent delegation with mock agent
+   - Verify indicator shows correctly
+   - Test built-in subagent list
+   - Test custom subagent creation
+
+3. **Complete Features:**
+   - Feature #62: Sub-agent delegation indicator (frontend)
+   - Feature #63: Built-in subagents library (frontend)
+   - Feature #64: Custom subagent creation (frontend)
+
+---
+
+*Previous sessions: 1-25 documented above*
