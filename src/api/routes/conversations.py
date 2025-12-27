@@ -10,13 +10,13 @@ import os
 from fastapi import APIRouter, HTTPException, status, Depends, UploadFile, File, Request
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import select, func, distinct
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException
 
 from src.core.database import get_db
-from src.models import Conversation as ConversationModel, Message as MessageModel
+from src.models import Conversation as ConversationModel, Message as MessageModel, Tag, conversation_tags
 from src.utils.audit import log_audit, get_request_info
 from src.models.audit_log import AuditActionType as AuditAction
 
@@ -950,3 +950,119 @@ async def upload_image(
         "size": len(content),
         "content_type": file.content_type
     }
+
+
+# Tag-related models and routes for conversations
+class ConversationTagUpdate(BaseModel):
+    """Request model for updating conversation tags."""
+
+    tag_ids: list[str]
+
+
+@router.post("/{conversation_id}/tags")
+async def update_conversation_tags(
+    conversation_id: str,
+    data: ConversationTagUpdate,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Update tags for a conversation."""
+    # Verify conversation exists
+    result = await db.execute(
+        select(ConversationModel)
+        .where(ConversationModel.id == conversation_id)
+        .where(ConversationModel.is_deleted == False)
+    )
+    conversation = result.scalar_one_or_none()
+
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # Verify all tags exist and are not deleted
+    if data.tag_ids:
+        result = await db.execute(
+            select(Tag)
+            .where(Tag.id.in_(data.tag_ids))
+            .where(Tag.is_deleted == False)
+        )
+        existing_tags = result.scalars().all()
+        existing_tag_ids = {tag.id for tag in existing_tags}
+
+        # Check for non-existent tags
+        for tag_id in data.tag_ids:
+            if tag_id not in existing_tag_ids:
+                raise HTTPException(status_code=404, detail=f"Tag {tag_id} not found")
+
+        # Replace conversation tags
+        conversation.tags = existing_tags
+    else:
+        # Remove all tags
+        conversation.tags = []
+
+    await db.commit()
+    await db.refresh(conversation)
+
+    # Audit log
+    ip_address, user_agent = get_request_info(request)
+    await log_audit(
+        db=db,
+        user_id="default-user",
+        action=AuditAction.CONVERSATION_UPDATE,
+        resource_type="conversation",
+        resource_id=conversation.id,
+        details={"tag_ids": data.tag_ids},
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+
+    return {
+        "conversation_id": conversation.id,
+        "tag_ids": data.tag_ids,
+        "tags": [{"id": tag.id, "name": tag.name, "color": tag.color} for tag in conversation.tags],
+    }
+
+
+@router.get("/filter/by-tags")
+async def filter_conversations_by_tags(
+    tag_ids: str,  # Comma-separated tag IDs
+    db: AsyncSession = Depends(get_db),
+) -> list[dict]:
+    """Filter conversations by tags."""
+    if not tag_ids:
+        return []
+
+    tag_id_list = [tag_id.strip() for tag_id in tag_ids.split(",") if tag_id.strip()]
+
+    if not tag_id_list:
+        return []
+
+    # Query conversations that have all the specified tags
+    query = (
+        select(ConversationModel)
+        .join(conversation_tags)
+        .join(Tag)
+        .where(conversation_tags.c.tag_id.in_(tag_id_list))
+        .where(ConversationModel.is_deleted == False)
+        .group_by(ConversationModel.id)
+        .having(func.count(distinct(conversation_tags.c.tag_id)) == len(tag_id_list))
+    )
+
+    result = await db.execute(query)
+    conversations = result.scalars().all()
+
+    return [
+        {
+            "id": conv.id,
+            "title": conv.title,
+            "model": conv.model,
+            "project_id": conv.project_id,
+            "is_archived": conv.is_archived,
+            "is_pinned": conv.is_pinned,
+            "message_count": conv.message_count,
+            "unread_count": conv.unread_count,
+            "tags": [{"id": tag.id, "name": tag.name, "color": tag.color} for tag in conv.tags],
+            "created_at": conv.created_at.isoformat(),
+            "updated_at": conv.updated_at.isoformat(),
+        }
+        for conv in conversations
+    ]

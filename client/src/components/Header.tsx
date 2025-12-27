@@ -63,6 +63,7 @@ export function Header() {
     isLoading: projectsLoading
   } = useProjectStore()
   const { currentConversationId, conversations } = useConversationStore()
+  const { showSuccess, showError, showWarning, showInfo } = useToast()
 
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false)
   const [comparisonModalOpen, setComparisonModalOpen] = useState(false)
