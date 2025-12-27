@@ -12,6 +12,7 @@ export function Sidebar() {
     createConversation,
     removeConversation,
     updateConversationTitle,
+    updateConversation,
   } = useConversationStore()
 
   const { sidebarOpen, setSidebarOpen } = useUIStore()
@@ -19,6 +20,8 @@ export function Sidebar() {
   const { conversationId } = useParams()
   const [isCreating, setIsCreating] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null)
 
   // Sync URL param with store
   useEffect(() => {

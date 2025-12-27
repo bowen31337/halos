@@ -127,8 +127,10 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
                     const match = /language-(\w+)/.exec(className || '')
                     const language = match ? match[1] : ''
                     const codeString = String(children).replace(/\n$/, '')
+                    // Inline code has no language class, block code does
+                    const isInline = !language
 
-                    if (!inline && language) {
+                    if (!isInline) {
                       return (
                         <div className="relative group my-4">
                           <div className="flex items-center justify-between bg-[var(--bg-secondary)] px-4 py-2 rounded-t-lg border border-[var(--border)] border-b-0">
