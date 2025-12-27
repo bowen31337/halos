@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Integer, String, Text, ForeignKey
+from sqlalchemy import Boolean, DateTime, Integer, String, Text, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.database import Base
@@ -32,6 +32,13 @@ class Conversation(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_message_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
+    # Branching support
+    parent_conversation_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("conversations.id"), nullable=True)
+    branch_point_message_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    branch_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    branch_color: Mapped[str | None] = mapped_column(String(20), nullable=True)
+
     # Relationships
     messages = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")
     artifacts = relationship("Artifact", back_populates="conversation", cascade="all, delete-orphan")
+    parent_conversation = relationship("Conversation", remote_side=[id], backref="branches")
