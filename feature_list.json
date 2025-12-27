@@ -315,9 +315,9 @@
       "Step 7: Unarchive the conversation",
       "Step 8: Verify it returns to main list"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",

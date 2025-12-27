@@ -13,6 +13,8 @@ export function Sidebar() {
     removeConversation,
     updateConversationTitle,
     updateConversation,
+    archiveConversation,
+    unarchiveConversation,
   } = useConversationStore()
 
   const { setSidebarOpen } = useUIStore()
@@ -22,6 +24,37 @@ export function Sidebar() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null)
+  const [archivingId, setArchivingId] = useState<string | null>(null)
+  const [showArchived, setShowArchived] = useState(false)
+
+  const handleArchive = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    setArchivingId(id)
+    try {
+      await archiveConversation(id)
+      // If archiving the current conversation, navigate away
+      if (currentConversationId === id) {
+        setCurrentConversation(null)
+        navigate('/')
+      }
+    } catch (error) {
+      console.error('Failed to archive conversation:', error)
+    } finally {
+      setArchivingId(null)
+    }
+  }
+
+  const handleUnarchive = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    setArchivingId(id)
+    try {
+      await unarchiveConversation(id)
+    } catch (error) {
+      console.error('Failed to unarchive conversation:', error)
+    } finally {
+      setArchivingId(null)
+    }
+  }
 
   // Sync URL param with store
   useEffect(() => {
@@ -146,8 +179,13 @@ export function Sidebar() {
     return groups
   }
 
-  // Filter conversations by search query
+  // Filter conversations by search query and archive status
   const filteredConversations = conversations.filter(conv => {
+    // Filter by archive status
+    if (showArchived && !conv.isArchived) return false
+    if (!showArchived && conv.isArchived) return false
+
+    // Filter by search query
     if (!searchQuery.trim()) return true
     const query = searchQuery.toLowerCase()
     return conv.title.toLowerCase().includes(query)
@@ -188,6 +226,21 @@ export function Sidebar() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
         </div>
+
+        {/* Archive toggle */}
+        <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+          <button
+            onClick={() => setShowArchived(!showArchived)}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+              showArchived
+                ? 'bg-[var(--primary)] text-white'
+                : 'bg-[var(--bg-primary)] hover:bg-[var(--bg-secondary)]'
+            }`}
+          >
+            <span>📦</span>
+            <span>{showArchived ? 'Hide' : 'Show'} Archived</span>
+          </button>
+        </div>
       </div>
 
       {/* Conversation List */}
@@ -213,8 +266,11 @@ export function Sidebar() {
                 onRename={(newTitle) => handleRename(conv.id, newTitle)}
                 onPin={(e) => handlePin(e, conv.id)}
                 onDuplicate={(e) => handleDuplicate(e, conv.id)}
+                onArchive={(e) => handleArchive(e, conv.id)}
+                onUnarchive={(e) => handleUnarchive(e, conv.id)}
                 isDeleting={deletingId === conv.id}
                 isDuplicating={duplicatingId === conv.id}
+                isArchiving={archivingId === conv.id}
               />
             ))}
 
@@ -233,8 +289,11 @@ export function Sidebar() {
                 onRename={(newTitle) => handleRename(conv.id, newTitle)}
                 onPin={(e) => handlePin(e, conv.id)}
                 onDuplicate={(e) => handleDuplicate(e, conv.id)}
+                onArchive={(e) => handleArchive(e, conv.id)}
+                onUnarchive={(e) => handleUnarchive(e, conv.id)}
                 isDeleting={deletingId === conv.id}
                 isDuplicating={duplicatingId === conv.id}
+                isArchiving={archivingId === conv.id}
               />
             ))}
 
@@ -253,8 +312,11 @@ export function Sidebar() {
                 onRename={(newTitle) => handleRename(conv.id, newTitle)}
                 onPin={(e) => handlePin(e, conv.id)}
                 onDuplicate={(e) => handleDuplicate(e, conv.id)}
+                onArchive={(e) => handleArchive(e, conv.id)}
+                onUnarchive={(e) => handleUnarchive(e, conv.id)}
                 isDeleting={deletingId === conv.id}
                 isDuplicating={duplicatingId === conv.id}
+                isArchiving={archivingId === conv.id}
               />
             ))}
           </>
@@ -283,19 +345,26 @@ interface ConversationItemProps {
   onRename: (newTitle: string) => Promise<void>
   onPin: (e: React.MouseEvent) => void
   onDuplicate: (e: React.MouseEvent) => void
+  onArchive: (e: React.MouseEvent) => void
+  onUnarchive: (e: React.MouseEvent) => void
   isDeleting: boolean
   isDuplicating: boolean
+  isArchiving: boolean
 }
 
 function ConversationItem({
   conv,
+  isSelected,
   onSelect,
   onDelete,
   onRename,
   onPin,
   onDuplicate,
+  onArchive,
+  onUnarchive,
   isDeleting,
   isDuplicating,
+  isArchiving,
 }: ConversationItemProps) {
   const [showActions, setShowActions] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -381,7 +450,7 @@ function ConversationItem({
           </span>
 
           {/* Actions - show on hover or when selected */}
-          {(showActions || isSelected) && !isDeleting && !isDuplicating && (
+          {(showActions || isSelected) && !isDeleting && !isDuplicating && !isArchiving && (
             <div className="flex gap-1">
               <button
                 onClick={handleStartEdit}
@@ -410,6 +479,27 @@ function ConversationItem({
               >
                 📋
               </button>
+              {conv.isArchived ? (
+                <button
+                  onClick={onUnarchive}
+                  title="Unarchive"
+                  className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
+                    isSelected ? 'hover:bg-white/20' : ''
+                  }`}
+                >
+                  📥
+                </button>
+              ) : (
+                <button
+                  onClick={onArchive}
+                  title="Archive"
+                  className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
+                    isSelected ? 'hover:bg-white/20' : ''
+                  }`}
+                >
+                  📦
+                </button>
+              )}
               <button
                 onClick={onDelete}
                 title="Delete"
@@ -428,6 +518,10 @@ function ConversationItem({
 
           {isDuplicating && (
             <span className="text-xs">Duplicating...</span>
+          )}
+
+          {isArchiving && (
+            <span className="text-xs">Archiving...</span>
           )}
         </>
       )}

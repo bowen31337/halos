@@ -8,7 +8,7 @@ const MODELS = [
 ]
 
 export function Header() {
-  const { sidebarOpen, toggleSidebar, selectedModel, setSelectedModel } = useUIStore()
+  const { toggleSidebar, selectedModel, setSelectedModel } = useUIStore()
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false)
 
   const currentModel = MODELS.find(m => m.id === selectedModel) || MODELS[0]

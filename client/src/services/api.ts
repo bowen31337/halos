@@ -85,7 +85,7 @@ class APIService {
 
   // Message APIs
   async listMessages(conversationId: string): Promise<Message[]> {
-    const response = await fetch(`${API_BASE}/conversations/${conversationId}/messages`)
+    const response = await fetch(`${API_BASE}/messages/conversations/${conversationId}/messages`)
     return response.json()
   }
 
@@ -93,7 +93,7 @@ class APIService {
     conversationId: string,
     data: { content: string; role: 'user' | 'assistant' }
   ): Promise<Message> {
-    const response = await fetch(`${API_BASE}/conversations/${conversationId}/messages`, {
+    const response = await fetch(`${API_BASE}/messages/conversations/${conversationId}/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),

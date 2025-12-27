@@ -56,6 +56,8 @@ interface ConversationState {
   createConversation: (title?: string) => Promise<Conversation>
   updateConversationTitle: (id: string, title: string) => Promise<void>
   removeConversation: (id: string) => Promise<void>
+  archiveConversation: (id: string) => Promise<void>
+  unarchiveConversation: (id: string) => Promise<void>
 
   setMessages: (messages: Message[]) => void
   addMessage: (message: Message) => void
@@ -126,7 +128,7 @@ export const useConversationStore = create<ConversationState>((set) => ({
 
   loadMessages: async (conversationId: string) => {
     try {
-      const response = await fetch(`/api/conversations/${conversationId}/messages`)
+      const response = await fetch(`/api/messages/conversations/${conversationId}/messages`)
       if (response.ok) {
         const data = await response.json()
         set({ messages: data })
@@ -406,6 +408,36 @@ export const useConversationStore = create<ConversationState>((set) => ({
     } catch (error) {
       console.error('Send failed:', error)
       set({ isLoading: false, isStreaming: false })
+    }
+  },
+
+  archiveConversation: async (id: string) => {
+    const response = await fetch(`/api/conversations/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_archived: true }),
+    })
+    if (response.ok) {
+      set((state) => ({
+        conversations: state.conversations.map((c) =>
+          c.id === id ? { ...c, isArchived: true } : c
+        ),
+      }))
+    }
+  },
+
+  unarchiveConversation: async (id: string) => {
+    const response = await fetch(`/api/conversations/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_archived: false }),
+    })
+    if (response.ok) {
+      set((state) => ({
+        conversations: state.conversations.map((c) =>
+          c.id === id ? { ...c, isArchived: false } : c
+        ),
+      }))
     }
   },
 

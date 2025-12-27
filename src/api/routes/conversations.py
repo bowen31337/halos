@@ -1,16 +1,18 @@
 """Conversation management endpoints."""
 
+import json
 from typing import Optional
 from uuid import UUID
 from datetime import datetime
 
 from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_db
-from src.models import Conversation as ConversationModel
+from src.models import Conversation as ConversationModel, Message as MessageModel
 
 router = APIRouter()
 
