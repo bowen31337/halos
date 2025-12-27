@@ -275,7 +275,9 @@ async def move_conversation(
 ) -> dict:
     """Move a conversation to a different project (or remove from project)."""
     result = await db.execute(
-        select(ConversationModel).where(ConversationModel.id == conversation_id)
+        select(ConversationModel)
+        .where(ConversationModel.id == conversation_id)
+        .where(ConversationModel.is_deleted == False)
     )
     conversation = result.scalar_one_or_none()
 
@@ -310,7 +312,9 @@ async def export_conversation(
     """Export a conversation in JSON or Markdown format."""
     # Get conversation
     result = await db.execute(
-        select(ConversationModel).where(ConversationModel.id == conversation_id)
+        select(ConversationModel)
+        .where(ConversationModel.id == conversation_id)
+        .where(ConversationModel.is_deleted == False)
     )
     conversation = result.scalar_one_or_none()
 
@@ -569,6 +573,7 @@ async def list_branches(
     result = await db.execute(
         select(ConversationModel)
         .where(ConversationModel.parent_conversation_id == conversation_id)
+        .where(ConversationModel.is_deleted == False)
         .order_by(ConversationModel.created_at)
     )
     branches = result.scalars().all()
@@ -602,7 +607,9 @@ async def get_branch_tree(
     """Get the branch tree structure for a conversation."""
     # Get the conversation
     result = await db.execute(
-        select(ConversationModel).where(ConversationModel.id == conversation_id)
+        select(ConversationModel)
+        .where(ConversationModel.id == conversation_id)
+        .where(ConversationModel.is_deleted == False)
     )
     conversation = result.scalar_one_or_none()
 
@@ -616,7 +623,9 @@ async def get_branch_tree(
     # Find root conversation
     while current.parent_conversation_id:
         result = await db.execute(
-            select(ConversationModel).where(ConversationModel.id == current.parent_conversation_id)
+            select(ConversationModel)
+            .where(ConversationModel.id == current.parent_conversation_id)
+            .where(ConversationModel.is_deleted == False)
         )
         parent = result.scalar_one_or_none()
         if parent:
