@@ -63,7 +63,8 @@ export function Header() {
   const currentModel = MODELS.find(m => m.id === selectedModel) || MODELS[0]
 
   return (
-    <div className="h-14 border-b border-[var(--border-primary)] bg-[var(--surface-secondary)] flex items-center justify-between px-4">
+    <>
+      <div className="h-14 border-b border-[var(--border-primary)] bg-[var(--surface-secondary)] flex items-center justify-between px-4">
       {/* Left: Toggle sidebar */}
       <div className="flex items-center gap-3">
         <button
@@ -213,5 +214,6 @@ export function Header() {
 
     {/* Settings Modal */}
     {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
-  </>)
+    </>
+  )
 }

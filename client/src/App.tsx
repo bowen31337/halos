@@ -5,12 +5,17 @@ import { ChatPage } from './pages/ChatPage'
 import { useUIStore } from './stores/uiStore'
 
 function App() {
-  const { theme, setTheme } = useUIStore()
+  const { theme, setTheme, fontSize, setFontSize } = useUIStore()
 
   // Initialize theme on mount
   useEffect(() => {
     setTheme(theme)
   }, [theme, setTheme])
+
+  // Initialize font size on mount
+  useEffect(() => {
+    setFontSize(fontSize)
+  }, [fontSize, setFontSize])
 
   return (
     <Routes>

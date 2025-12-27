@@ -13,6 +13,9 @@ export interface AgentRequest {
   model?: string
   permissionMode?: string
   extendedThinking?: boolean
+  customInstructions?: string
+  temperature?: number
+  maxTokens?: number
 }
 
 export interface AgentResponse {

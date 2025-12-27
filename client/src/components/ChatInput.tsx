@@ -25,7 +25,12 @@ export function ChatInput() {
     setInputMessage
   } = useConversationStore()
 
-  const { extendedThinkingEnabled } = useUIStore()
+  const {
+    extendedThinkingEnabled,
+    customInstructions,
+    temperature,
+    maxTokens
+  } = useUIStore()
 
   // Use local state for immediate UI feedback, sync with store
   const [inputValue, setInputValue] = useState(storeInputMessage)
@@ -135,15 +140,25 @@ export function ChatInput() {
     abortControllerRef.current = abortController
 
     try {
+      // Prepare message with custom instructions if set
+      let finalMessage = messageToSend
+      if (customInstructions.trim()) {
+        finalMessage = `[System Instructions: ${customInstructions}]\n\n${messageToSend}`
+      }
+
       // Call the backend SSE API with conversation ID
       const response = await fetch('/api/agent/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: messageToSend,
+          message: finalMessage,
           conversationId: convId,
           thread_id: convId,
-          extended_thinking: extendedThinkingEnabled
+          extended_thinking: extendedThinkingEnabled,
+          temperature: temperature,
+          max_tokens: maxTokens,
+          custom_instructions: customInstructions,
+          model: useUIStore.getState().selectedModel
         }),
         signal: abortController.signal,
       })

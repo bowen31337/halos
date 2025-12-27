@@ -19,6 +19,16 @@ interface UIState {
   // Extended thinking
   extendedThinkingEnabled: boolean
 
+  // Font size
+  fontSize: number
+
+  // Custom instructions
+  customInstructions: string
+
+  // Model parameters
+  temperature: number
+  maxTokens: number
+
   // Actions
   setTheme: (theme: 'light' | 'dark' | 'system') => void
   toggleSidebar: () => void
@@ -29,6 +39,10 @@ interface UIState {
   setPanelType: (type: 'artifacts' | 'files' | 'todos' | null) => void
   setSelectedModel: (model: string) => void
   toggleExtendedThinking: () => void
+  setFontSize: (size: number) => void
+  setCustomInstructions: (instructions: string) => void
+  setTemperature: (temp: number) => void
+  setMaxTokens: (tokens: number) => void
 }
 
 export const useUIStore = create<UIState>()(
@@ -42,6 +56,10 @@ export const useUIStore = create<UIState>()(
       panelType: null,
       selectedModel: 'claude-sonnet-4-5-20250929',
       extendedThinkingEnabled: false,
+      fontSize: 16,
+      customInstructions: '',
+      temperature: 0.7,
+      maxTokens: 4096,
 
       // Actions
       setTheme: (theme) => {
@@ -69,6 +87,16 @@ export const useUIStore = create<UIState>()(
       setSelectedModel: (model) => set({ selectedModel: model }),
       toggleExtendedThinking: () =>
         set((state) => ({ extendedThinkingEnabled: !state.extendedThinkingEnabled })),
+
+      setFontSize: (size) => {
+        set({ fontSize: size })
+        // Apply font size to document
+        document.documentElement.style.setProperty('--base-font-size', `${size}px`)
+      },
+
+      setCustomInstructions: (instructions) => set({ customInstructions: instructions }),
+      setTemperature: (temp) => set({ temperature: temp }),
+      setMaxTokens: (tokens) => set({ maxTokens: tokens }),
     }),
     {
       name: 'claude-ui-settings',
@@ -77,6 +105,10 @@ export const useUIStore = create<UIState>()(
         sidebarWidth: state.sidebarWidth,
         selectedModel: state.selectedModel,
         extendedThinkingEnabled: state.extendedThinkingEnabled,
+        fontSize: state.fontSize,
+        customInstructions: state.customInstructions,
+        temperature: state.temperature,
+        maxTokens: state.maxTokens,
       }),
     }
   )

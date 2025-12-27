@@ -431,7 +431,8 @@
     "passes": true,
     "is_dev_done": true,
     "is_qa_passed": true,
-    "notes": "Implemented with toggle in Header, thinking events in backend, and collapsible display in MessageBubble"
+    "notes": "Implemented with toggle in Header, thinking events in backend, and collapsible display in MessageBubble",
+    "status": "completed"
   },
   {
     "category": "functional",
@@ -496,9 +497,9 @@
       "Step 6: Decrease font size",
       "Step 7: Verify text decreases accordingly"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -513,9 +514,9 @@
       "Step 7: Verify AI responds in Spanish",
       "Step 8: Clear custom instructions and verify normal responses"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -530,9 +531,9 @@
       "Step 7: Send the same message",
       "Step 8: Verify response differs in creativity"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -546,9 +547,9 @@
       "Step 6: Send the same request",
       "Step 7: Verify response can be longer"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",

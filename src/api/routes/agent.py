@@ -24,6 +24,9 @@ class AgentRequest(BaseModel):
     model: str = "claude-sonnet-4-5-20250929"
     permission_mode: str = "default"
     extended_thinking: bool = False
+    temperature: Optional[float] = 0.7
+    max_tokens: Optional[int] = 4096
+    custom_instructions: Optional[str] = None
 
 
 class InterruptDecision(BaseModel):
@@ -62,9 +65,20 @@ async def invoke_agent(data: AgentRequest) -> dict:
                 "error": "Agent creation failed - check API key configuration",
             }
 
-        # Invoke agent with message
-        config = {"configurable": {"thread_id": thread_id}}
-        result = agent.invoke({"messages": [HumanMessage(content=data.message)]}, config=config)
+        # Prepare message with custom instructions if provided
+        message_content = data.message
+        if data.custom_instructions and data.custom_instructions.strip():
+            message_content = f"[System Instructions: {data.custom_instructions}]\n\n{data.message}"
+
+        # Invoke agent with message and parameters
+        config = {
+            "configurable": {
+                "thread_id": thread_id,
+                "temperature": data.temperature,
+                "max_tokens": data.max_tokens,
+            }
+        }
+        result = agent.invoke({"messages": [HumanMessage(content=message_content)]}, config=config)
 
         # Extract response from result
         response_message = result.get("messages", [])[-1] if result.get("messages") else AIMessage(content="No response")
@@ -96,6 +110,9 @@ async def stream_agent(request: Request) -> EventSourceResponse:
     model = data.get("model", "claude-sonnet-4-5-20250929")
     permission_mode = data.get("permission_mode", "default")
     extended_thinking = data.get("extended_thinking", False)
+    temperature = data.get("temperature", 0.7)
+    max_tokens = data.get("max_tokens", 4096)
+    custom_instructions = data.get("custom_instructions", "")
 
     async def event_generator():
         """Generate SSE events for agent response."""
@@ -103,7 +120,7 @@ async def stream_agent(request: Request) -> EventSourceResponse:
             # Start event
             yield {
                 "event": "start",
-                "data": json.dumps({"thread_id": thread_id, "model": model}),
+                "data": json.dumps({"thread_id": thread_id, "model": model, "temperature": temperature, "max_tokens": max_tokens}),
             }
 
             # Get or create agent
@@ -128,10 +145,14 @@ async def stream_agent(request: Request) -> EventSourceResponse:
                 return
 
             # Stream agent response with extended thinking support
+            # Pass temperature, max_tokens, and custom_instructions in config for mock agent to use
             config = {
                 "configurable": {
                     "thread_id": thread_id,
                     "extended_thinking": extended_thinking,
+                    "temperature": temperature,
+                    "max_tokens": max_tokens,
+                    "custom_instructions": custom_instructions,
                 }
             }
 

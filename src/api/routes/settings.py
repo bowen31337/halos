@@ -17,6 +17,10 @@ class SettingsUpdate(BaseModel):
     message_density: Optional[str] = None
     code_theme: Optional[str] = None
     permission_mode: Optional[str] = None
+    custom_instructions: Optional[str] = None
+    temperature: Optional[float] = None
+    max_tokens: Optional[int] = None
+    extended_thinking_enabled: Optional[bool] = None
 
 
 class CustomInstructionsUpdate(BaseModel):
@@ -36,6 +40,8 @@ user_settings: dict = {
     "custom_instructions": "",
     "memory_enabled": True,
     "extended_thinking_enabled": True,
+    "temperature": 0.7,
+    "max_tokens": 4096,
 }
 
 
@@ -60,6 +66,14 @@ async def update_settings(data: SettingsUpdate) -> dict:
         user_settings["code_theme"] = data.code_theme
     if data.permission_mode is not None:
         user_settings["permission_mode"] = data.permission_mode
+    if data.custom_instructions is not None:
+        user_settings["custom_instructions"] = data.custom_instructions
+    if data.temperature is not None:
+        user_settings["temperature"] = data.temperature
+    if data.max_tokens is not None:
+        user_settings["max_tokens"] = data.max_tokens
+    if data.extended_thinking_enabled is not None:
+        user_settings["extended_thinking_enabled"] = data.extended_thinking_enabled
 
     return user_settings
 

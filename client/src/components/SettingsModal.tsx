@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useUIStore } from '../stores/uiStore'
+import { api } from '../services/api'
 
 type SettingsTab = 'general' | 'appearance' | 'advanced'
 
@@ -13,9 +14,59 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     setTheme,
     extendedThinkingEnabled,
     toggleExtendedThinking,
+    fontSize,
+    setFontSize,
+    customInstructions,
+    setCustomInstructions,
+    temperature,
+    setTemperature,
+    maxTokens,
+    setMaxTokens,
   } = useUIStore()
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('general')
+  const [tempValue, setTempValue] = useState(temperature)
+  const [tokensValue, setTokensValue] = useState(maxTokens)
+  const [isSaving, setIsSaving] = useState(false)
+
+  // Load settings from backend on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const settings = await api.getSettings()
+        // Update local state with backend settings
+        if (settings.theme) setTheme(settings.theme as any)
+        if (settings.fontSize) setFontSize(settings.fontSize)
+        if (settings.customInstructions !== undefined) setCustomInstructions(settings.customInstructions)
+        if (settings.temperature !== undefined) {
+          setTemperature(settings.temperature)
+          setTempValue(settings.temperature)
+        }
+        if (settings.maxTokens !== undefined) {
+          setMaxTokens(settings.maxTokens)
+          setTokensValue(settings.maxTokens)
+        }
+        if (settings.extended_thinking_enabled !== undefined && settings.extended_thinking_enabled !== extendedThinkingEnabled) {
+          toggleExtendedThinking()
+        }
+      } catch (error) {
+        console.warn('Could not load settings from backend:', error)
+      }
+    }
+    loadSettings()
+  }, [setTheme, setFontSize, setCustomInstructions, setTemperature, setMaxTokens, toggleExtendedThinking, extendedThinkingEnabled])
+
+  // Save settings to backend helper
+  const saveSettings = async (updates: any) => {
+    setIsSaving(true)
+    try {
+      await api.updateSettings(updates)
+    } catch (error) {
+      console.error('Failed to save settings:', error)
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   // Close on backdrop click
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -34,7 +85,10 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             Enable extended thinking mode for complex problems
           </span>
           <button
-            onClick={toggleExtendedThinking}
+            onClick={async () => {
+              toggleExtendedThinking()
+              await saveSettings({ extended_thinking_enabled: !extendedThinkingEnabled })
+            }}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
               extendedThinkingEnabled ? 'bg-[var(--primary)]' : 'bg-[var(--border-primary)]'
             }`}
@@ -59,7 +113,10 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           {(['light', 'dark', 'system'] as const).map((t) => (
             <button
               key={t}
-              onClick={() => setTheme(t)}
+              onClick={async () => {
+                setTheme(t)
+                await saveSettings({ theme: t })
+              }}
               className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-colors ${
                 theme === t
                   ? 'border-[var(--primary)] bg-[var(--surface-elevated)]'
@@ -85,14 +142,15 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             type="range"
             min="12"
             max="20"
-            defaultValue="16"
+            value={fontSize}
             className="flex-1 h-2 bg-[var(--border-primary)] rounded-lg appearance-none cursor-pointer"
-            onChange={(e) => {
-              const size = e.target.value
-              document.documentElement.style.setProperty('--base-font-size', `${size}px`)
+            onChange={async (e) => {
+              const size = parseInt(e.target.value)
+              setFontSize(size)
+              await saveSettings({ font_size: size })
             }}
           />
-          <span className="text-sm text-[var(--text-secondary)]">Large</span>
+          <span className="text-sm text-[var(--text-secondary)]">{fontSize}px</span>
         </div>
       </div>
     </div>
@@ -106,7 +164,11 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         <textarea
           placeholder="Enter custom instructions that will be sent with every message..."
           className="w-full min-h-[100px] p-3 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-          defaultValue=""
+          value={customInstructions}
+          onChange={(e) => setCustomInstructions(e.target.value)}
+          onBlur={async (e) => {
+            await saveSettings({ custom_instructions: e.target.value })
+          }}
         />
         <p className="text-xs text-[var(--text-secondary)] mt-2">
           These instructions will affect how the AI responds to your messages.
@@ -124,22 +186,47 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 min="0"
                 max="1"
                 step="0.1"
-                defaultValue="0.7"
+                value={tempValue}
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value)
+                  setTempValue(val)
+                  setTemperature(val)
+                }}
+                onMouseUp={async () => {
+                  await saveSettings({ temperature: tempValue })
+                }}
                 className="flex-1 h-2 bg-[var(--border-primary)] rounded-lg appearance-none cursor-pointer"
               />
-              <span className="text-sm text-[var(--text-primary)] w-8">0.7</span>
+              <span className="text-sm text-[var(--text-primary)] w-12 text-right">{tempValue.toFixed(1)}</span>
             </div>
+            <p className="text-xs text-[var(--text-secondary)] mt-1">
+              Lower (0.0) = more focused, Higher (1.0) = more creative
+            </p>
           </div>
 
           <div>
             <label className="block text-sm text-[var(--text-secondary)] mb-2">Max Tokens</label>
-            <input
-              type="number"
-              defaultValue="4096"
-              min="1"
-              max="8192"
-              className="w-full p-2 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-            />
+            <div className="flex items-center gap-3">
+              <input
+                type="number"
+                value={tokensValue}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value) || 1
+                  setTokensValue(val)
+                  setMaxTokens(val)
+                }}
+                onBlur={async (e) => {
+                  await saveSettings({ max_tokens: parseInt(e.target.value) || 1 })
+                }}
+                min="1"
+                max="8192"
+                className="flex-1 p-2 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+              />
+              <span className="text-xs text-[var(--text-secondary)]">tokens</span>
+            </div>
+            <p className="text-xs text-[var(--text-secondary)] mt-1">
+              Limits the maximum length of AI responses
+            </p>
           </div>
         </div>
       </div>
