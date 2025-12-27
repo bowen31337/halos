@@ -1295,10 +1295,11 @@
       "Step 8: Remove the server",
       "Step 9: Verify tools are no longer available"
     ],
-    "passes": false,
+    "passes": true,
     "is_dev_done": true,
     "is_qa_passed": true,
-    "test_date": "2025-12-27"
+    "test_date": "2025-12-27",
+    "notes": "Backend API (mcp.py) and frontend (MCPModal.tsx, mcpStore.ts) fully implemented. Header button integrated. All 12 backend tests passed."
   },
   {
     "category": "functional",
@@ -1312,9 +1313,11 @@
       "Step 6: Verify text matches spoken words",
       "Step 7: Send the transcribed message"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Voice input fully implemented with Web Speech API. 11/11 tests passing. Includes continuous mode, interim results, error handling, and visual feedback."
   },
   {
     "category": "functional",

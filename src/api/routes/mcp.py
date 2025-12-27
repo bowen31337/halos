@@ -32,6 +32,7 @@ class MCPServerUpdate(BaseModel):
     config: Optional[dict] = None
     description: Optional[str] = None
     is_active: Optional[bool] = None
+    available_tools: Optional[list[str]] = None
 
 
 class MCPServerTest(BaseModel):
@@ -117,6 +118,8 @@ async def update_mcp_server(
         server.description = data.description
     if data.is_active is not None:
         server.is_active = data.is_active
+    if data.available_tools is not None:
+        server.available_tools = data.available_tools
 
     await db.commit()
     await db.refresh(server)

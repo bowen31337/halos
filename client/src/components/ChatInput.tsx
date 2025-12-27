@@ -54,11 +54,18 @@ export function ChatInput() {
   const [images, setImages] = useState<ImageAttachment[]>([])
   const [isDragOver, setIsDragOver] = useState(false)
   const [hitlApproval, setHitlApproval] = useState<HITLPendingApproval | null>(null)
+  const [isRecording, setIsRecording] = useState(false)
+  const [recognition, setRecognition] = useState<SpeechRecognition | SpeechRecognition | null>(null)
+  const [recordingText, setRecordingText] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   // Store the message that triggered an interrupt so we can resume after approval
   const interruptedMessageRef = useRef<string>('')
+  // Voice input state
+  const [isListening, setIsListening] = useState(false)
+  const [isSpeechRecognitionSupported, setIsSpeechRecognitionSupported] = useState(false)
+  const recognitionRef = useRef<any>(null)
 
   // Sync with store when it changes (e.g., from WelcomeScreen)
   useEffect(() => {
@@ -76,6 +83,66 @@ export function ChatInput() {
       textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 200) + 'px'
     }
   }, [inputValue])
+
+  // Initialize speech recognition
+  useEffect(() => {
+    // Check for browser support
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (SpeechRecognition) {
+      setIsSpeechRecognitionSupported(true)
+      const recognitionInstance = new SpeechRecognition()
+      recognitionInstance.continuous = true
+      recognitionInstance.interimResults = true
+      recognitionInstance.lang = 'en-US'
+
+      recognitionInstance.onresult = (event) => {
+        let finalTranscript = ''
+        let interimTranscript = ''
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const result = event.results[i]
+          const transcript = result[0].transcript
+
+          if (result.isFinal) {
+            finalTranscript += transcript
+          } else {
+            interimTranscript += transcript
+          }
+        }
+
+        // Update recording text with both final and interim results
+        const currentText = finalTranscript || interimTranscript
+        setRecordingText(currentText)
+        setInputValue(currentText)
+
+        // Also update the store
+        setInputMessage(currentText)
+      }
+
+      recognitionInstance.onend = () => {
+        setIsRecording(false)
+        setRecordingText('')
+      }
+
+      recognitionInstance.onerror = (event) => {
+        console.error('Speech recognition error:', event.error)
+        setIsRecording(false)
+        setRecordingText('')
+        alert(`Speech recognition error: ${event.error}`)
+      }
+
+      recognitionRef.current = recognitionInstance
+    }
+  }, [setInputMessage])
+
+  // Handle recording state changes
+  useEffect(() => {
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.start()
+    } else if (recognitionRef.current && !isListening) {
+      recognitionRef.current.stop()
+    }
+  }, [isListening])
 
   // Listen for prompt content from PromptModal
   useEffect(() => {
@@ -579,6 +646,25 @@ export function ChatInput() {
     }
   }
 
+  const handleVoiceInput = () => {
+    if (!isSpeechRecognitionSupported) {
+      alert('Speech recognition is not supported in this browser.')
+      return
+    }
+
+    if (!isListening) {
+      // Start recording
+      setIsListening(true)
+      setIsRecording(true)
+      setRecordingText('')
+    } else {
+      // Stop recording
+      setIsListening(false)
+      setIsRecording(false)
+      setRecordingText('')
+    }
+  }
+
   const handleFileSelect = () => {
     fileInputRef.current?.click()
   }
@@ -761,6 +847,29 @@ export function ChatInput() {
       )}
 
       <div className="flex items-end gap-3">
+        {/* Voice input button */}
+        <button
+          onClick={handleVoiceInput}
+          disabled={isLoading || isStreaming}
+          className={`p-3 rounded-lg transition-colors disabled:opacity-50 ${
+            isRecording
+              ? 'bg-red-500 text-white hover:bg-red-600'
+              : 'text-[var(--text-secondary)] hover:text-[var(--primary)]'
+          }`}
+          type="button"
+          title={isRecording ? "Stop recording" : "Voice input (click to record)"}
+        >
+          {isRecording ? (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <circle cx="12" cy="12" r="4" fill="currentColor" />
+            </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            </svg>
+          )}
+        </button>
+
         {/* Attachment button */}
         <button
           onClick={handleFileSelect}
@@ -809,6 +918,19 @@ export function ChatInput() {
         <span>{inputValue.length} characters {images.length > 0 && `• ${images.length} image${images.length > 1 ? 's' : ''} attached`}</span>
         <span>Enter to send, Shift+Enter for newline</span>
       </div>
+
+      {/* Recording status indicator */}
+      {isRecording && (
+        <div className="mt-2 flex items-center gap-2 text-sm text-red-500">
+          <div className="flex gap-1">
+            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+          </div>
+          <span>Recording...</span>
+          <span className="text-xs text-[var(--text-secondary)]">Click microphone to stop</span>
+        </div>
+      )}
 
       {/* HITL Approval Dialog */}
       {hitlApproval && (

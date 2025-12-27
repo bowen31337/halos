@@ -129,9 +129,9 @@ export function Header() {
 
   return (
     <>
-      <div className="h-14 border-b border-[var(--border-primary)] bg-[var(--surface-secondary)] flex items-center justify-between px-4">
+      <div className="h-14 border-b border-[var(--border-primary)] bg-[var(--surface-secondary)] flex items-center justify-between px-4" data-tour="header">
       {/* Left: Toggle sidebar and Project selector */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3" data-tour="sidebar">
         <button
           onClick={toggleSidebar}
           className="p-2 hover:bg-[var(--surface-elevated)] rounded-lg transition-colors"
