@@ -915,9 +915,9 @@
       "Step 5: Verify file content preview shows",
       "Step 6: Verify syntax highlighting in preview"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",

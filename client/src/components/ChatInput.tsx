@@ -580,6 +580,36 @@ export function ChatInput() {
     })
   }
 
+  // HITL Approval Dialog Handlers
+  const handleHITLApproved = async () => {
+    setHitlApproval(null)
+    // Resume the conversation by re-sending the original message
+    if (inputValue.trim()) {
+      await handleSend()
+    }
+  }
+
+  const handleHITLRejected = () => {
+    setHitlApproval(null)
+    // Add a message indicating rejection
+    const { addMessage } = useConversationStore.getState()
+    addMessage({
+      id: uuidv4(),
+      conversationId: hitlApproval?.threadId || '',
+      role: 'system',
+      content: 'Tool execution was rejected by user.',
+      createdAt: new Date().toISOString(),
+    })
+  }
+
+  const handleHITLEdited = async (editedInput: any) => {
+    // The backend handles the edit, now resume
+    setHitlApproval(null)
+    if (inputValue.trim()) {
+      await handleSend()
+    }
+  }
+
   return (
     <div
       className={`max-w-3xl mx-auto p-4 ${isDragOver ? 'bg-[var(--bg-secondary)]' : ''}`}
@@ -666,6 +696,19 @@ export function ChatInput() {
         <span>{inputValue.length} characters {images.length > 0 && `• ${images.length} image${images.length > 1 ? 's' : ''} attached`}</span>
         <span>Enter to send, Shift+Enter for newline</span>
       </div>
+
+      {/* HITL Approval Dialog */}
+      {hitlApproval && (
+        <HITLApprovalDialog
+          threadId={hitlApproval.threadId}
+          tool={hitlApproval.tool}
+          input={hitlApproval.input}
+          reason={hitlApproval.reason}
+          onApproved={handleHITLApproved}
+          onRejected={handleHITLRejected}
+          onEdited={handleHITLEdited}
+        />
+      )}
     </div>
   )
 }

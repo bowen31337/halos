@@ -22,7 +22,7 @@ TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 def use_mock_agent() -> Generator[None, None, None]:
     """Force use of MockAgent by temporarily removing API keys during tests."""
     import os
-    from src.core.config import get_settings
+    from src.core.config import get_settings, settings as global_settings
 
     # Save original API key
     original_api_key = os.environ.get("ANTHROPIC_API_KEY")
@@ -42,12 +42,17 @@ def use_mock_agent() -> Generator[None, None, None]:
     # Clear the cached settings
     get_settings.cache_clear()
 
+    # Update the module-level settings variable to use new settings without API key
+    new_settings = get_settings()
+    global_settings.anthropic_api_key = None
+    global_settings.__dict__.update(new_settings.__dict__)
+
     # Clear the agent_service cache and reset api_key
     # Also update the settings reference to the new instance
     from src.services.agent_service import agent_service as agent_service_instance
     agent_service_instance.agents.clear()
     agent_service_instance.api_key = None
-    agent_service_instance.settings = get_settings()
+    agent_service_instance.settings = global_settings
 
     yield
 
