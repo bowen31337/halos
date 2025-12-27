@@ -171,6 +171,8 @@ export const useUIStore = create<UIState>()(
         document.documentElement.style.setProperty('--base-font-size', `${size}px`)
       },
 
+      setLocale: (locale: string) => set({ locale }),
+
       setPermissionMode: (mode) => set({ permissionMode: mode }),
       setMemoryEnabled: (enabled) => set({ memoryEnabled: enabled }),
       toggleMemoryEnabled: () => set((state) => ({ memoryEnabled: !state.memoryEnabled })),
@@ -192,6 +194,7 @@ export const useUIStore = create<UIState>()(
         selectedModel: state.selectedModel,
         extendedThinkingEnabled: state.extendedThinkingEnabled,
         fontSize: state.fontSize,
+        locale: state.locale,
         customInstructions: state.customInstructions,
         temperature: state.temperature,
         maxTokens: state.maxTokens,

@@ -308,6 +308,16 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
           </div>
         )}
 
+        {/* User message header with timestamp */}
+        {isUser && (
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-white">You</span>
+            <span className="text-xs text-white/80" title={timestamp.full}>
+              {timestamp.relative}
+            </span>
+          </div>
+        )}
+
         <div className={isUser ? 'text-white' : 'text-[var(--text-primary)] prose prose-sm max-w-none'}>
           {isUser ? (
             isEditing ? (

@@ -38,6 +38,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     setContentFilterLevel,
     contentFilterCategories,
     setContentFilterCategories,
+    locale,
+    setLocale,
   } = useUIStore()
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('appearance')

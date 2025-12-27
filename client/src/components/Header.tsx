@@ -18,9 +18,30 @@ import { NetworkStatusBadge } from './NetworkStatusIndicator'
 import { useNetworkStore } from '../stores/networkStore'
 
 const MODELS = [
-  { id: 'claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5', description: 'Balanced' },
-  { id: 'claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5', description: 'Fast' },
-  { id: 'claude-opus-4-1-20250805', name: 'Claude Opus 4.1', description: 'Most capable' },
+  {
+    id: 'claude-sonnet-4-5-20250929',
+    name: 'Claude Sonnet 4.5',
+    description: 'Balanced',
+    capabilities: ['Reasoning', 'Code generation', 'Analysis', 'Multi-step tasks'],
+    strengths: 'Best balance of intelligence and speed for most tasks',
+    limits: '200K context window, moderate cost'
+  },
+  {
+    id: 'claude-haiku-4-5-20251001',
+    name: 'Claude Haiku 4.5',
+    description: 'Fast',
+    capabilities: ['Quick responses', 'Simple tasks', 'High volume', 'Cost-effective'],
+    strengths: 'Fastest model, lowest cost, great for simple queries',
+    limits: 'Less reasoning capability, 200K context window'
+  },
+  {
+    id: 'claude-opus-4-1-20250805',
+    name: 'Claude Opus 4.1',
+    description: 'Most capable',
+    capabilities: ['Advanced reasoning', 'Complex analysis', 'Creative writing', 'Deep understanding'],
+    strengths: 'Highest intelligence, handles complex problems, nuanced understanding',
+    limits: '200K context window, highest cost, slower responses'
+  },
 ]
 
 export function Header() {
