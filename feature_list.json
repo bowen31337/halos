@@ -235,9 +235,9 @@
       "Step 6: Send a message",
       "Step 7: Verify the response comes from the selected model"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
