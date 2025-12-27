@@ -1296,8 +1296,9 @@
       "Step 9: Verify tools are no longer available"
     ],
     "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27"
   },
   {
     "category": "functional",
