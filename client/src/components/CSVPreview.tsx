@@ -34,10 +34,10 @@ export function CSVPreview({ data, delimiter = ',', maxRows = 100 }: CSVPreviewP
         while (i < line.length) {
           const char = line[i]
 
-          if (char === '"') {
-            if (inQuotes && line[i + 1] === '"') {
+          if (char === '\"') {
+            if (inQuotes && line[i + 1] === '\"') {
               // Escaped quote
-              current += '"'
+              current += '\"'
               i += 2
             } else {
               inQuotes = !inQuotes
@@ -74,7 +74,7 @@ export function CSVPreview({ data, delimiter = ',', maxRows = 100 }: CSVPreviewP
 
   if (!parsed) {
     return (
-      <div className=\"p-4 text-red-500 text-sm\">
+      <div className="p-4 text-red-500 text-sm">
         Invalid or empty CSV data
       </div>
     )
@@ -85,19 +85,19 @@ export function CSVPreview({ data, delimiter = ',', maxRows = 100 }: CSVPreviewP
   const hasMore = rows.length > maxRows
 
   return (
-    <div className=\"h-full flex flex-col bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg overflow-hidden\">
+    <div className="h-full flex flex-col bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg overflow-hidden">
       {/* Toolbar */}
-      <div className=\"flex items-center justify-between px-4 py-2 border-b border-[var(--border)] bg-[var(--surface-secondary)]\">
-        <div className=\"flex items-center gap-2 text-sm\">
-          <span className=\"font-medium text-[var(--text-primary)]\">CSV Preview</span>
-          <span className=\"text-xs text-[var(--text-secondary)] px-2 py-0.5 bg-[var(--bg-primary)] rounded\">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-[var(--border)] bg-[var(--surface-secondary)]">
+        <div className="flex items-center gap-2 text-sm">
+          <span className="font-medium text-[var(--text-primary)]">CSV Preview</span>
+          <span className="text-xs text-[var(--text-secondary)] px-2 py-0.5 bg-[var(--bg-primary)] rounded">
             {rowCount} rows × {headers.length} columns
           </span>
         </div>
         {hasMore && (
           <button
             onClick={() => setShowAll(!showAll)}
-            className=\"text-xs px-2 py-1 rounded bg-[var(--primary)] text-white hover:opacity-90 transition-opacity\"
+            className="text-xs px-2 py-1 rounded bg-[var(--primary)] text-white hover:opacity-90 transition-opacity"
           >
             {showAll ? 'Show Less' : `Show All (${rowCount})`}
           </button>
@@ -105,14 +105,14 @@ export function CSVPreview({ data, delimiter = ',', maxRows = 100 }: CSVPreviewP
       </div>
 
       {/* Table */}
-      <div className=\"flex-1 overflow-auto\">
-        <table className=\"w-full text-xs border-collapse\">
-          <thead className=\"sticky top-0 bg-[var(--surface-elevated)] shadow-sm z-10\">
+      <div className="flex-1 overflow-auto">
+        <table className="w-full text-xs border-collapse">
+          <thead className="sticky top-0 bg-[var(--surface-elevated)] shadow-sm z-10">
             <tr>
               {headers.map((header, idx) => (
                 <th
                   key={idx}
-                  className=\"px-3 py-2 text-left font-semibold text-[var(--text-primary)] border-b border-[var(--border)] whitespace-nowrap sticky top-0 bg-[var(--surface-elevated)]\"
+                  className="px-3 py-2 text-left font-semibold text-[var(--text-primary)] border-b border-[var(--border)] whitespace-nowrap sticky top-0 bg-[var(--surface-elevated)]"
                 >
                   {header}
                 </th>
@@ -123,14 +123,14 @@ export function CSVPreview({ data, delimiter = ',', maxRows = 100 }: CSVPreviewP
             {displayRows.map((row, rowIdx) => (
               <tr
                 key={rowIdx}
-                className=\"hover:bg-[var(--surface-secondary)] transition-colors\"
+                className="hover:bg-[var(--surface-secondary)] transition-colors"
               >
                 {row.map((cell, cellIdx) => (
                   <td
                     key={cellIdx}
-                    className=\"px-3 py-2 text-[var(--text-secondary)] border-b border-[var(--border)]/50 whitespace-nowrap max-w-xs overflow-hidden text-ellipsis\"
+                    className="px-3 py-2 text-[var(--text-secondary)] border-b border-[var(--border)]/50 whitespace-nowrap max-w-xs overflow-hidden text-ellipsis"
                   >
-                    {cell || <span className=\"text-[var(--text-secondary)] opacity-50\">—</span>}
+                    {cell || <span className="text-[var(--text-secondary)] opacity-50">—</span>}
                   </td>
                 ))}
               </tr>
@@ -139,15 +139,15 @@ export function CSVPreview({ data, delimiter = ',', maxRows = 100 }: CSVPreviewP
         </table>
 
         {hasMore && !showAll && (
-          <div className=\"p-4 text-center text-xs text-[var(--text-secondary)] bg-[var(--surface-secondary)]/50\">
+          <div className="p-4 text-center text-xs text-[var(--text-secondary)] bg-[var(--surface-secondary)]/50">
             Showing first {maxRows} of {rowCount} rows
           </div>
         )}
       </div>
 
       {/* Footer */}
-      <div className=\"px-4 py-2 border-t border-[var(--border)] bg-[var(--surface-secondary)] text-xs text-[var(--text-secondary)] flex justify-between\">
-        <span>Delimiter: <code className=\"bg-[var(--bg-primary)] px-1 rounded\">{delimiter}</code></span>
+      <div className="px-4 py-2 border-t border-[var(--border)] bg-[var(--surface-secondary)] text-xs text-[var(--text-secondary)] flex justify-between">
+        <span>Delimiter: <code className="bg-[var(--bg-primary)] px-1 rounded">{delimiter}</code></span>
         <span>Total: {rowCount} rows</span>
       </div>
     </div>
