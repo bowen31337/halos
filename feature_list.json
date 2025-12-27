@@ -2232,9 +2232,10 @@
       "Step 5: Verify skip link for sidebar exists",
       "Step 6: Verify skip link for artifacts panel exists"
     ],
-    "passes": false,
+    "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false
+    "is_qa_passed": true,
+    "test_date": "2025-12-27"
   },
   {
     "category": "functional",
@@ -2247,9 +2248,10 @@
       "Step 5: Open modal - verify no fade animation",
       "Step 6: Verify transitions are instant"
     ],
-    "passes": false,
+    "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false
+    "is_qa_passed": true,
+    "test_date": "2025-12-27"
   },
   {
     "category": "functional",
