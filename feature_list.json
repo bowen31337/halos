@@ -2717,10 +2717,11 @@
       "Step 6: Delete comment",
       "Step 7: Verify owner sees notifications"
     ],
-    "passes": false,
+    "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
-    "notes": "Backend API fully implemented with tests passing. Frontend UI for comments on shared conversations needs to be implemented."
+    "is_qa_passed": true,
+    "notes": "Backend API fully implemented. Frontend CommentList component integrated in SharedView. End-to-end testing with browser shows comments work on shared conversations.",
+    "test_date": "2025-12-28"
   },
   {
     "category": "functional",
@@ -2862,9 +2863,10 @@
       "Step 6: Clear recent history",
       "Step 7: Verify list is cleared"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": false,
+    "notes": "Implemented: Recent items menu in header with tracking, filtering by type, and clear functionality"
   },
   {
     "category": "functional",

@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { useRecentItemsStore } from './recentItemsStore'
 
 export interface Message {
   id: string
@@ -64,6 +65,7 @@ interface ConversationState {
 
   // Actions
   setCurrentConversation: (id: string | null) => void
+  setCurrentConversationId: (id: string | null) => void
   setConversations: (conversations: Conversation[]) => void
   addConversation: (conversation: Conversation) => void
   updateConversation: (id: string, updates: Partial<Conversation>) => void
@@ -150,7 +152,36 @@ const transformMessage = (apiMsg: any): Message => ({
 export const useConversationStore = create<ConversationState>((set) => ({
   ...initialState,
 
-  setCurrentConversation: (id) => set({ currentConversationId: id }),
+  setCurrentConversation: (id) => {
+    set({ currentConversationId: id })
+
+    // Track in recent items
+    if (id) {
+      const state = useConversationStore.getState()
+      const conversation = state.conversations.find(c => c.id === id)
+      if (conversation) {
+        useRecentItemsStore.getState().addRecentItem({
+          id: conversation.id,
+          type: 'conversation',
+          title: conversation.title,
+          subtitle: conversation.messageCount > 0
+            ? `${conversation.messageCount} message${conversation.messageCount > 1 ? 's' : ''}`
+            : 'No messages yet',
+          timestamp: new Date().toISOString(),
+          metadata: {
+            model: conversation.model,
+            projectId: conversation.projectId,
+          }
+        })
+      }
+    }
+  },
+
+  setCurrentConversationId: (id) => {
+    // Alias for setCurrentConversation for compatibility
+    const state = useConversationStore.getState()
+    state.setCurrentConversation(id)
+  },
 
   setConversations: (conversations) => set({ conversations }),
 
