@@ -42,13 +42,13 @@ async def test_data_export_includes_all_content():
         print("\n  Step 1: Creating test data...")
 
         # Get initial counts
-        initial_conv_count = (await db.execute(select(Conversation).where(Conversation.is_deleted == False))).scalar_count()
-        initial_msg_count = (await db.execute(select(Message))).scalar_count()
-        initial_memory_count = (await db.execute(select(Memory).where(Memory.is_active == True))).scalar_count()
-        initial_prompt_count = (await db.execute(select(Prompt).where(Prompt.is_active == True))).scalar_count()
-        initial_artifact_count = (await db.execute(select(Artifact))).scalar_count()
-        initial_checkpoint_count = (await db.execute(select(Checkpoint))).scalar_count()
-        initial_project_count = (await db.execute(select(Project))).scalar_count()
+        initial_conv_count = len((await db.execute(select(Conversation).where(Conversation.is_deleted == False))).scalars().all())
+        initial_msg_count = len((await db.execute(select(Message))).scalars().all())
+        initial_memory_count = len((await db.execute(select(Memory).where(Memory.is_active == True))).scalars().all())
+        initial_prompt_count = len((await db.execute(select(Prompt).where(Prompt.is_active == True))).scalars().all())
+        initial_artifact_count = len((await db.execute(select(Artifact))).scalars().all())
+        initial_checkpoint_count = len((await db.execute(select(Checkpoint))).scalars().all())
+        initial_project_count = len((await db.execute(select(Project))).scalars().all())
 
         # Create projects
         project1 = Project(name="Feature138_TestProject1", description="Test for data export")
@@ -117,13 +117,13 @@ async def test_data_export_includes_all_content():
         await db.commit()
 
         # Get new counts
-        new_conv_count = (await db.execute(select(Conversation).where(Conversation.is_deleted == False))).scalar_count()
-        new_msg_count = (await db.execute(select(Message))).scalar_count()
-        new_memory_count = (await db.execute(select(Memory).where(Memory.is_active == True))).scalar_count()
-        new_prompt_count = (await db.execute(select(Prompt).where(Prompt.is_active == True))).scalar_count()
-        new_artifact_count = (await db.execute(select(Artifact))).scalar_count()
-        new_checkpoint_count = (await db.execute(select(Checkpoint))).scalar_count()
-        new_project_count = (await db.execute(select(Project))).scalar_count()
+        new_conv_count = len((await db.execute(select(Conversation).where(Conversation.is_deleted == False))).scalars().all())
+        new_msg_count = len((await db.execute(select(Message))).scalars().all())
+        new_memory_count = len((await db.execute(select(Memory).where(Memory.is_active == True))).scalars().all())
+        new_prompt_count = len((await db.execute(select(Prompt).where(Prompt.is_active == True))).scalars().all())
+        new_artifact_count = len((await db.execute(select(Artifact))).scalars().all())
+        new_checkpoint_count = len((await db.execute(select(Checkpoint))).scalars().all())
+        new_project_count = len((await db.execute(select(Project))).scalars().all())
 
         print(f"    ✓ Created 2 projects (total: {new_project_count})")
         print(f"    ✓ Created 2 conversations (total: {new_conv_count})")
