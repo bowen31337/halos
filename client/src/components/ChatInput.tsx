@@ -293,6 +293,11 @@ export function ChatInput() {
                     break
                   case 'todos':
                     if (eventData.todos) {
+                      const { todos: previousTodos } = useChatStore.getState()
+                      if (previousTodos.length === 0 && eventData.todos.length > 0) {
+                        setPanelType('todos')
+                        setPanelOpen(true)
+                      }
                       setTodos(eventData.todos)
                     }
                     break

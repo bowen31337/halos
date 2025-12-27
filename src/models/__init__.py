@@ -28,11 +28,14 @@ from src.models.background_task import BackgroundTask, TaskStatus
 from src.models.audit_log import AuditLog, AuditActionType, AuditAction
 from src.models.template import Template
 from src.models.saved_search import SavedSearch
+# Import collaboration models
+from src.models.collaboration import CollaborationSession, CollaborationParticipant, CollaborationEvent
 
 __all__ = [
     "Base", "Conversation", "Message", "Comment", "Project", "ProjectFile", "Artifact",
     "Checkpoint", "Memory", "SharedConversation", "Prompt", "MCPServer",
     "Folder", "FolderItem", "BackgroundTask", "TaskStatus", "AuditLog",
     "AuditActionType", "AuditAction", "User", "Session", "PasswordResetToken",
-    "APIKey", "UserStatus", "Tag", "conversation_tags", "Template", "SavedSearch"
+    "APIKey", "UserStatus", "Tag", "conversation_tags", "Template", "SavedSearch",
+    "CollaborationSession", "CollaborationEdit", "CollaborationMessage"
 ]
