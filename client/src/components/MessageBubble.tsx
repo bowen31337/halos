@@ -1,8 +1,8 @@
-import { Message } from '../stores/conversationStore'
+import type { Message } from '../stores/conversationStore'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { useState } from 'react'
 
 interface MessageBubbleProps {
@@ -123,7 +123,7 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={{
-                  code({ node, inline, className, children, ...props }) {
+                  code({ node, className, children, ...props }) {
                     const match = /language-(\w+)/.exec(className || '')
                     const language = match ? match[1] : ''
                     const codeString = String(children).replace(/\n$/, '')

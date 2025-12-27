@@ -147,8 +147,8 @@ export function ChatInput() {
         useConversationStore.setState({ messages: updatedMessages })
       }
 
-    } catch (error) {
-      if (error.name === 'AbortError') {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'AbortError') {
         console.log('Request cancelled by user')
       } else {
         console.error('Error sending message:', error)
@@ -157,7 +157,7 @@ export function ChatInput() {
           id: uuidv4(),
           conversationId: convId,
           role: 'assistant',
-          content: `Error: ${error.message}. The backend may not be running or API key not configured.`,
+          content: `Error: ${error instanceof Error ? error.message : String(error)}. The backend may not be running or API key not configured.`,
           createdAt: new Date().toISOString(),
         })
       }
