@@ -11,6 +11,7 @@ import { CheckpointManager } from './CheckpointManager'
 import { SubAgentModal } from './SubAgentModal'
 import { MemoryManager } from './MemoryManager'
 import { ShareModal } from './ShareModal'
+import { PromptModal } from './PromptModal'
 
 const MODELS = [
   { id: 'claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5', description: 'Balanced' },
@@ -42,6 +43,7 @@ export function Header() {
   const [subAgentModalOpen, setSubAgentModalOpen] = useState(false)
   const [memoryManagerOpen, setMemoryManagerOpen] = useState(false)
   const [shareModalOpen, setShareModalOpen] = useState(false)
+  const [promptModalOpen, setPromptModalOpen] = useState(false)
 
   // Fetch projects on mount
   useEffect(() => {
@@ -527,6 +529,17 @@ export function Header() {
           </button>
         )}
 
+        {/* Prompt Library button */}
+        <button
+          onClick={() => setPromptModalOpen(true)}
+          className="p-2 hover:bg-[var(--surface-elevated)] rounded-lg transition-colors"
+          title="Prompt Library"
+        >
+          <svg className="w-5 h-5 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </button>
+
         {/* SubAgent button */}
         <button
           onClick={() => setSubAgentModalOpen(true)}
@@ -609,6 +622,20 @@ export function Header() {
         conversationId={conversationId}
         conversationTitle={conversations.find(c => c.id === conversationId)?.title || 'Untitled Conversation'}
         onClose={() => setShareModalOpen(false)}
+      />
+    )}
+
+    {/* Prompt Modal */}
+    {promptModalOpen && (
+      <PromptModal
+        onClose={() => setPromptModalOpen(false)}
+        onUsePrompt={(content) => {
+          // Find the ChatInput component and set its value
+          // This will be handled by the parent component via context or store
+          // For now, we'll use a custom event
+          const event = new CustomEvent('usePrompt', { detail: { content } })
+          window.dispatchEvent(event)
+        }}
       />
     )}
     </>

@@ -77,6 +77,23 @@ export function ChatInput() {
     }
   }, [inputValue])
 
+  // Listen for prompt content from PromptModal
+  useEffect(() => {
+    const handleUsePrompt = (event: CustomEvent) => {
+      const content = event.detail.content
+      setInputValue(content)
+      // Also update the store
+      setInputMessage(content)
+      // Focus the textarea
+      setTimeout(() => textareaRef.current?.focus(), 100)
+    }
+
+    window.addEventListener('usePrompt', handleUsePrompt as EventListener)
+    return () => {
+      window.removeEventListener('usePrompt', handleUsePrompt as EventListener)
+    }
+  }, [setInputMessage])
+
   const handleSend = async () => {
     // If streaming, this is a stop request
     if (isStreaming) {
