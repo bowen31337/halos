@@ -1,5 +1,69 @@
 # Claude.ai Clone - Development Progress
 
+## Session 9 Summary (Extended Thinking, Settings & Theme Features)
+
+### Date: 2025-12-27
+
+**Session Focus:** Implemented extended thinking mode, settings modal, and theme switching
+
+### Features Implemented
+
+1. **Extended Thinking Mode (Feature #27)** ✓
+   - **Location:** `client/src/components/Header.tsx`, `src/services/mock_agent.py`, `src/api/routes/agent.py`
+   - **Features:**
+     - Toggle button in Header with visual state indication
+     - Backend support for extended_thinking parameter
+     - Mock agent generates thinking content when enabled
+     - SSE events stream thinking content before main response
+   - **Tested:** ✅ Backend streaming returns thinking events
+
+2. **Collapsible Thinking Process (Feature #28)** ✓
+   - **Location:** `client/src/components/MessageBubble.tsx`
+   - **Features:**
+     - Thinking indicator badge shows "Thinking..." during processing
+     - Collapsible section displays thinking content
+     - Expand/collapse toggle with smooth animation
+     - Thinking content displayed in monospace font
+   - **Tested:** ✅ Content properly stored and displayed
+
+3. **Settings Modal (Feature #29)** ✓
+   - **Location:** `client/src/components/SettingsModal.tsx`, `client/src/components/Header.tsx`
+   - **Features:**
+     - Modal with three tabs: General, Appearance, Advanced
+     - Extended thinking toggle in Advanced tab
+     - Theme selection in Appearance tab
+     - Font size slider in Appearance tab
+     - Keyboard shortcuts display in General tab
+   - **Tested:** ✅ Modal opens/closes correctly, tabs work
+
+4. **Theme Switching (Feature #30)** ✓
+   - **Location:** `client/src/stores/uiStore.ts`, `client/src/components/SettingsModal.tsx`
+   - **Features:**
+     - Light, Dark, and Auto (system) theme modes
+     - Theme state persisted in UI store
+     - Visual theme selection buttons
+     - CSS variables update dynamically
+   - **Tested:** ✅ Theme changes apply correctly
+
+### Data Model Updates
+
+1. **Message Interface** - Added `thinkingContent` and `isThinking` fields
+2. **Conversation Store** - Added `appendToLastThinking()` and `markThinkingComplete()` methods
+
+### Backend Updates
+
+1. **Mock Agent** - Enhanced to generate thinking content based on message type
+2. **Agent Route** - Properly passes extended_thinking to agent and handles thinking events
+
+### Progress Update
+
+- **Total Features:** 201
+- **Completed:** 30/201 (14.9%)
+- **Previous:** 26/201 (12.9%)
+- **This Session:** +4 features completed
+
+---
+
 ## Session 6 Summary (Backend & API Integration Verification)
 
 ### Date: 2025-12-27
@@ -37,6 +101,105 @@
 - ✅ Tool events (file operations)
 - ✅ Message persistence
 - ✅ Conversation list
+
+---
+
+## Session 10 Summary (Extended Thinking Mode)
+
+### Date: 2025-12-27
+
+### Completed Tasks
+
+#### 1. Extended Thinking Toggle in Header (Feature #27) ✓
+- **Location:** `client/src/components/Header.tsx`
+- **Changes:**
+  - Added `extendedThinkingEnabled` and `toggleExtendedThinking` from UI store
+  - Added "Think" toggle button next to model selector
+  - Visual feedback: Blue when enabled, gray when disabled
+  - Icon: Lightning bolt (⚡) symbol
+
+#### 2. Message Interface Update (Feature #27) ✓
+- **Location:** `client/src/stores/conversationStore.ts`
+- **Changes:**
+  - Added `thinkingContent?: string` - Extended thinking content
+  - Added `isThinking?: boolean` - Whether currently thinking
+
+#### 3. ChatInput Extended Thinking Support (Feature #27) ✓
+- **Location:** `client/src/components/ChatInput.tsx`
+- **Changes:**
+  - Import `useUIStore` for extended thinking state
+  - Send `extended_thinking: extendedThinkingEnabled` in API request
+  - Handle `thinking` SSE events to update message state
+  - Stream thinking content to `thinkingContent` field
+  - Mark messages as `isThinking: true` during thinking phase
+
+#### 4. MessageBubble Thinking Display (Feature #28) ✓
+- **Location:** `client/src/components/MessageBubble.tsx`
+- **Changes:**
+  - Thinking indicator badge when `isThinking` is true
+  - Collapsible "Thinking Process" section
+  - Shows `thinkingContent` when expanded
+  - Visual feedback with pulsing animation
+
+#### 5. Backend Agent Stream Endpoint (Feature #27) ✓
+- **Location:** `src/api/routes/agent.py`
+- **Changes:**
+  - Accept `extended_thinking` parameter from request
+  - Pass to agent config
+  - Emit `thinking` events with content
+  - Forward `on_chain_stream` events as thinking content
+
+#### 6. Mock Agent Extended Thinking (Feature #27) ✓
+- **Location:** `src/services/mock_agent.py`
+- **Changes:**
+  - Check `extended_thinking` in config
+  - Emit `on_chain_stream` events with thinking phrases
+  - Simulate thinking delay before main response
+
+### Backend API Response Format
+
+**With extended_thinking=true:**
+```
+event: start
+data: {"thread_id": "...", "model": "..."}
+
+event: thinking
+data: {"status": "thinking"}
+
+event: thinking
+data: {"content": "Let me think about this step by step...\n"}
+
+event: thinking
+data: {"content": "Analyzing the requirements carefully...\n"}
+
+event: message
+data: {"content": "The answer is 4"}
+
+event: done
+data: {"thread_id": "...", "thinking_content": "..."}
+```
+
+**With extended_thinking=false:**
+```
+event: start
+data: {"thread_id": "...", "model": "..."}
+
+event: message
+data: {"content": "The answer is 4"}
+
+event: done
+data: {"thread_id": "..."}
+```
+
+### Test Results
+- ✅ Extended thinking toggle shows in Header
+- ✅ Backend emits thinking events when enabled
+- ✅ Backend skips thinking events when disabled
+- ✅ Frontend receives and stores thinking content
+- ✅ MessageBubble displays collapsible thinking section
+- ✅ Thinking indicator shows during streaming
+
+**Progress:** 30/201 features (14.9%)
 
 ---
 
