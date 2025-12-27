@@ -2806,9 +2806,11 @@
       "Step 5: Verify model usage breakdown",
       "Step 6: Export analytics report"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-28",
+    "notes": "Verified: usage endpoints (daily, monthly, by-model, cache-stats, export), activity summary with breakdowns"
   },
   {
     "category": "functional",
@@ -2821,9 +2823,11 @@
       "Step 5: Verify relevance ranking",
       "Step 6: Click result to view context"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-28",
+    "notes": "Implemented /api/search/knowledge endpoint with full-text search in ProjectFile model. Created KnowledgeSearch React component. Backend searches in filename and extracted content fields."
   },
   {
     "category": "functional",
@@ -2923,9 +2927,11 @@
       "Step 6: Verify success after retry",
       "Step 7: Test max retry limit"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "notes": "Fully implemented: BackgroundTask model has retry_count, max_retries, retry_delay_seconds, and parent_task_id fields. Includes can_retry() and create_retry_task() methods. Verified with tests.",
+    "test_date": "2025-12-28"
   },
   {
     "category": "style",
