@@ -146,13 +146,13 @@ async def test_data_export_includes_all_content():
             conversation_id=conv1.id,
             name="Initial State",
             notes="Starting point",
-            state={"messages": []}
+            state_snapshot={"messages": []}
         )
         checkpoint2 = Checkpoint(
             conversation_id=conv2.id,
             name="After Story",
             notes="Story completed",
-            state={"messages": []}
+            state_snapshot={"messages": []}
         )
         db.add(checkpoint1)
         db.add(checkpoint2)

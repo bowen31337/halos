@@ -25,6 +25,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy import select
 from src.core.config import settings
+from src.core.database import Base
 from src.models import Conversation, Message, Memory, Prompt, Artifact, Checkpoint, Project, AuditLog
 from fastapi.testclient import TestClient
 from src.main import app
@@ -37,6 +38,10 @@ async def test_account_deletion_removes_all_data():
     # Create engine
     engine = create_async_engine(settings.database_url)
     async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+    # Create tables if they don't exist
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
     async with async_session() as db:
         # Step 1-2: Create test data and open account settings
@@ -233,6 +238,10 @@ async def test_account_deletion_with_no_data():
 
     engine = create_async_engine(settings.database_url)
     async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+    # Create tables if they don't exist
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
     async with async_session() as db:
         client = TestClient(app)

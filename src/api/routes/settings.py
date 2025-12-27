@@ -539,7 +539,7 @@ async def export_all_user_data(
                     "conversation_id": cp.conversation_id,
                     "name": cp.name,
                     "notes": cp.notes,
-                    "state": cp.state,
+                    "state": cp.state_snapshot,
                     "created_at": cp.created_at.isoformat(),
                 }
                 for cp in checkpoints
