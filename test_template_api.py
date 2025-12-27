@@ -35,7 +35,7 @@ async def test_templates_api():
                 "system_prompt": "You are a code review assistant. Analyze code for bugs, security issues, and improvements.",
                 "initial_message": "Please review this code:",
                 "model": "claude-sonnet-4-5-20250929",
-                "tags": ["coding", "review"]
+                "tags": {"language": "python", "type": "review"}
             }
         )
         print(f"Status: {create_response.status_code}")
