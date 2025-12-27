@@ -2566,9 +2566,10 @@
       "Step 7: Upload an image file",
       "Step 8: Verify image preview"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": false,
+    "notes": "Already implemented in client/src/utils/fileTypeDetection.ts with 80+ file types supported"
   },
   {
     "category": "functional",
