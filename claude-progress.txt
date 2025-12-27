@@ -6,9 +6,9 @@
 |--------|-------|--------|
 | **Total Features** | 201 | |
 | **Dev Done** | 126 | 62.7% ✅ |
-| **QA Passed** | 123 | 61.2% ✅ |
+| **QA Passed** | 126 | 62.7% ✅ |
 | **Dev Queue** | 75 | 37.3% remaining |
-| **QA Queue** | 78 | 38.8% remaining |
+| **QA Queue** | 75 | 37.3% remaining |
 
 ### 🎯 Recently Completed Features (Session 46)
 
@@ -19,9 +19,9 @@
 | #114 | Success, warning, error states use correct colors | ✅ Complete |
 | #115 | Tool call blocks have distinct visual treatment | ✅ Complete |
 | #116 | HITL approval dialog is clearly visible and styled | ✅ Complete |
-| #119 | Responsive design works at tablet breakpoint (768px) | ✅ Dev Done |
-| #120 | Responsive design works at mobile breakpoint (375px) | ✅ Dev Done |
-| #121 | Swipe gestures work on mobile for navigation | ✅ Dev Done |
+| #119 | Responsive design works at tablet breakpoint (768px) | ✅ Complete |
+| #120 | Responsive design works at mobile breakpoint (375px) | ✅ Complete |
+| #121 | Swipe gestures work on mobile for navigation | ✅ Complete |
 
 ---
 
@@ -51,9 +51,9 @@
 | #114 | Success, warning, error states use correct colors | ✅ | ✅ | ✅ |
 | #115 | Tool call blocks have distinct visual treatment | ✅ | ✅ | ✅ |
 | #116 | HITL approval dialog is clearly visible and styled | ✅ | ✅ | ✅ |
-| #119 | Responsive design works at tablet breakpoint (768px) | ✅ | ✅ | ⏳ |
-| #120 | Responsive design works at mobile breakpoint (375px) | ✅ | ✅ | ⏳ |
-| #121 | Swipe gestures work on mobile for navigation | ✅ | ✅ | ⏳ |
+| #119 | Responsive design works at tablet breakpoint (768px) | ✅ | ✅ | ✅ |
+| #120 | Responsive design works at mobile breakpoint (375px) | ✅ | ✅ | ✅ |
+| #121 | Swipe gestures work on mobile for navigation | ✅ | ✅ | ✅ |
 
 ### Implementation Summary
 
