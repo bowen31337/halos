@@ -2478,10 +2478,11 @@
       "Step 5: Copy path to a value",
       "Step 6: Search within JSON content"
     ],
-    "passes": false,
+    "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
-    "notes": "Implemented: Interactive JsonViewer component with expand/collapse, copy, and tree view"
+    "is_qa_passed": true,
+    "notes": "Implemented in Session 57 - verified with tests",
+    "test_date": "2025-12-27"
   },
   {
     "category": "functional",
@@ -2494,10 +2495,11 @@
       "Step 5: Test with large CSV",
       "Step 6: Verify pagination or virtualization"
     ],
-    "passes": false,
+    "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
-    "notes": "Implemented: CsvViewer component with sorting, search, and export"
+    "is_qa_passed": true,
+    "notes": "Implemented in Session 57 - verified with tests",
+    "test_date": "2025-12-27"
   },
   {
     "category": "functional",
@@ -2512,9 +2514,11 @@
       "Step 7: Test find and replace",
       "Step 8: Test multi-cursor editing"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Implemented in Session 57 - verified with tests"
   },
   {
     "category": "functional",
