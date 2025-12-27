@@ -7,13 +7,18 @@ import { useState } from 'react'
 
 interface MessageBubbleProps {
   message: Message
+  onRegenerate?: (messageId: string) => void
+  onEdit?: (messageId: string, content: string) => void
 }
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubbleProps) {
   const isUser = message.role === 'user'
   const isTool = message.role === 'tool'
   const isStreaming = message.isStreaming
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
+  const [showActions, setShowActions] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedContent, setEditedContent] = useState(message.content)
 
   const copyToClipboard = async (text: string, language: string) => {
     try {
@@ -22,6 +27,13 @@ export function MessageBubble({ message }: MessageBubbleProps) {
       setTimeout(() => setCopiedCode(null), 2000)
     } catch (err) {
       console.error('Failed to copy:', err)
+    }
+  }
+
+  const handleEdit = () => {
+    if (isUser && onEdit) {
+      onEdit(message.id, editedContent)
+      setIsEditing(false)
     }
   }
 
@@ -42,7 +54,11 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   }
 
   return (
-    <div className={`mb-6 ${isUser ? 'flex justify-end' : ''}`}>
+    <div
+      className={`mb-6 group ${isUser ? 'flex justify-end' : ''}`}
+      onMouseEnter={() => setShowActions(true)}
+      onMouseLeave={() => setShowActions(false)}
+    >
       <div
         className={`max-w-full ${isUser ? 'bg-[var(--primary)] text-white px-4 py-3 rounded-2xl' : ''}`}
       >
@@ -54,12 +70,54 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             <span className="text-sm font-medium text-[var(--text-secondary)]">
               Claude
             </span>
+            {/* Action buttons for assistant messages */}
+            {showActions && !isStreaming && !isEditing && (
+              <div className="flex gap-1 ml-2">
+                {onRegenerate && (
+                  <button
+                    onClick={() => onRegenerate(message.id)}
+                    className="p-1 hover:bg-[var(--bg-secondary)] rounded transition-colors"
+                    title="Regenerate response"
+                  >
+                    🔄
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         )}
 
         <div className={isUser ? 'text-white' : 'text-[var(--text-primary)] prose prose-sm max-w-none'}>
           {isUser ? (
-            <p className="whitespace-pre-wrap">{message.content}</p>
+            isEditing ? (
+              <div className="space-y-2">
+                <textarea
+                  value={editedContent}
+                  onChange={(e) => setEditedContent(e.target.value)}
+                  className="w-full p-2 rounded bg-white/10 resize-none"
+                  rows={3}
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleEdit}
+                    className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded text-sm"
+                  >
+                    Resend
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsEditing(false)
+                      setEditedContent(message.content)
+                    }}
+                    className="px-3 py-1 bg-white/10 hover:bg-white/20 rounded text-sm"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="whitespace-pre-wrap">{message.content}</p>
+            )
           ) : (
             <>
               <ReactMarkdown
@@ -116,6 +174,19 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             </>
           )}
         </div>
+
+        {/* Edit button for user messages */}
+        {isUser && showActions && !isEditing && (
+          <div className="mt-2 flex gap-1">
+            <button
+              onClick={() => setIsEditing(true)}
+              className="p-1 hover:bg-white/10 rounded transition-colors"
+              title="Edit message"
+            >
+              ✏️
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

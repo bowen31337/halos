@@ -49,10 +49,19 @@ interface ConversationState {
   updateConversation: (id: string, updates: Partial<Conversation>) => void
   deleteConversation: (id: string) => void
 
+  // API Actions
+  loadConversations: () => Promise<void>
+  loadMessages: (conversationId: string) => Promise<void>
+  createConversation: (title?: string) => Promise<Conversation>
+  updateConversationTitle: (id: string, title: string) => Promise<void>
+  removeConversation: (id: string) => Promise<void>
+
   setMessages: (messages: Message[]) => void
   addMessage: (message: Message) => void
   updateMessage: (id: string, updates: Partial<Message>) => void
   appendToLastMessage: (content: string) => void
+  regenerateLastResponse: (messageId: string) => Promise<void>
+  editAndResend: (messageId: string, newContent: string) => Promise<void>
 
   setTodos: (todos: Todo[]) => void
 
@@ -99,6 +108,72 @@ export const useConversationStore = create<ConversationState>((set) => ({
         state.currentConversationId === id ? null : state.currentConversationId,
     })),
 
+  // API Actions
+  loadConversations: async () => {
+    try {
+      const response = await fetch('/api/conversations')
+      if (response.ok) {
+        const data = await response.json()
+        set({ conversations: data })
+      }
+    } catch (error) {
+      console.error('Failed to load conversations:', error)
+    }
+  },
+
+  loadMessages: async (conversationId: string) => {
+    try {
+      const response = await fetch(`/api/conversations/${conversationId}/messages`)
+      if (response.ok) {
+        const data = await response.json()
+        set({ messages: data })
+      }
+    } catch (error) {
+      console.error('Failed to load messages:', error)
+    }
+  },
+
+  createConversation: async (title = 'New Conversation') => {
+    const response = await fetch('/api/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title }),
+    })
+    if (!response.ok) throw new Error('Failed to create conversation')
+
+    const conv = await response.json()
+    set((state) => ({ conversations: [conv, ...state.conversations] }))
+    return conv
+  },
+
+  updateConversationTitle: async (id: string, title: string) => {
+    const response = await fetch(`/api/conversations/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title }),
+    })
+    if (response.ok) {
+      set((state) => ({
+        conversations: state.conversations.map((c) =>
+          c.id === id ? { ...c, title } : c
+        ),
+      }))
+    }
+  },
+
+  removeConversation: async (id: string) => {
+    const response = await fetch(`/api/conversations/${id}`, {
+      method: 'DELETE',
+    })
+    if (response.ok) {
+      set((state) => ({
+        conversations: state.conversations.filter((c) => c.id !== id),
+        currentConversationId:
+          state.currentConversationId === id ? null : state.currentConversationId,
+      }))
+    }
+  },
+
   setMessages: (messages) => set({ messages }),
 
   addMessage: (message) =>
@@ -129,6 +204,204 @@ export const useConversationStore = create<ConversationState>((set) => ({
   setLoading: (isLoading) => set({ isLoading }),
   setStreaming: (isStreaming) => set({ isStreaming }),
   setError: (error) => set({ error }),
+
+  regenerateLastResponse: async (messageId: string) => {
+    const state = useConversationStore.getState()
+    const messageIndex = state.messages.findIndex(m => m.id === messageId)
+
+    if (messageIndex === -1) return
+
+    // Remove all messages after this one (including this one)
+    const messagesToKeep = state.messages.slice(0, messageIndex)
+    set({ messages: messagesToKeep })
+
+    // Get the last user message to resend
+    const lastUserMessage = [...messagesToKeep].reverse().find(m => m.role === 'user')
+
+    if (lastUserMessage) {
+      // Trigger resend by calling the stream endpoint
+      const convId = state.currentConversationId || 'default'
+      const sendMessage = async () => {
+        set({ isLoading: true, isStreaming: true })
+
+        // Create assistant message placeholder
+        const assistantMessage = {
+          id: Date.now().toString(),
+          conversationId: convId,
+          role: 'assistant' as const,
+          content: '',
+          createdAt: new Date().toISOString(),
+          isStreaming: true,
+        }
+        set((state) => ({ messages: [...state.messages, assistantMessage] }))
+
+        try {
+          const response = await fetch('/api/agent/stream', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: lastUserMessage.content,
+              conversationId: convId,
+              thread_id: convId
+            }),
+          })
+
+          if (!response.ok) throw new Error('Failed to regenerate')
+
+          const reader = response.body?.getReader()
+          const decoder = new TextDecoder()
+          let buffer = ''
+
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+
+            buffer += decoder.decode(value, { stream: true })
+            const lines = buffer.split('\n')
+            buffer = lines.pop() || ''
+
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                const dataStr = line.slice(6)
+                if (!dataStr) continue
+
+                try {
+                  const eventData = JSON.parse(dataStr)
+                  if (eventData.content) {
+                    set((state) => {
+                      const messages = [...state.messages]
+                      const lastMsg = messages[messages.length - 1]
+                      if (lastMsg && lastMsg.role === 'assistant') {
+                        messages[messages.length - 1] = {
+                          ...lastMsg,
+                          content: lastMsg.content + eventData.content,
+                        }
+                      }
+                      return { messages }
+                    })
+                  }
+                } catch (e) {
+                  // Ignore parse errors
+                }
+              }
+            }
+          }
+
+          // Mark as complete
+          set((state) => {
+            const messages = [...state.messages]
+            const lastMsg = messages[messages.length - 1]
+            if (lastMsg && lastMsg.role === 'assistant') {
+              messages[messages.length - 1] = { ...lastMsg, isStreaming: false }
+            }
+            return { messages, isLoading: false, isStreaming: false }
+          })
+        } catch (error) {
+          console.error('Regenerate failed:', error)
+          set({ isLoading: false, isStreaming: false })
+        }
+      }
+
+      sendMessage()
+    }
+  },
+
+  editAndResend: async (messageId: string, newContent: string) => {
+    const state = useConversationStore.getState()
+    const messageIndex = state.messages.findIndex(m => m.id === messageId)
+
+    if (messageIndex === -1) return
+
+    // Update the message content
+    set((state) => ({
+      messages: state.messages.map((m, i) =>
+        i === messageIndex ? { ...m, content: newContent } : m
+      ),
+    }))
+
+    // Remove all messages after this one
+    const messagesToKeep = state.messages.slice(0, messageIndex + 1)
+    set({ messages: messagesToKeep })
+
+    // Send the edited message
+    const convId = state.currentConversationId || 'default'
+    set({ isLoading: true, isStreaming: true })
+
+    const assistantMessage = {
+      id: Date.now().toString(),
+      conversationId: convId,
+      role: 'assistant' as const,
+      content: '',
+      createdAt: new Date().toISOString(),
+      isStreaming: true,
+    }
+    set((state) => ({ messages: [...state.messages, assistantMessage] }))
+
+    try {
+      const response = await fetch('/api/agent/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: newContent,
+          conversationId: convId,
+          thread_id: convId
+        }),
+      })
+
+      if (!response.ok) throw new Error('Failed to send')
+
+      const reader = response.body?.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() || ''
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.slice(6)
+            if (!dataStr) continue
+
+            try {
+              const eventData = JSON.parse(dataStr)
+              if (eventData.content) {
+                set((state) => {
+                  const messages = [...state.messages]
+                  const lastMsg = messages[messages.length - 1]
+                  if (lastMsg && lastMsg.role === 'assistant') {
+                    messages[messages.length - 1] = {
+                      ...lastMsg,
+                      content: lastMsg.content + eventData.content,
+                    }
+                  }
+                  return { messages }
+                })
+              }
+            } catch (e) {
+              // Ignore parse errors
+            }
+          }
+        }
+      }
+
+      set((state) => {
+        const messages = [...state.messages]
+        const lastMsg = messages[messages.length - 1]
+        if (lastMsg && lastMsg.role === 'assistant') {
+          messages[messages.length - 1] = { ...lastMsg, isStreaming: false }
+        }
+        return { messages, isLoading: false, isStreaming: false }
+      })
+    } catch (error) {
+      console.error('Send failed:', error)
+      set({ isLoading: false, isStreaming: false })
+    }
+  },
 
   reset: () => set(initialState),
 }))

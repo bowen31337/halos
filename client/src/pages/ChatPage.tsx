@@ -7,15 +7,16 @@ import { WelcomeScreen } from '../components/WelcomeScreen'
 
 export function ChatPage() {
   const { conversationId } = useParams()
-  const { messages, currentConversationId, setCurrentConversation } = useConversationStore()
+  const { messages, currentConversationId, setCurrentConversation, loadMessages } = useConversationStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Set current conversation from URL
   useEffect(() => {
     if (conversationId) {
       setCurrentConversation(conversationId)
+      loadMessages(conversationId)
     }
-  }, [conversationId, setCurrentConversation])
+  }, [conversationId, setCurrentConversation, loadMessages])
 
   // Auto-scroll to bottom
   useEffect(() => {

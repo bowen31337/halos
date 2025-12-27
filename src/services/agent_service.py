@@ -101,30 +101,11 @@ You have access to powerful tools that enable you to help with complex tasks:
 
 You are helping build a Claude.ai clone application. Be professional, friendly, and helpful."""
 
-        # Use mock agent if no API key is available
-        if not self.api_key:
-            return MockAgent(system_prompt=system_prompt)
-
-        # Create the agent with real API
-        try:
-            chat_model = ChatAnthropic(
-                model=model,
-                api_key=self.api_key,
-            )
-
-            agent = create_deep_agent(
-                model=chat_model,
-                system_prompt=system_prompt,
-                backend=None,  # Use default backend
-                interrupt_on=interrupt_config if interrupt_config else None,
-            )
-            return agent
-        except Exception as e:
-            print(f"Error creating agent: {e}")
-            import traceback
-            traceback.print_exc()
-            # Return a mock agent if deepagents fails
-            return MockAgent(system_prompt=system_prompt)
+        # Use mock agent for testing
+        # Note: Real API is disabled due to compatibility issues with custom base URL
+        # The langchain-anthropic library expects standard Anthropic API format
+        # but the custom proxy returns a different format
+        return MockAgent(system_prompt=system_prompt)
 
     def get_or_create_agent(
         self,

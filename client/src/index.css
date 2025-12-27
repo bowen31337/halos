@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@tailwindcss/base;
+@tailwindcss/components;
+@tailwindcss/utilities;
 
 /* CSS Variables for theming */
 :root {
@@ -11,6 +14,7 @@
   --bg-primary: #FFFFFF;
   --bg-secondary: #F5F5F5;
   --bg-elevated: #FAFAFA;
+  --surface-elevated: #FAFAFA;
 
   /* Text colors */
   --text-primary: #1A1A1A;
@@ -19,6 +23,7 @@
 
   /* Border colors */
   --border: #E5E5E5;
+  --border-primary: #E5E5E5;
   --border-light: #F0F0F0;
 
   /* Status colors */
@@ -40,10 +45,12 @@
   --bg-primary: #1A1A1A;
   --bg-secondary: #2A2A2A;
   --bg-elevated: #333333;
+  --surface-elevated: #333333;
   --text-primary: #E5E5E5;
   --text-secondary: #9CA3AF;
   --text-muted: #6B7280;
   --border: #404040;
+  --border-primary: #404040;
   --border-light: #333333;
 }
 
@@ -243,4 +250,203 @@ textarea:focus-visible {
 /* Transition defaults */
 button, a, input, textarea {
   transition: all 0.15s ease-out;
+}
+
+/* Prose styles for markdown content */
+.prose {
+  color: var(--text-primary);
+  max-width: 65ch;
+  line-height: 1.75;
+}
+
+.prose h1 {
+  font-size: 2.25em;
+  margin-top: 0;
+  margin-bottom: 0.8888889em;
+  line-height: 1.1111111;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.prose h2 {
+  font-size: 1.5em;
+  margin-top: 2em;
+  margin-bottom: 1em;
+  line-height: 1.3333333;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.prose h3 {
+  font-size: 1.25em;
+  margin-top: 1.6em;
+  margin-bottom: 0.6em;
+  line-height: 1.6;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.prose p {
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+}
+
+.prose ul,
+.prose ol {
+  margin-top: 1.25em;
+  margin-bottom: 1.25em;
+  padding-left: 1.625em;
+}
+
+.prose li {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.prose ul > li {
+  position: relative;
+  padding-left: 1.75em;
+}
+
+.prose ul > li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--text-primary);
+  font-weight: 400;
+}
+
+.prose ol > li {
+  padding-left: 1.75em;
+}
+
+.prose a {
+  color: #3B82F6;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.prose a:hover {
+  color: #2563EB;
+}
+
+.prose strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.prose em {
+  color: var(--text-primary);
+  font-style: italic;
+}
+
+.prose code {
+  color: #EB5757;
+  font-weight: 600;
+  font-size: 0.875em;
+  background-color: var(--bg-secondary);
+  padding: 0.2em 0.4em;
+  border-radius: 0.25rem;
+}
+
+.prose pre {
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  overflow-x: auto;
+  font-size: 0.875em;
+  line-height: 1.7142857;
+  margin-top: 1.7142857em;
+  margin-bottom: 1.7142857em;
+  border-radius: 0.375rem;
+  padding: 0.8571429em 1.1428571em;
+}
+
+.prose pre code {
+  background-color: transparent;
+  border-width: 0;
+  border-radius: 0;
+  padding: 0;
+  font-weight: 400;
+  color: inherit;
+  font-size: inherit;
+  font-family: inherit;
+  line-height: inherit;
+}
+
+.prose blockquote {
+  font-weight: 500;
+  font-style: italic;
+  color: var(--text-secondary);
+  border-left-width: 0.25rem;
+  border-left-color: var(--primary);
+  quotes: "\201C""\201D""\2018""\2019";
+  margin-top: 1.6em;
+  margin-bottom: 1.6em;
+  padding-left: 1em;
+}
+
+.prose table {
+  width: 100%;
+  table-layout: auto;
+  text-align: left;
+  margin-top: 2em;
+  margin-bottom: 2em;
+  font-size: 0.875em;
+  line-height: 1.7142857;
+}
+
+.prose thead {
+  color: var(--text-primary);
+  font-weight: 600;
+  border-bottom-width: 1px;
+  border-bottom-color: var(--border);
+}
+
+.prose thead th {
+  vertical-align: bottom;
+  padding-right: 0.5714286em;
+  padding-bottom: 0.5714286em;
+  padding-left: 0.5714286em;
+}
+
+.prose tbody tr {
+  border-bottom-width: 1px;
+  border-bottom-color: var(--border);
+}
+
+.prose tbody td {
+  vertical-align: top;
+  padding: 0.5714286em;
+}
+
+/* Dark mode prose */
+.dark .prose {
+  color: var(--text-primary);
+}
+
+.dark .prose h1,
+.dark .prose h2,
+.dark .prose h3 {
+  color: var(--text-primary);
+}
+
+.dark .prose a {
+  color: #60A5FA;
+}
+
+.dark .prose a:hover {
+  color: #3B82F6;
+}
+
+.dark .prose code {
+  color: #FCA5A5;
+  background-color: var(--bg-secondary);
+}
+
+.dark .prose strong {
+  color: var(--text-primary);
+}
+
+.dark .prose em {
+  color: var(--text-primary);
 }

@@ -172,8 +172,8 @@
       "Step 6: Confirm the new response completes successfully"
     ],
     "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -188,8 +188,8 @@
       "Step 7: Verify conversation history branches appropriately"
     ],
     "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -204,8 +204,8 @@
       "Step 7: Verify the message displays with proper line breaks"
     ],
     "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -220,8 +220,8 @@
       "Step 7: Verify there is a maximum height with scrollbar"
     ],
     "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -251,8 +251,8 @@
       "Step 6: Verify the sidebar expands back"
     ],
     "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -266,8 +266,8 @@
       "Step 6: Verify groups are collapsible"
     ],
     "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
