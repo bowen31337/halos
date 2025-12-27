@@ -5,7 +5,8 @@ from typing import Optional, Any
 from uuid import uuid4
 
 from deepagents import create_deep_agent
-from deepagents.backends import StateBackend, StoreBackend
+from deepagents.backends import StateBackend, StoreBackend, CompositeBackend
+from langchain_anthropic import ChatAnthropic
 from langgraph.store.memory import InMemoryStore
 
 
@@ -96,13 +97,24 @@ You have access to powerful tools that enable you to help with complex tasks:
 
 You are helping build a Claude.ai clone application. Be professional, friendly, and helpful."""
 
-        # Create the agent with StateBackend for ephemeral files
-        # Note: For production, you'd use CompositeBackend with StoreBackend for long-term memory
+        # Create the agent
+        # backend=None uses default behavior (ephemeral state)
+        # For production, you could use CompositeBackend with StoreBackend for long-term memory
         try:
+            # Create ChatAnthropic model instance
+            if not self.api_key:
+                print("No API key available - cannot create real agent")
+                return None
+
+            chat_model = ChatAnthropic(
+                model=model,
+                api_key=self.api_key,
+            )
+
             agent = create_deep_agent(
-                model=f"anthropic:{model}",
+                model=chat_model,
                 system_prompt=system_prompt,
-                backend=StateBackend(),  # Ephemeral file storage
+                backend=None,  # Use default backend
                 interrupt_on=interrupt_config if interrupt_config else None,
             )
             return agent
