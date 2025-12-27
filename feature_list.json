@@ -1826,7 +1826,7 @@
     "is_dev_done": true,
     "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "Verified: CSS variables and component styling correctly implemented"
+    "notes": "Verified via test_styling_features.py"
   },
   {
     "category": "style",
@@ -1843,7 +1843,7 @@
     "is_dev_done": true,
     "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "Verified: CSS variables and component styling correctly implemented"
+    "notes": "Verified via test_styling_features.py"
   },
   {
     "category": "style",
@@ -1861,7 +1861,7 @@
     "is_dev_done": true,
     "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "Verified: CSS variables and component styling correctly implemented"
+    "notes": "Verified via test_styling_features.py"
   },
   {
     "category": "style",
@@ -1876,9 +1876,9 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
+    "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "Verified: CSS variables and component styling already implemented correctly"
+    "notes": "Verified via test_styling_features.py"
   },
   {
     "category": "style",
@@ -1894,9 +1894,9 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
+    "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "Verified: Dropdowns and select menus use CSS variables for consistent styling"
+    "notes": "Verified via test_styling_features.py"
   },
   {
     "category": "style",
@@ -1913,7 +1913,7 @@
     "is_dev_done": true,
     "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "Verified: Dropdowns and select menus use CSS variables for consistent styling"
+    "notes": "Verified via test_styling_features.py"
   },
   {
     "category": "style",
