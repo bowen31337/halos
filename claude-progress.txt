@@ -321,9 +321,9 @@
 
 ---
 
-## Features Completed: 21/201 (10.4%)
+## Features Completed: 23/201 (11.4%)
 
-### Functional Tests Passing (First 21 Features)
+### Functional Tests Passing (First 23 Features)
 - ✅ 1. DeepAgents architecture integration
 - ✅ 2. Application loads without errors
 - ✅ 3. Basic chat flow with streaming
@@ -343,11 +343,13 @@
 - ✅ 17. Conversation date grouping
 - ✅ 18. Conversation search (partial)
 - ✅ 19. Pin conversations (partial)
-- ✅ 20. Archive conversations (partial)
-- ✅ 21. Archive conversations (complete implementation)
+- ✅ 20. Archive conversations (complete implementation)
+- ✅ 21. Duplicate conversation
+- ✅ 22. Export conversation as JSON
+- ✅ 23. Export conversation as Markdown
 
 ### Remaining Tests
-- 180 tests still pending implementation and validation
+- 178 tests still pending implementation and validation
 
 ---
 
@@ -427,8 +429,8 @@ is_archived BOOLEAN DEFAULT false  -- Already present
 - **Files Enhanced:** 2 (Sidebar.tsx, conversationStore.ts)
 - **Lines of Code Added:** ~50 (UI enhancements)
 - **Tests Passed:** 1 new feature (Archive Conversations)
-- **Features Completed:** +1 (21/201, up from 20/201)
-- **Progress:** 10.4% complete (up from 10.0%)
+- **Features Completed:** +3 (23/201, up from 20/201)
+- **Progress:** 11.4% complete (up from 10.0%)
 - **Branch:** main
 - **Remote:** git@github.com:bowen31337/halos.git (configured)
 

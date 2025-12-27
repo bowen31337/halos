@@ -10,6 +10,7 @@ export interface Message {
   toolInput?: Record<string, unknown>
   toolOutput?: string
   isStreaming?: boolean
+  attachments?: string[]  // URLs to uploaded images/files
 }
 
 export interface Conversation {

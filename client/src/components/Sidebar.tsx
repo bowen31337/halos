@@ -2,6 +2,7 @@ import { useConversationStore, type Conversation } from '../stores/conversationS
 import { useUIStore } from '../stores/uiStore'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
+import { api } from '../services/api'
 
 export function Sidebar() {
   const {
@@ -25,6 +26,7 @@ export function Sidebar() {
   const [searchQuery, setSearchQuery] = useState('')
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null)
   const [archivingId, setArchivingId] = useState<string | null>(null)
+  const [exportingId, setExportingId] = useState<string | null>(null)
   const [showArchived, setShowArchived] = useState(false)
 
   const handleArchive = async (e: React.MouseEvent, id: string) => {
@@ -162,6 +164,28 @@ export function Sidebar() {
     }
   }
 
+  const handleExport = async (e: React.MouseEvent, id: string, format: 'json' | 'markdown') => {
+    e.stopPropagation()
+    setExportingId(id)
+    try {
+      const blob = await api.exportConversation(id, format)
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      const conv = conversations.find(c => c.id === id)
+      const filename = `${conv?.title.replace(/[^a-z0-9]/gi, '_') || 'conversation'}_export.${format}`
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Failed to export conversation:', error)
+    } finally {
+      setExportingId(null)
+    }
+  }
+
   // Group conversations by date
   const groupByDate = (conversations: Conversation[]) => {
     const now = new Date()
@@ -280,9 +304,11 @@ export function Sidebar() {
                 onDuplicate={(e) => handleDuplicate(e, conv.id)}
                 onArchive={(e) => handleArchive(e, conv.id)}
                 onUnarchive={(e) => handleUnarchive(e, conv.id)}
+                onExport={(e, format) => handleExport(e, conv.id, format)}
                 isDeleting={deletingId === conv.id}
                 isDuplicating={duplicatingId === conv.id}
                 isArchiving={archivingId === conv.id}
+                isExporting={exportingId === conv.id}
               />
             ))}
 
@@ -303,9 +329,11 @@ export function Sidebar() {
                 onDuplicate={(e) => handleDuplicate(e, conv.id)}
                 onArchive={(e) => handleArchive(e, conv.id)}
                 onUnarchive={(e) => handleUnarchive(e, conv.id)}
+                onExport={(e, format) => handleExport(e, conv.id, format)}
                 isDeleting={deletingId === conv.id}
                 isDuplicating={duplicatingId === conv.id}
                 isArchiving={archivingId === conv.id}
+                isExporting={exportingId === conv.id}
               />
             ))}
 
@@ -326,9 +354,11 @@ export function Sidebar() {
                 onDuplicate={(e) => handleDuplicate(e, conv.id)}
                 onArchive={(e) => handleArchive(e, conv.id)}
                 onUnarchive={(e) => handleUnarchive(e, conv.id)}
+                onExport={(e, format) => handleExport(e, conv.id, format)}
                 isDeleting={deletingId === conv.id}
                 isDuplicating={duplicatingId === conv.id}
                 isArchiving={archivingId === conv.id}
+                isExporting={exportingId === conv.id}
               />
             ))}
           </>
@@ -359,9 +389,11 @@ interface ConversationItemProps {
   onDuplicate: (e: React.MouseEvent) => void
   onArchive: (e: React.MouseEvent) => void
   onUnarchive: (e: React.MouseEvent) => void
+  onExport: (e: React.MouseEvent, format: 'json' | 'markdown') => void
   isDeleting: boolean
   isDuplicating: boolean
   isArchiving: boolean
+  isExporting: boolean
 }
 
 function ConversationItem({
@@ -374,9 +406,11 @@ function ConversationItem({
   onDuplicate,
   onArchive,
   onUnarchive,
+  onExport,
   isDeleting,
   isDuplicating,
   isArchiving,
+  isExporting,
 }: ConversationItemProps) {
   const [showActions, setShowActions] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -462,7 +496,7 @@ function ConversationItem({
           </span>
 
           {/* Actions - show on hover or when selected */}
-          {(showActions || isSelected) && !isDeleting && !isDuplicating && !isArchiving && (
+          {(showActions || isSelected) && !isDeleting && !isDuplicating && !isArchiving && !isExporting && (
             <div className="flex gap-1">
               <button
                 onClick={handleStartEdit}
@@ -513,6 +547,24 @@ function ConversationItem({
                 </button>
               )}
               <button
+                onClick={(e) => onExport(e, 'json')}
+                title="Export as JSON"
+                className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
+                  isSelected ? 'hover:bg-white/20' : ''
+                }`}
+              >
+                📄
+              </button>
+              <button
+                onClick={(e) => onExport(e, 'markdown')}
+                title="Export as Markdown"
+                className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
+                  isSelected ? 'hover:bg-white/20' : ''
+                }`}
+              >
+                📝
+              </button>
+              <button
                 onClick={onDelete}
                 title="Delete"
                 className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
@@ -534,6 +586,10 @@ function ConversationItem({
 
           {isArchiving && (
             <span className="text-xs">Archiving...</span>
+          )}
+
+          {isExporting && (
+            <span className="text-xs">Exporting...</span>
           )}
         </>
       )}

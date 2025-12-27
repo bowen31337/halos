@@ -1,18 +1,26 @@
 """Message management endpoints."""
 
+import os
+import uuid
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, UploadFile, File
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_db
+from src.core.config import settings
 from src.models import Message, Conversation
 
 router = APIRouter()
+
+# Directory for uploaded images
+UPLOAD_DIR = "/tmp/talos-uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 class MessageCreate(BaseModel):
@@ -201,3 +209,50 @@ async def delete_message(
 
     await db.delete(message)
     await db.commit()
+
+
+@router.post("/upload-image", status_code=status.HTTP_201_CREATED)
+async def upload_image(file: UploadFile = File(...)) -> dict:
+    """Upload an image file and return its URL."""
+    # Validate file type
+    if not file.content_type or not file.content_type.startswith("image/"):
+        raise HTTPException(
+            status_code=400,
+            detail="Only image files are allowed"
+        )
+
+    # Generate unique filename
+    file_extension = file.filename.split(".")[-1] if file.filename else "png"
+    unique_filename = f"{uuid.uuid4()}.{file_extension}"
+    file_path = os.path.join(UPLOAD_DIR, unique_filename)
+
+    # Save file
+    try:
+        contents = await file.read()
+        with open(file_path, "wb") as f:
+            f.write(contents)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to save image: {str(e)}"
+        )
+
+    # Return URL to access the image
+    image_url = f"/api/messages/images/{unique_filename}"
+    return {
+        "url": image_url,
+        "filename": unique_filename,
+        "original_filename": file.filename,
+        "size": len(contents)
+    }
+
+
+@router.get("/images/{filename}")
+async def get_image(filename: str) -> FileResponse:
+    """Serve an uploaded image file."""
+    file_path = os.path.join(UPLOAD_DIR, filename)
+
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    return FileResponse(file_path)

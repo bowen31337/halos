@@ -379,9 +379,9 @@
       "Step 7: Verify the image is displayed in the conversation",
       "Step 8: Verify AI responds about the image content"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -394,9 +394,9 @@
       "Step 5: Send a message with the image",
       "Step 6: Verify the image displays in the conversation"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",

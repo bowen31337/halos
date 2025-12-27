@@ -83,6 +83,16 @@ class APIService {
     return response.json()
   }
 
+  async exportConversation(id: string, format: 'json' | 'markdown'): Promise<Blob> {
+    const response = await fetch(`${API_BASE}/conversations/${id}/export?format=${format}`, {
+      method: 'POST',
+    })
+    if (!response.ok) {
+      throw new Error(`Export failed: ${response.status}`)
+    }
+    return response.blob()
+  }
+
   // Message APIs
   async listMessages(conversationId: string): Promise<Message[]> {
     const response = await fetch(`${API_BASE}/messages/conversations/${conversationId}/messages`)

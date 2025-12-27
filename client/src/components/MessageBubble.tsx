@@ -87,6 +87,20 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
           </div>
         )}
 
+        {/* Display image attachments */}
+        {message.attachments && message.attachments.length > 0 && (
+          <div className="mb-3 flex flex-wrap gap-2">
+            {message.attachments.map((attachment, idx) => (
+              <img
+                key={idx}
+                src={attachment}
+                alt={`Attachment ${idx + 1}`}
+                className="max-w-md max-h-64 rounded-lg object-contain border border-[var(--border-primary)]"
+              />
+            ))}
+          </div>
+        )}
+
         <div className={isUser ? 'text-white' : 'text-[var(--text-primary)] prose prose-sm max-w-none'}>
           {isUser ? (
             isEditing ? (
