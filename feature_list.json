@@ -1222,7 +1222,7 @@
     "passes": true,
     "is_dev_done": true,
     "is_qa_passed": true,
-    "notes": "Backend API fully implemented with sharing router. Frontend ShareModal component integrated. All routes verified in app.",
+    "notes": "Backend API verified with full workflow test: create share, view share, list shares, revoke share. Frontend components (ShareModal, SharedView) already exist and integrated in Header.",
     "test_date": "2025-12-27"
   },
   {
@@ -1376,8 +1376,9 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
-    "notes": "Enhanced with database and agent framework status checks"
+    "is_qa_passed": true,
+    "notes": "Enhanced with database and agent framework status checks | QA verified: health endpoint returns 200 with all components",
+    "test_date": "2025-12-27"
   },
   {
     "category": "functional",

@@ -817,6 +817,92 @@ class APIService {
       throw new Error(`Failed to revoke all shares: ${response.status}`)
     }
   }
+
+  // Prompt Library APIs
+  async listPrompts(category?: string, activeOnly: boolean = true): Promise<any[]> {
+    const params = new URLSearchParams()
+    if (category) params.append('category', category)
+    if (activeOnly) params.append('active_only', 'true')
+    const response = await fetch(`${API_BASE}/prompts?${params}`)
+    return response.json()
+  }
+
+  async searchPrompts(query: string): Promise<any[]> {
+    const response = await fetch(`${API_BASE}/prompts/search?q=${encodeURIComponent(query)}`)
+    return response.json()
+  }
+
+  async getPrompt(promptId: string): Promise<any> {
+    const response = await fetch(`${API_BASE}/prompts/${promptId}`)
+    if (!response.ok) {
+      throw new Error(`Failed to get prompt: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async createPrompt(data: {
+    title: string
+    content: string
+    category?: string
+    description?: string
+    tags?: string[]
+  }): Promise<any> {
+    const response = await fetch(`${API_BASE}/prompts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to create prompt: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async updatePrompt(
+    promptId: string,
+    data: {
+      title?: string
+      content?: string
+      category?: string
+      description?: string
+      tags?: string[]
+      is_active?: boolean
+    }
+  ): Promise<any> {
+    const response = await fetch(`${API_BASE}/prompts/${promptId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to update prompt: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async deletePrompt(promptId: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/prompts/${promptId}`, {
+      method: 'DELETE',
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to delete prompt: ${response.status}`)
+    }
+  }
+
+  async usePrompt(promptId: string): Promise<any> {
+    const response = await fetch(`${API_BASE}/prompts/${promptId}/use`, {
+      method: 'POST',
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to mark prompt as used: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async listPromptCategories(): Promise<string[]> {
+    const response = await fetch(`${API_BASE}/prompts/categories/list`)
+    return response.json()
+  }
 }
 
 export const api = new APIService()
