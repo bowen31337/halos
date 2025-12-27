@@ -11,6 +11,7 @@ import { TodoPanel } from '../components/TodoPanel'
 import { FilesPanel } from '../components/FilesPanel'
 import { DiffPanel } from '../components/DiffPanel'
 import { SubAgentIndicator } from '../components/SubAgentIndicator'
+import { MemoryPanel } from '../components/MemoryPanel'
 
 export function ChatPage() {
   const { conversationId } = useParams()
@@ -70,6 +71,7 @@ export function ChatPage() {
       {panelType === 'todos' && <TodoPanel />}
       {panelType === 'files' && <FilesPanel />}
       {panelType === 'diffs' && <DiffPanel />}
+      {panelType === 'memory' && <MemoryPanel />}
     </div>
   )
 }

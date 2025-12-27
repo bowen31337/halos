@@ -42,6 +42,7 @@ export function ChatInput() {
     temperature,
     maxTokens,
     permissionMode,
+    memoryEnabled,
     setPanelOpen,
     setPanelType
   } = useUIStore()
@@ -192,6 +193,7 @@ export function ChatInput() {
           custom_instructions: effectiveInstructions,
           model: useUIStore.getState().selectedModel,
           permission_mode: permissionMode,
+          memory_enabled: memoryEnabled,
         }),
         signal: abortController.signal,
       })
@@ -381,6 +383,29 @@ export function ChatInput() {
                         const { clearSubAgent } = useChatStore.getState()
                         clearSubAgent()
                       }, 5000)
+                    }
+                    break
+                  case 'memory_saved':
+                    // Handle memory save confirmation
+                    console.log('Memory saved:', eventData.content)
+                    // Optionally show a toast or notification
+                    break
+                  case 'memories':
+                    // Handle retrieved memories
+                    console.log('Memories retrieved:', eventData.memories)
+                    // Optionally display memories in the chat or in a panel
+                    if (eventData.memories && eventData.memories.length > 0) {
+                      const { addMessage } = useConversationStore.getState()
+                      const memoryText = eventData.memories
+                        .map((m: any) => `- ${m.content} (${m.category})`)
+                        .join('\n')
+                      addMessage({
+                        id: `memory-${Date.now()}`,
+                        conversationId: convId,
+                        role: 'assistant' as const,
+                        content: `**Recalling from memory:**\n\n${memoryText}`,
+                        createdAt: new Date().toISOString(),
+                      })
                     }
                     break
                   case 'done':

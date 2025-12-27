@@ -599,6 +599,7 @@ async def stream_agent(
                     "max_tokens": max_tokens,
                     "custom_instructions": effective_instructions,
                     "permission_mode": data.get("permission_mode", "default"),
+                    "memory_enabled": data.get("memory_enabled", True),
                 }
             }
 
@@ -742,6 +743,62 @@ async def stream_agent(
                                 "output": output,
                             }),
                         }
+                    elif event_name == "memory_save":
+                        # Handle memory save - save to database
+                        event_data = event.get("data", {})
+                        memory_content = event_data.get("content", "")
+                        category = event_data.get("category", "fact")
+                        source_conversation_id = event_data.get("source_conversation_id")
+
+                        if memory_content:
+                            try:
+                                memory = Memory(
+                                    content=memory_content,
+                                    category=category,
+                                    source_conversation_id=source_conversation_id,
+                                )
+                                db.add(memory)
+                                await db.commit()
+
+                                # Notify frontend of successful save
+                                yield {
+                                    "event": "memory_saved",
+                                    "data": json.dumps({
+                                        "content": memory_content,
+                                        "category": category,
+                                    }),
+                                }
+                            except Exception as e:
+                                # Log error but don't fail the stream
+                                print(f"Failed to save memory: {e}")
+                    elif event_name == "memory_retrieve":
+                        # Handle memory retrieval - search and return relevant memories
+                        event_data = event.get("data", {})
+                        query = event_data.get("query", "")
+
+                        if query:
+                            try:
+                                # Search memories by content
+                                result = await db.execute(
+                                    select(Memory)
+                                    .where(Memory.content.ilike(f"%{query}%"))
+                                    .where(Memory.is_active == True)
+                                    .order_by(Memory.created_at.desc())
+                                    .limit(5)
+                                )
+                                memories = result.scalars().all()
+
+                                if memories:
+                                    # Emit memories to frontend
+                                    yield {
+                                        "event": "memories",
+                                        "data": json.dumps({
+                                            "memories": [m.to_dict() for m in memories],
+                                        }),
+                                    }
+                            except Exception as e:
+                                # Log error but don't fail the stream
+                                print(f"Failed to retrieve memories: {e}")
 
                 # Check for todos in agent state during streaming
                 if hasattr(agent, '_thread_state') and 'todos' in agent._thread_state:

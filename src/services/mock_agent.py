@@ -222,6 +222,71 @@ console.log(greet("World"));
         )
         temperature = config.get("configurable", {}).get("temperature", 0.7)
         max_tokens = config.get("configurable", {}).get("max_tokens", 4096)
+        memory_enabled = config.get("configurable", {}).get("memory_enabled", True)
+
+        # Check if user wants to save a memory
+        remember_keywords = ["remember", "save", "keep in mind", "note that", "my favorite", "i prefer", "i like"]
+        if memory_enabled and any(word in actual_message.lower() for word in remember_keywords):
+            # Extract what to remember (simple heuristic)
+            # Pattern: "remember that X" or "my favorite is X"
+            memory_content = actual_message
+            for prefix in ["remember that", "remember", "save that", "note that", "keep in mind that"]:
+                if actual_message.lower().startswith(prefix):
+                    memory_content = actual_message[len(prefix):].strip()
+                    break
+
+            # Detect category
+            category = "fact"
+            if any(word in actual_message.lower() for word in ["favorite", "prefer", "like", "love", "enjoy"]):
+                category = "preference"
+
+            # Emit memory save event
+            yield {
+                "event": "on_custom_event",
+                "name": "memory_save",
+                "data": {
+                    "content": memory_content,
+                    "category": category,
+                    "source_conversation_id": thread_id,
+                },
+            }
+
+            # Confirm memory save
+            confirmation = f"I'll remember that: {memory_content}"
+            await asyncio.sleep(0.05)
+
+            # Stream confirmation word by word
+            for word in confirmation.split():
+                await asyncio.sleep(0.03)
+                yield {
+                    "event": "on_chat_model_stream",
+                    "data": {
+                        "chunk": AIMessage(content=word + " "),
+                    },
+                    "name": "ChatAnthropic",
+                }
+
+            # End with done event
+            yield {
+                "event": "on_chain_end",
+                "data": {},
+            }
+            return
+
+        # Check if user is asking about something from memory
+        # This will emit memories that might be relevant to the query
+        if memory_enabled:
+            query_keywords = ["what is my", "my favorite", "i prefer", "remember", "do you know"]
+            if any(word in actual_message.lower() for word in query_keywords):
+                # Emit memory retrieval event - backend will search memories
+                # For mock, we'll just emit the event with the query
+                yield {
+                    "event": "on_custom_event",
+                    "name": "memory_retrieve",
+                    "data": {
+                        "query": actual_message,
+                    },
+                }
 
         # Determine interrupt configuration based on permission mode
         # This matches what agent_service does
