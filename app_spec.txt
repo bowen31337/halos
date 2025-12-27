@@ -1,0 +1,1691 @@
+<project_specification>
+  <project_name>Claude.ai Clone - Advanced AI Chat Interface with Deep Agents</project_name>
+  <version>3.0</version>
+  <last_updated>2025-12</last_updated>
+
+  <overview>
+    Build a fully functional clone of claude.ai, Anthropic's conversational AI interface. The application leverages
+    LangChain's deepagents framework (https://github.com/langchain-ai/deepagents) for sophisticated agentic workflows,
+    significantly reducing development effort while providing enterprise-grade capabilities.
+
+    The deepagents framework provides:
+    - Built-in planning tools (write_todos, read_todos) for task management
+    - Filesystem backend (ls, read_file, write_file, edit_file, glob, grep, execute)
+    - Sub-agent delegation with isolated context windows
+    - Automatic context summarization for long conversations
+    - Anthropic prompt caching for cost reduction
+    - Human-in-the-loop workflows with configurable permissions
+    - Pluggable backends for memory and file persistence
+
+    This specification incorporates the latest 2024-2025 features including:
+    - Extended Thinking with Tool Use
+    - Model Context Protocol (MCP) integration
+    - DeepAgents for agentic workflows
+    - Checkpoints system for safe rollbacks
+    - Permission modes for security
+    - Background tasks and subagents
+    - Long-term memory with CompositeBackend
+    - Code execution and file generation
+  </overview>
+
+  <technology_stack>
+    <api_key>
+        You can use an API key located at /tmp/api-key for testing. You will not be allowed to read this file, but you can reference it in code.
+    </api_key>
+
+    <frontend>
+      <framework>React 18+ with Vite 5</framework>
+      <styling>Tailwind CSS 3.4+ (via CDN or npm)</styling>
+      <state_management>React hooks, Context API, and Zustand for complex state</state_management>
+      <routing>React Router v6 for navigation</routing>
+      <markdown>React Markdown with remark-gfm for GitHub-flavored markdown</markdown>
+      <code_highlighting>Shiki or Prism for syntax highlighting with Monaco Editor for editing</code_highlighting>
+      <math_rendering>KaTeX for LaTeX/math equation rendering</math_rendering>
+      <diagrams>Mermaid.js for diagram rendering</diagrams>
+      <port>Only launch on port {frontend_port}</port>
+    </frontend>
+
+    <backend>
+      <runtime>Python 3.11+ with FastAPI (primary agent backend)</runtime>
+      <node_layer>Node.js 20+ with Express (optional API gateway)</node_layer>
+      <database>SQLite with SQLAlchemy (or Drizzle ORM for Node layer)</database>
+      <agent_framework>LangChain deepagents (pip install deepagents)</agent_framework>
+      <streaming>Server-Sent Events (SSE) for streaming responses</streaming>
+      <websockets>WebSocket support for real-time agent communication</websockets>
+      <cache>Anthropic Prompt Caching via deepagents middleware</cache>
+    </backend>
+
+    <deepagents_stack>
+      <core>deepagents (pip install deepagents)</core>
+      <llm>langchain-anthropic for Claude models</llm>
+      <langgraph>LangGraph for agent state management</langgraph>
+      <search>tavily-python for web search (optional)</search>
+      <store>langgraph.store.memory for persistent memory</store>
+    </deepagents_stack>
+
+    <communication>
+      <api>RESTful endpoints with JSON + SSE streaming</api>
+      <streaming>LangGraph streaming via SSE</streaming>
+      <claude_api>Integration via LangChain ChatAnthropic</claude_api>
+      <mcp>Model Context Protocol integration for external tools</mcp>
+    </communication>
+  </technology_stack>
+
+  <deepagents_architecture>
+    <overview>
+      LangChain's deepagents provides a complete agent harness that handles:
+      - Task planning and progress tracking
+      - File operations and context offloading
+      - Sub-agent delegation for parallel work
+      - Auto-summarization when context exceeds 170k tokens
+      - Prompt caching for Anthropic models
+      - Human-in-the-loop workflows
+      
+      Reference: https://github.com/langchain-ai/deepagents
+    </overview>
+
+    <built_in_tools>
+      <tool name="write_todos">Create and manage structured task lists for tracking progress</tool>
+      <tool name="read_todos">Read the current todo list state</tool>
+      <tool name="ls">List all files in a directory (requires absolute path)</tool>
+      <tool name="read_file">Read content from a file with optional pagination (offset/limit)</tool>
+      <tool name="write_file">Create a new file or completely overwrite an existing file</tool>
+      <tool name="edit_file">Perform exact string replacements in files</tool>
+      <tool name="glob">Find files matching a pattern (e.g., **/*.py)</tool>
+      <tool name="grep">Search for text patterns within files</tool>
+      <tool name="execute">Run shell commands in sandboxed environment (SandboxBackend only)</tool>
+      <tool name="task">Delegate tasks to specialized sub-agents with isolated context</tool>
+    </built_in_tools>
+
+    <built_in_middleware>
+      <middleware name="TodoListMiddleware">Task planning and progress tracking</middleware>
+      <middleware name="FilesystemMiddleware">File operations and context offloading (auto-saves large results)</middleware>
+      <middleware name="SubAgentMiddleware">Delegate tasks to isolated sub-agents</middleware>
+      <middleware name="SummarizationMiddleware">Auto-summarizes when context exceeds 170k tokens</middleware>
+      <middleware name="AnthropicPromptCachingMiddleware">Caches system prompts to reduce costs</middleware>
+      <middleware name="PatchToolCallsMiddleware">Fixes dangling tool calls from interruptions</middleware>
+      <middleware name="HumanInTheLoopMiddleware">Pauses execution for human approval</middleware>
+    </built_in_middleware>
+
+    <backends>
+      <backend name="StateBackend" default="true">
+        Ephemeral files stored in agent state. Files disappear after conversation.
+        Best for: Quick tasks, temporary workspace.
+      </backend>
+      <backend name="FilesystemBackend">
+        Real disk operations under a root directory.
+        Best for: Local development, persistent projects.
+        Usage: FilesystemBackend(root_dir="/path/to/project")
+      </backend>
+      <backend name="StoreBackend">
+        Persistent storage using LangGraph Store.
+        Best for: Long-term memory, cross-conversation persistence.
+        Usage: StoreBackend(store=InMemoryStore())
+      </backend>
+      <backend name="CompositeBackend">
+        Route different paths to different backends.
+        Best for: Hybrid memory (ephemeral working files + persistent memories).
+        Usage: CompositeBackend(default=StateBackend(), routes={"/memories/": StoreBackend(...)})
+      </backend>
+    </backends>
+
+    <permission_modes>
+      <mode name="default">Prompts for permission when first using each tool. Suitable for beginners.</mode>
+      <mode name="acceptEdits">Auto-accepts all file editing permissions. For daily development.</mode>
+      <mode name="plan">Analyze only, no modifications. Perfect for code reviews.</mode>
+      <mode name="bypassPermissions">Skips all permission prompts. Only in fully trusted environments.</mode>
+    </permission_modes>
+
+    <agent_creation_example>
+      <code language="python">
+from deepagents import create_deep_agent
+from deepagents.backends import CompositeBackend, StateBackend, StoreBackend
+from langgraph.store.memory import InMemoryStore
+from tavily import TavilyClient
+
+# Optional: Add custom tools like web search
+tavily_client = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
+
+def internet_search(query: str, max_results: int = 5):
+    """Run a web search"""
+    return tavily_client.search(query, max_results=max_results)
+
+# Create a deep agent with hybrid memory
+agent = create_deep_agent(
+    model="anthropic:claude-sonnet-4-5-20250929",
+    tools=[internet_search],
+    system_prompt="You are a helpful AI assistant for a Claude.ai clone application.",
+    backend=CompositeBackend(
+        default=StateBackend(),  # Ephemeral working files
+        routes={"/memories/": StoreBackend(store=InMemoryStore())},  # Persistent memories
+    ),
+    interrupt_on={
+        "execute": {"allowed_decisions": ["approve", "edit", "reject"]},
+    }
+)
+
+# Use the agent
+result = agent.invoke({"messages": [{"role": "user", "content": "Help me write code"}]})
+      </code>
+    </agent_creation_example>
+
+    <subagent_example>
+      <code language="python">
+from deepagents import create_deep_agent
+
+# Define specialized sub-agents
+research_subagent = {
+    "name": "research-agent",
+    "description": "Used to research in-depth questions using web search",
+    "system_prompt": "You are an expert researcher. Search thoroughly and provide citations.",
+    "tools": [internet_search],
+    "model": "anthropic:claude-sonnet-4-5-20250929",
+}
+
+code_review_subagent = {
+    "name": "code-review-agent",
+    "description": "Reviews code for bugs, security issues, and best practices",
+    "system_prompt": "You are a senior code reviewer. Be thorough and constructive.",
+    "tools": [],  # Uses built-in filesystem tools
+    "model": "anthropic:claude-sonnet-4-5-20250929",
+}
+
+# Create main agent with sub-agents
+agent = create_deep_agent(
+    model="anthropic:claude-sonnet-4-5-20250929",
+    subagents=[research_subagent, code_review_subagent],
+    system_prompt="You can delegate tasks to specialized sub-agents when needed.",
+)
+      </code>
+    </subagent_example>
+  </deepagents_architecture>
+
+  <prerequisites>
+    <environment_setup>
+      - Repository includes .env with ANTHROPIC_API_KEY configured
+      - Frontend dependencies pre-installed via pnpm
+      - Backend code goes in /server directory (Python FastAPI + deepagents)
+      - Node.js API gateway (optional) in /gateway directory
+      - Python 3.11+ with uv package manager
+      - Install deepagents: pip install deepagents langchain-anthropic tavily-python
+      - MCP servers configured in mcp.json (optional)
+    </environment_setup>
+
+    <python_dependencies>
+      deepagents>=0.3.1
+      langchain-anthropic>=0.2.0
+      langgraph>=0.2.0
+      fastapi>=0.110.0
+      uvicorn>=0.27.0
+      sse-starlette>=2.0.0
+      sqlalchemy>=2.0.0
+      tavily-python>=0.3.0 (optional, for web search)
+    </python_dependencies>
+  </prerequisites>
+
+  <core_features>
+    <chat_interface>
+      - Clean, centered chat layout with message bubbles
+      - Streaming message responses via LangGraph streaming
+      - Markdown rendering with proper formatting (GFM support)
+      - Code blocks with syntax highlighting and copy button
+      - LaTeX/math equation rendering with KaTeX
+      - Image upload, paste, and display in messages
+      - Multi-turn conversations with full context
+      - Message editing and regeneration
+      - Stop generation button during streaming
+      - Input field with auto-resize textarea
+      - Character count and token estimation (live)
+      - Keyboard shortcuts (Enter to send, Shift+Enter for newline)
+      - Drag-and-drop file attachments
+      - Voice input with transcription (Web Speech API)
+      - Quick responses and suggested follow-ups
+      - Todo progress display from deepagents
+    </chat_interface>
+
+    <agentic_features>
+      <task_planning>
+        - Built-in write_todos tool for structured task lists
+        - Task progress visualization in UI
+        - Task state tracking (pending, in_progress, completed, cancelled)
+        - Task dependencies visualization
+        - read_todos for checking current progress
+      </task_planning>
+
+      <file_operations>
+        - Built-in filesystem tools (ls, read_file, write_file, edit_file, glob, grep)
+        - File browser UI showing agent's workspace
+        - Diff viewer for file changes
+        - Execute command with sandbox protection
+        - Context offloading for large files (auto-saves to prevent context overflow)
+      </file_operations>
+
+      <subagent_delegation>
+        - task() tool for delegating to specialized sub-agents
+        - Pre-built sub-agents:
+          - Research agent (web search, document analysis)
+          - Code review agent (security, best practices)
+          - Documentation agent (README, API docs)
+          - Test writing agent (unit tests, integration tests)
+        - Custom sub-agent creation
+        - Parallel sub-agent execution
+        - Sub-agent progress visualization
+        - Context isolation between sub-agents
+      </subagent_delegation>
+
+      <context_management>
+        - SummarizationMiddleware auto-summarizes at 170k tokens
+        - Prompt caching via AnthropicPromptCachingMiddleware
+        - Context window usage indicator
+        - Manual summarization trigger
+        - Conversation splitting for long sessions
+      </context_management>
+    </agentic_features>
+
+    <extended_thinking>
+      - Extended thinking mode toggle for complex problems
+      - Thinking budget configuration (token allocation)
+      - Visible thinking process (collapsible)
+      - Streaming thinking blocks
+      - Tool use during thinking (web search, file operations)
+      - Multi-step problem solving visualization
+      - Reasoning chain display
+      - Confidence indicators on responses
+      - Extended thinking with parallel tool execution
+    </extended_thinking>
+
+    <artifacts>
+      - Artifact detection and rendering in side panel
+      - Code artifact viewer with syntax highlighting
+      - HTML/CSS/JS preview with live rendering
+      - React component preview with hot reload
+      - Vue/Svelte component preview
+      - SVG/Canvas graphics preview
+      - Mermaid diagram rendering
+      - Text document artifacts
+      - Markdown preview
+      - Spreadsheet/CSV preview with editing
+      - JSON/YAML viewer with tree structure
+      - Artifact editing and re-prompting
+      - Full-screen artifact view
+      - Download artifact content
+      - Artifact versioning and history
+      - Share artifact via link
+      - Artifact forking for variations
+      - Code execution via deepagents execute tool
+    </artifacts>
+
+    <code_execution>
+      - Python/JavaScript execution via deepagents execute tool
+      - Sandboxed environment (SandboxBackend)
+      - File creation and download
+      - Package installation support
+      - Execution timeout and resource limits
+      - Output streaming for long-running code
+      - Secure by default (requires approval in default mode)
+    </code_execution>
+
+    <conversation_management>
+      - Create new conversations
+      - Conversation list in sidebar (grouped by date)
+      - Rename conversations (inline editing)
+      - Delete conversations with confirmation
+      - Search conversations by title/content
+      - Pin important conversations
+      - Archive conversations
+      - Conversation folders/organization
+      - Duplicate conversation
+      - Export conversation (JSON, Markdown, PDF, HTML)
+      - Conversation timestamps (created, last updated)
+      - Unread message indicators
+      - Conversation branching (fork from any message)
+      - Branch visualization (tree view)
+      - Merge conversation branches
+      - Conversation tagging/labels
+    </conversation_management>
+
+    <checkpoints_system>
+      - LangGraph checkpointing for state preservation
+      - Auto-save checkpoints at key moments
+      - Manual checkpoint creation
+      - Checkpoint list with timestamps
+      - Preview checkpoint state
+      - Restore to previous checkpoint
+      - Compare checkpoints (diff view)
+      - Checkpoint annotations/notes
+      - Rollback with confirmation
+      - Checkpoint export/import
+    </checkpoints_system>
+
+    <projects>
+      - Create projects to group related conversations
+      - Project knowledge base (upload documents, files)
+      - Project-specific custom instructions
+      - Project context persistence via StoreBackend
+      - Share projects with team (mock feature)
+      - Project settings and configuration
+      - Move conversations between projects
+      - Project templates
+      - Project analytics (usage stats, token consumption)
+      - Project-level MCP server configuration
+      - Knowledge base search within project
+      - File management with FilesystemBackend
+      - Project export/import
+    </projects>
+
+    <long_term_memory>
+      - Persistent memory via CompositeBackend with StoreBackend
+      - Memory stored in /memories/ path (persists across conversations)
+      - User preferences preservation
+      - Knowledge bases from multiple conversations
+      - Self-improving instructions based on feedback
+      - Research progress across sessions
+      - Memory management UI (view, edit, delete)
+      - Automatic memory extraction
+      - Memory search and organization
+      - Memory export/import
+    </long_term_memory>
+
+    <model_selection>
+      - Model selector dropdown with the following models:
+        - Claude Sonnet 4.5 (claude-sonnet-4-5-20250929) - Balanced, default
+        - Claude Haiku 4.5 (claude-haiku-4-5-20251001) - Fast, efficient
+        - Claude Opus 4.1 (claude-opus-4-1-20250805) - Most capable
+      - Support for other LangChain models (OpenAI, etc.):
+        - GPT-4o (openai:gpt-4o)
+        - GPT-4o-mini (openai:gpt-4o-mini)
+      - Model capabilities display (strengths, use cases)
+      - Context window indicator (200K tokens for Claude)
+      - Model-specific pricing info (display only)
+      - Switch models mid-conversation
+      - Model comparison view (side by side)
+      - Sub-agent model configuration
+    </model_selection>
+
+    <custom_instructions>
+      - Global custom instructions (appended to deepagents system prompt)
+      - Project-specific custom instructions
+      - Conversation-specific system prompts
+      - Custom instruction templates library
+      - Preview how instructions affect responses
+      - Import/export custom instructions
+      - Instruction version history
+      - Toggle instructions on/off per chat
+    </custom_instructions>
+
+    <mcp_integrations>
+      - Model Context Protocol (MCP) server support
+      - Add MCP tools to deepagents via create_deep_agent(tools=[...])
+      - Built-in MCP servers:
+        - Filesystem access (read/write files)
+        - Web search (Brave, Tavily)
+        - Database connections
+        - GitHub integration
+        - Slack integration
+        - Browser automation
+      - Custom MCP server configuration
+      - Tool availability indicator
+      - Tool execution visualization
+      - Tool permission management via interrupt_on
+      - MCP server health monitoring
+    </mcp_integrations>
+
+    <human_in_the_loop>
+      - Configurable interrupt_on for sensitive tools
+      - Approval decisions: approve, edit, reject
+      - Tool-specific permission configuration
+      - Real-time approval prompts in UI
+      - Approval history and audit trail
+      - Bulk approval for trusted sessions
+      - Per-tool permission presets
+    </human_in_the_loop>
+
+    <permission_modes>
+      - Default Mode: Prompts for each tool permission (safest)
+      - AcceptEdits Mode: Auto-accept file edits (daily development)
+      - Plan Mode: Read-only analysis, no modifications (code reviews)
+      - BypassPermissions Mode: Full autonomy (trusted environments only)
+      - Dynamic mode switching in UI
+      - Permission logging and audit trail
+      - Granular per-tool permissions
+    </permission_modes>
+
+    <background_tasks>
+      - Long-running task queue via LangGraph async
+      - Background task monitoring
+      - Task progress indicators (from write_todos)
+      - Task cancellation
+      - Task notifications
+      - Sub-agent spawning for parallel work
+      - Task dependencies and scheduling
+      - Task retry on failure
+      - Task output streaming
+    </background_tasks>
+
+    <settings_preferences>
+      - Theme selection (Light, Dark, Auto, Custom)
+      - Font size adjustment (12-24px)
+      - Font family selection
+      - Message density (compact, comfortable, spacious)
+      - Code theme selection (VSCode themes)
+      - Language preferences
+      - Accessibility options
+      - Keyboard shortcuts reference and customization
+      - Data export options
+      - Privacy settings
+      - API key management
+      - Backend configuration (StateBackend, FilesystemBackend, etc.)
+      - Memory settings
+      - Notification preferences
+      - Experimental features toggle
+    </settings_preferences>
+
+    <advanced_features>
+      - Temperature control slider (0-1)
+      - Max tokens adjustment (1-4096)
+      - Top-p (nucleus sampling) control
+      - System prompt override
+      - Extended thinking mode toggle
+      - Thinking budget configuration
+      - Multi-modal input (text + images + files)
+      - Voice input with transcription
+      - Response suggestions
+      - Related prompts
+      - Conversation branching
+      - A/B response comparison
+      - Prompt caching (automatic via middleware)
+      - Batch API support for bulk operations
+    </advanced_features>
+
+    <collaboration>
+      - Share conversation via link (read-only or collaborative)
+      - Real-time collaborative editing
+      - Comments and annotations on messages
+      - Export conversation formats
+      - Conversation templates
+      - Prompt library with sharing
+      - Share artifacts with embed code
+      - Team workspaces
+      - Role-based access control
+      - Activity feed
+    </collaboration>
+
+    <search_discovery>
+      - Search across all conversations (full-text)
+      - Search within current conversation
+      - Filter by project, date, model, tags
+      - grep tool for searching within files
+      - glob tool for finding files
+      - Prompt library with categories
+      - Example conversations gallery
+      - Quick actions menu
+      - Command palette (Cmd/Ctrl+K)
+      - Recent items
+      - Saved searches
+    </search_discovery>
+
+    <usage_tracking>
+      - Token usage display per message
+      - Cache hit/miss statistics (from AnthropicPromptCachingMiddleware)
+      - Conversation cost estimation
+      - Daily/monthly usage dashboard
+      - Usage limits and warnings
+      - API quota tracking
+      - Model-specific usage breakdown
+      - Cost optimization suggestions
+      - Export usage reports
+    </usage_tracking>
+
+    <security_features>
+      - API key encryption at rest
+      - Rate limiting
+      - Content filtering options
+      - Security review via code-review-agent
+      - Audit logging
+      - Session management
+      - Sandbox isolation for code execution
+      - Tool permission system via interrupt_on
+      - GDPR compliance features
+    </security_features>
+
+    <onboarding>
+      - Welcome screen for new users
+      - Interactive feature tour
+      - Example prompts to get started
+      - Quick tips and best practices
+      - Keyboard shortcuts tutorial
+      - Sample projects and conversations
+      - Getting started wizard
+      - Contextual help tooltips
+    </onboarding>
+
+    <accessibility>
+      - Full keyboard navigation
+      - Screen reader support (ARIA)
+      - ARIA labels and roles
+      - High contrast mode
+      - Focus management
+      - Reduced motion support
+      - Font size scaling
+      - Color blind modes
+      - Skip navigation links
+    </accessibility>
+
+    <responsive_design>
+      - Mobile-first responsive layout
+      - Touch-optimized interface
+      - Collapsible sidebar on mobile
+      - Swipe gestures for navigation
+      - Adaptive artifact display
+      - Progressive Web App (PWA) support
+      - Offline mode with sync
+      - Responsive typography
+    </responsive_design>
+  </core_features>
+
+  <database_schema>
+    <tables>
+      <users>
+        - id (UUID), email, name, avatar_url
+        - created_at, updated_at, last_login
+        - preferences (JSON: theme, font_size, density, etc.)
+        - custom_instructions (TEXT)
+        - memory_enabled (BOOLEAN)
+        - permission_mode (ENUM: default, acceptEdits, plan, bypass)
+        - backend_config (JSON: backend type and settings)
+      </users>
+
+      <memories>
+        - id (UUID), user_id
+        - content (TEXT)
+        - category (TEXT: fact, preference, context)
+        - source_conversation_id
+        - created_at, updated_at
+        - is_active (BOOLEAN)
+        Note: Synced with StoreBackend /memories/ path
+      </memories>
+
+      <projects>
+        - id (UUID), user_id, name, description, color, icon
+        - custom_instructions
+        - root_directory (for FilesystemBackend)
+        - backend_config (JSON: backend routing)
+        - mcp_config (JSON)
+        - created_at, updated_at
+        - is_archived, is_pinned
+        - settings (JSON)
+      </projects>
+
+      <project_files>
+        - id (UUID), project_id
+        - filename, file_path, file_type
+        - content (TEXT or BLOB)
+        - size_bytes
+        - created_at, updated_at
+        Note: Managed by FilesystemBackend
+      </project_files>
+
+      <conversations>
+        - id (UUID), user_id, project_id, title
+        - model, created_at, updated_at, last_message_at
+        - is_archived, is_pinned, is_deleted
+        - settings (JSON: temperature, max_tokens, permission_mode)
+        - token_count, message_count
+        - parent_conversation_id (for branching)
+        - branch_point_message_id
+        - langgraph_thread_id (for checkpointing)
+        - extended_thinking_enabled (BOOLEAN)
+      </conversations>
+
+      <agent_state>
+        - id (UUID), conversation_id
+        - thread_id (LangGraph thread ID)
+        - checkpoint_data (JSON: serialized LangGraph state)
+        - todos (JSON: current todo list from deepagents)
+        - files (JSON: ephemeral file state from StateBackend)
+        - created_at, updated_at
+      </agent_state>
+
+      <checkpoints>
+        - id (UUID), conversation_id
+        - langgraph_checkpoint_id
+        - checkpoint_name
+        - state_snapshot (JSON)
+        - created_at
+        - notes (TEXT)
+      </checkpoints>
+
+      <messages>
+        - id (UUID), conversation_id
+        - role (ENUM: user, assistant, system, tool)
+        - content (TEXT)
+        - created_at, edited_at
+        - input_tokens, output_tokens
+        - cache_read_tokens, cache_write_tokens
+        - finish_reason
+        - attachments (JSON: images, files)
+        - parent_message_id (for branching)
+        - thinking_content (TEXT, for extended thinking)
+        - tool_calls (JSON)
+        - tool_results (JSON)
+        - subagent_name (if delegated to subagent)
+      </messages>
+
+      <todos>
+        - id (UUID), conversation_id, message_id
+        - content (TEXT)
+        - status (ENUM: pending, in_progress, completed, cancelled)
+        - created_at, updated_at
+        Note: Synced with deepagents write_todos/read_todos
+      </todos>
+
+      <artifacts>
+        - id (UUID), message_id, conversation_id
+        - type (ENUM: code, html, svg, react, vue, mermaid, text, csv, json)
+        - title, identifier, language
+        - content (TEXT)
+        - version (INTEGER)
+        - created_at, updated_at
+        - parent_artifact_id (for versioning)
+      </artifacts>
+
+      <subagents>
+        - id (UUID), user_id
+        - name, description
+        - system_prompt
+        - model
+        - tools (JSON: list of tool names)
+        - is_builtin (BOOLEAN)
+        - created_at, updated_at
+      </subagents>
+
+      <mcp_servers>
+        - id (UUID), user_id
+        - name, server_type
+        - config (JSON)
+        - is_active (BOOLEAN)
+        - last_health_check
+        - created_at, updated_at
+      </mcp_servers>
+
+      <tool_permissions>
+        - id (UUID), user_id
+        - tool_name
+        - permission (ENUM: always_allow, always_deny, ask)
+        - created_at, updated_at
+      </tool_permissions>
+
+      <background_tasks>
+        - id (UUID), user_id, conversation_id
+        - task_type, status (ENUM: pending, running, completed, failed)
+        - progress (INTEGER 0-100)
+        - subagent_name
+        - result (JSON)
+        - error_message
+        - created_at, started_at, completed_at
+      </background_tasks>
+
+      <shared_conversations>
+        - id (UUID), conversation_id, share_token
+        - created_at, expires_at, view_count
+        - is_public, allow_comments
+        - access_level (ENUM: read, comment, edit)
+      </shared_conversations>
+
+      <prompt_library>
+        - id (UUID), user_id, title, description
+        - prompt_template (TEXT)
+        - category, tags (JSON)
+        - is_public, usage_count
+        - created_at, updated_at
+      </prompt_library>
+
+      <conversation_folders>
+        - id (UUID), user_id, project_id
+        - name, parent_folder_id
+        - created_at, position
+      </conversation_folders>
+
+      <usage_tracking>
+        - id (UUID), user_id, conversation_id, message_id
+        - model
+        - input_tokens, output_tokens
+        - cache_read_tokens, cache_write_tokens
+        - thinking_tokens
+        - cost_estimate
+        - created_at
+      </usage_tracking>
+
+      <api_keys>
+        - id (UUID), user_id
+        - key_name, api_key_hash
+        - created_at, last_used_at
+        - is_active
+        - permissions (JSON)
+      </api_keys>
+
+      <audit_logs>
+        - id (UUID), user_id
+        - action, resource_type, resource_id
+        - tool_name, tool_decision (approve/edit/reject)
+        - details (JSON)
+        - ip_address, user_agent
+        - created_at
+      </audit_logs>
+    </tables>
+  </database_schema>
+
+  <api_endpoints_summary>
+    <authentication>
+      - POST /api/auth/login
+      - POST /api/auth/logout
+      - POST /api/auth/register
+      - POST /api/auth/refresh
+      - GET /api/auth/me
+      - PUT /api/auth/profile
+      - PUT /api/auth/password
+    </authentication>
+
+    <conversations>
+      - GET /api/conversations
+      - POST /api/conversations
+      - GET /api/conversations/:id
+      - PUT /api/conversations/:id
+      - DELETE /api/conversations/:id
+      - POST /api/conversations/:id/duplicate
+      - POST /api/conversations/:id/export
+      - PUT /api/conversations/:id/archive
+      - PUT /api/conversations/:id/pin
+      - POST /api/conversations/:id/branch
+      - GET /api/conversations/:id/branches
+    </conversations>
+
+    <agent>
+      - POST /api/agent/invoke (synchronous agent call)
+      - POST /api/agent/stream (SSE streaming agent call)
+      - POST /api/agent/interrupt (handle HITL decisions)
+      - GET /api/agent/state/:thread_id (get agent state)
+      - GET /api/agent/todos/:thread_id (get todo list)
+      - GET /api/agent/files/:thread_id (get workspace files)
+    </agent>
+
+    <checkpoints>
+      - GET /api/conversations/:id/checkpoints
+      - POST /api/conversations/:id/checkpoints
+      - GET /api/checkpoints/:id
+      - POST /api/checkpoints/:id/restore
+      - DELETE /api/checkpoints/:id
+      - PUT /api/checkpoints/:id
+    </checkpoints>
+
+    <messages>
+      - GET /api/conversations/:id/messages
+      - POST /api/conversations/:id/messages
+      - PUT /api/messages/:id
+      - DELETE /api/messages/:id
+      - POST /api/messages/:id/regenerate
+      - POST /api/messages/:id/branch
+    </messages>
+
+    <artifacts>
+      - GET /api/conversations/:id/artifacts
+      - GET /api/artifacts/:id
+      - PUT /api/artifacts/:id
+      - DELETE /api/artifacts/:id
+      - POST /api/artifacts/:id/fork
+      - GET /api/artifacts/:id/versions
+      - POST /api/artifacts/:id/execute
+      - GET /api/artifacts/:id/download
+    </artifacts>
+
+    <subagents>
+      - GET /api/subagents
+      - POST /api/subagents
+      - GET /api/subagents/:id
+      - PUT /api/subagents/:id
+      - DELETE /api/subagents/:id
+      - GET /api/subagents/builtin
+    </subagents>
+
+    <projects>
+      - GET /api/projects
+      - POST /api/projects
+      - GET /api/projects/:id
+      - PUT /api/projects/:id
+      - DELETE /api/projects/:id
+      - POST /api/projects/:id/files
+      - GET /api/projects/:id/files
+      - DELETE /api/projects/:id/files/:fileId
+      - GET /api/projects/:id/conversations
+      - PUT /api/projects/:id/settings
+      - POST /api/projects/:id/search
+    </projects>
+
+    <memory>
+      - GET /api/memory
+      - POST /api/memory
+      - PUT /api/memory/:id
+      - DELETE /api/memory/:id
+      - GET /api/memory/search
+    </memory>
+
+    <permissions>
+      - GET /api/permissions
+      - PUT /api/permissions
+      - GET /api/permissions/tools
+      - PUT /api/permissions/tools/:toolName
+      - POST /api/permissions/interrupt (handle HITL decision)
+    </permissions>
+
+    <mcp>
+      - GET /api/mcp/servers
+      - POST /api/mcp/servers
+      - PUT /api/mcp/servers/:id
+      - DELETE /api/mcp/servers/:id
+      - POST /api/mcp/servers/:id/test
+      - GET /api/mcp/servers/:id/tools
+    </mcp>
+
+    <tasks>
+      - GET /api/tasks
+      - POST /api/tasks
+      - GET /api/tasks/:id
+      - PUT /api/tasks/:id/cancel
+      - GET /api/tasks/:id/stream (SSE for progress)
+    </tasks>
+
+    <sharing>
+      - POST /api/conversations/:id/share
+      - GET /api/share/:token
+      - DELETE /api/share/:token
+    </sharing>
+
+    <prompts>
+      - GET /api/prompts/library
+      - POST /api/prompts/library
+      - GET /api/prompts/:id
+      - PUT /api/prompts/:id
+      - DELETE /api/prompts/:id
+      - GET /api/prompts/categories
+    </prompts>
+
+    <search>
+      - GET /api/search/conversations?q=query
+      - GET /api/search/messages?q=query
+      - GET /api/search/files?q=query (uses grep tool)
+      - GET /api/search/global?q=query
+    </search>
+
+    <folders>
+      - GET /api/folders
+      - POST /api/folders
+      - PUT /api/folders/:id
+      - DELETE /api/folders/:id
+      - POST /api/folders/:id/items
+      - DELETE /api/folders/:id/items/:conversationId
+    </folders>
+
+    <usage>
+      - GET /api/usage/daily
+      - GET /api/usage/monthly
+      - GET /api/usage/by-model
+      - GET /api/usage/cache-stats (prompt caching statistics)
+      - GET /api/usage/conversations/:id
+      - GET /api/usage/export
+    </usage>
+
+    <settings>
+      - GET /api/settings
+      - PUT /api/settings
+      - GET /api/settings/custom-instructions
+      - PUT /api/settings/custom-instructions
+      - PUT /api/settings/permission-mode
+      - PUT /api/settings/backend
+    </settings>
+
+    <models>
+      - GET /api/models (list available models)
+      - GET /api/models/:id (model details and capabilities)
+    </models>
+  </api_endpoints_summary>
+
+  <ui_layout>
+    <main_structure>
+      - Three-column layout: sidebar (conversations), main (chat), panel (artifacts/files)
+      - Collapsible sidebar with resize handle
+      - Responsive breakpoints: mobile (single column), tablet (two column), desktop (three column)
+      - Persistent header with project/model selector
+      - Bottom input area with send button and options
+      - Floating action buttons for quick actions
+      - Todo progress bar in header
+    </main_structure>
+
+    <sidebar_left>
+      - New chat button (prominent, with keyboard shortcut hint)
+      - Project selector dropdown with search
+      - Search conversations input with filters
+      - Conversations list (grouped by date: Today, Yesterday, Previous 7 days, etc.)
+      - Folder tree view (collapsible, drag-drop)
+      - Pinned conversations section
+      - Recent conversations quick access
+      - Settings gear icon at bottom
+      - User profile with avatar at bottom
+      - Memory indicator
+      - Usage stats mini-display
+    </sidebar_left>
+
+    <main_chat_area>
+      - Conversation title (editable inline with pencil icon)
+      - Model selector badge (with extended thinking toggle)
+      - Permission mode indicator (default/acceptEdits/plan/bypass)
+      - Thinking mode indicator
+      - Message history (scrollable, virtualized for performance)
+      - Todo list display (from deepagents)
+      - Welcome screen for new conversations with suggestions
+      - Suggested prompts grid (empty state)
+      - Branch indicator (when in a branch)
+      - Checkpoint indicators
+      - Input area with formatting toolbar
+      - Attachment button for images/files
+      - Voice input button
+      - Extended thinking toggle
+      - Send button with loading state
+      - Stop generation button (during streaming)
+      - Regenerate button
+      - Token/character counter
+      - HITL approval dialog (when interrupted)
+    </main_chat_area>
+
+    <artifacts_panel>
+      - Artifact header with title and type badge
+      - Code editor (Monaco) or preview pane
+      - Tabs for multiple artifacts
+      - Full-screen toggle
+      - Download button
+      - Edit/Re-prompt button
+      - Execute button (for code, via deepagents)
+      - Version selector dropdown
+      - Share/embed button
+      - Close panel button
+      - Artifact history timeline
+    </artifacts_panel>
+
+    <files_panel>
+      - File browser showing agent workspace
+      - Tree view of files (from ls tool)
+      - File content preview
+      - Diff view for file changes
+      - Download file button
+      - File search (via glob/grep)
+    </files_panel>
+
+    <modals_overlays>
+      - Settings modal (tabbed interface)
+      - Share conversation modal
+      - Export options modal
+      - Project settings modal
+      - Prompt library modal
+      - Command palette overlay (Cmd/Ctrl+K)
+      - Keyboard shortcuts reference
+      - MCP configuration modal
+      - Memory management modal
+      - Sub-agents library modal
+      - Checkpoint manager
+      - Usage dashboard modal
+      - Permission approval modal (HITL)
+    </modals_overlays>
+
+    <thinking_display>
+      - Collapsible thinking section in messages
+      - Thinking progress indicator
+      - Tool use visualization within thinking
+      - Reasoning chain steps
+      - Sub-agent delegation indicator
+      - Confidence indicators
+    </thinking_display>
+
+    <todo_display>
+      - Todo list panel (collapsible)
+      - Task status badges (pending, in_progress, completed)
+      - Progress bar for overall completion
+      - Task details on hover/click
+      - Real-time updates from agent
+    </todo_display>
+  </ui_layout>
+
+  <design_system>
+    <color_palette>
+      - Primary: Orange/amber accent (#CC785C claude-style)
+      - Primary variants: Hover (#B86A4E), Active (#A35D42)
+      - Background: White (#FFFFFF light), Dark gray (#1A1A1A dark)
+      - Surface: Light gray (#F5F5F5 light), Darker gray (#2A2A2A dark)
+      - Surface elevated: (#FAFAFA light), (#333333 dark)
+      - Text primary: Near black (#1A1A1A light), Off-white (#E5E5E5 dark)
+      - Text secondary: (#6B7280 light), (#9CA3AF dark)
+      - Borders: Light gray (#E5E5E5 light), Dark gray (#404040 dark)
+      - Success: #10B981
+      - Warning: #F59E0B
+      - Error: #EF4444
+      - Info: #3B82F6
+      - Code blocks: One Dark/Light theme
+    </color_palette>
+
+    <typography>
+      - Sans-serif system font stack (Inter, SF Pro, Roboto, system-ui)
+      - Headings: font-semibold, tracking-tight
+      - Body: font-normal, leading-relaxed (1.625)
+      - Code: Monospace (JetBrains Mono, Fira Code, Consolas, Monaco)
+      - Message text: text-base (16px), line-height 1.75
+      - Small text: text-sm (14px)
+      - Micro text: text-xs (12px)
+    </typography>
+
+    <spacing>
+      - Base unit: 4px
+      - Consistent padding: p-2, p-4, p-6
+      - Message gaps: gap-4
+      - Section gaps: gap-8
+    </spacing>
+
+    <components>
+      (Same as previous version - buttons, inputs, cards, etc.)
+    </components>
+
+    <animations>
+      - Smooth transitions (150-300ms ease-out)
+      - Fade in for new messages (opacity 0 to 1)
+      - Slide in for sidebar (translateX)
+      - Typing indicator animation (3 dots pulsing)
+      - Loading spinner for generation
+      - Skeleton loaders for content
+      - Collapse/expand for thinking blocks
+      - Progress bars for todos and long operations
+      - Micro-interactions on buttons
+    </animations>
+  </design_system>
+
+  <key_interactions>
+    <message_flow_with_deepagents>
+      1. User types message in input field
+      2. Optional: Attach images/files via button or drag-drop
+      3. Optional: Enable extended thinking mode
+      4. Click send or press Enter
+      5. Message appears in chat immediately
+      6. Backend invokes deepagent via agent.invoke() or streaming
+      7. If HITL required: Show approval dialog, wait for decision
+      8. Agent may use write_todos to plan tasks (displayed in UI)
+      9. Agent executes tools (read_file, write_file, etc.)
+      10. Tool outputs displayed with collapsible details
+      11. If using subagents: Show delegation indicator
+      12. Response streams in word by word
+      13. Artifacts detected and rendered in side panel
+      14. Files panel updates with workspace changes
+      15. Message complete, enable regenerate option
+      16. Token usage and cache stats displayed
+      17. Auto-checkpoint saved via LangGraph
+    </message_flow_with_deepagents>
+
+    <hitl_flow>
+      1. Agent attempts sensitive tool (e.g., execute)
+      2. HumanInTheLoopMiddleware pauses execution
+      3. UI shows approval dialog with:
+         - Tool name and description
+         - Proposed arguments
+         - Options: Approve, Edit, Reject
+      4. User makes decision
+      5. POST to /api/agent/interrupt with decision
+      6. Agent continues or aborts based on decision
+      7. Decision logged to audit trail
+    </hitl_flow>
+
+    <subagent_flow>
+      1. Main agent determines task needs delegation
+      2. Agent calls task() tool with subagent name
+      3. UI shows subagent delegation indicator
+      4. Subagent executes with isolated context
+      5. Subagent progress shown (if using todos)
+      6. Subagent returns result to main agent
+      7. Main agent incorporates result into response
+    </subagent_flow>
+
+    <todo_flow>
+      1. Agent plans complex task
+      2. Agent calls write_todos with task list
+      3. UI displays todo list panel
+      4. As agent works, updates todo status
+      5. Progress bar updates in real-time
+      6. Completed todos marked with checkmark
+      7. User can view todo history
+    </todo_flow>
+
+    <file_operations_flow>
+      1. Agent needs to create/edit files
+      2. Agent uses write_file or edit_file
+      3. Files panel updates with new/changed files
+      4. Diff viewer shows changes
+      5. User can download files
+      6. Context offloading happens if files too large
+    </file_operations_flow>
+  </key_interactions>
+
+  <implementation_steps>
+    <step number="1">
+      <title>Setup Python Backend with DeepAgents</title>
+      <tasks>
+        - Initialize FastAPI server
+        - Install deepagents: pip install deepagents langchain-anthropic
+        - Create basic deep agent with create_deep_agent()
+        - Set up SSE streaming endpoint for agent responses
+        - Configure backend (StateBackend initially, then CompositeBackend)
+        - Create database schema with SQLAlchemy
+        - Implement basic authentication endpoints
+        - Set up environment configuration
+      </tasks>
+    </step>
+
+    <step number="2">
+      <title>Implement Agent Streaming API</title>
+      <tasks>
+        - Create /api/agent/stream endpoint with SSE
+        - Implement LangGraph streaming integration
+        - Handle tool call events (for UI visualization)
+        - Implement /api/agent/interrupt for HITL
+        - Add checkpoint integration via LangGraph
+        - Create thread management endpoints
+      </tasks>
+    </step>
+
+    <step number="3">
+      <title>Build Core Chat Interface</title>
+      <tasks>
+        - Create main layout with sidebar and chat area
+        - Implement message display with markdown rendering
+        - Connect to agent streaming endpoint
+        - Build input area with auto-resize textarea
+        - Add code block syntax highlighting (Shiki)
+        - Implement stop generation functionality
+        - Add typing indicators and loading states
+        - Display tool calls and results inline
+      </tasks>
+    </step>
+
+    <step number="4">
+      <title>Implement Todo List Display</title>
+      <tasks>
+        - Create todo list panel component
+        - Subscribe to write_todos events from agent
+        - Display task progress with badges
+        - Implement progress bar
+        - Add collapsible todo history
+        - Sync with database for persistence
+      </tasks>
+    </step>
+
+    <step number="5">
+      <title>Implement HITL Workflow</title>
+      <tasks>
+        - Configure interrupt_on for sensitive tools
+        - Create approval dialog component
+        - Implement approve/edit/reject actions
+        - Connect to /api/agent/interrupt endpoint
+        - Add audit logging for decisions
+        - Create permission mode selector in UI
+      </tasks>
+    </step>
+
+    <step number="6">
+      <title>Build Files Panel</title>
+      <tasks>
+        - Create file browser component
+        - Subscribe to filesystem tool events
+        - Display file tree from ls results
+        - Implement file content preview
+        - Add diff viewer for file changes
+        - Create file download functionality
+      </tasks>
+    </step>
+
+    <step number="7">
+      <title>Conversation Management</title>
+      <tasks>
+        - Create conversation list in sidebar
+        - Implement new conversation creation with new thread
+        - Add conversation switching
+        - Build conversation rename functionality
+        - Implement delete with confirmation
+        - Add conversation search
+        - Create conversation grouping by date
+      </tasks>
+    </step>
+
+    <step number="8">
+      <title>Checkpoints System via LangGraph</title>
+      <tasks>
+        - Enable LangGraph checkpointing
+        - Create checkpoint list UI
+        - Implement checkpoint preview
+        - Add checkpoint restore functionality
+        - Implement checkpoint diff view
+        - Add checkpoint notes/annotations
+      </tasks>
+    </step>
+
+    <step number="9">
+      <title>Artifacts System</title>
+      <tasks>
+        - Build artifact detection from Claude responses
+        - Create artifact rendering panel
+        - Implement code artifact viewer (Monaco Editor)
+        - Add HTML/SVG live preview
+        - Build React component preview
+        - Implement Mermaid diagram rendering
+        - Add artifact editing interface
+        - Connect execute to deepagents execute tool
+      </tasks>
+    </step>
+
+    <step number="10">
+      <title>Sub-Agents Integration</title>
+      <tasks>
+        - Configure built-in sub-agents (research, code-review, docs)
+        - Build sub-agents management UI
+        - Implement delegation visualization
+        - Create custom sub-agent builder
+        - Add sub-agent progress tracking
+      </tasks>
+    </step>
+
+    <step number="11">
+      <title>Long-Term Memory with CompositeBackend</title>
+      <tasks>
+        - Configure CompositeBackend with StoreBackend for /memories/
+        - Create memory management UI
+        - Implement memory search
+        - Add automatic memory extraction
+        - Build memory import/export
+      </tasks>
+    </step>
+
+    <step number="12">
+      <title>Projects and Organization</title>
+      <tasks>
+        - Create projects CRUD endpoints
+        - Build project selector UI
+        - Implement project-specific FilesystemBackend
+        - Add folder system for conversations
+        - Create drag-and-drop organization
+        - Build project settings panel
+      </tasks>
+    </step>
+
+    <step number="13">
+      <title>MCP Integration</title>
+      <tasks>
+        - Add MCP tools to deep agent via tools parameter
+        - Build MCP server management UI
+        - Implement tool discovery
+        - Add tool execution visualization
+        - Create per-tool permission configuration
+      </tasks>
+    </step>
+
+    <step number="14">
+      <title>Settings and Advanced Features</title>
+      <tasks>
+        - Build settings modal with tabs
+        - Implement theme switching
+        - Add custom instructions management
+        - Create keyboard shortcuts system
+        - Build prompt library
+        - Add usage tracking with cache statistics
+        - Implement backend configuration UI
+      </tasks>
+    </step>
+
+    <step number="15">
+      <title>Polish and Optimization</title>
+      <tasks>
+        - Optimize for mobile responsiveness
+        - Add command palette (Cmd/Ctrl+K)
+        - Implement comprehensive keyboard navigation
+        - Add onboarding flow
+        - Create accessibility improvements (WCAG AA)
+        - Performance optimization (virtualization, lazy loading)
+        - Implement PWA support
+        - Final testing and bug fixes
+      </tasks>
+    </step>
+  </implementation_steps>
+
+  <example_code>
+    <backend_main language="python">
+# server/main.py
+import os
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from sse_starlette.sse import EventSourceResponse
+from deepagents import create_deep_agent
+from deepagents.backends import CompositeBackend, StateBackend, StoreBackend
+from langgraph.store.memory import InMemoryStore
+from langchain_core.messages import HumanMessage, AIMessage
+import json
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Initialize store for persistent memory
+memory_store = InMemoryStore()
+
+def create_agent_for_user(user_id: str, permission_mode: str = "default"):
+    """Create a deep agent with user-specific configuration."""
+    
+    # Configure interrupt based on permission mode
+    interrupt_config = {}
+    if permission_mode == "default":
+        interrupt_config = {
+            "execute": {"allowed_decisions": ["approve", "edit", "reject"]},
+            "write_file": {"allowed_decisions": ["approve", "edit", "reject"]},
+        }
+    elif permission_mode == "acceptEdits":
+        interrupt_config = {
+            "execute": {"allowed_decisions": ["approve", "edit", "reject"]},
+        }
+    # plan and bypassPermissions modes have no interrupts
+
+    agent = create_deep_agent(
+        model="anthropic:claude-sonnet-4-5-20250929",
+        system_prompt="""You are Claude, a helpful AI assistant. You can:
+- Plan tasks using the todo system
+- Read and write files
+- Search for patterns with grep
+- Execute code when needed
+- Delegate complex tasks to specialized sub-agents
+
+Always plan before executing complex tasks. Keep the user informed of progress.""",
+        backend=CompositeBackend(
+            default=StateBackend(),
+            routes={"/memories/": StoreBackend(store=memory_store)},
+        ),
+        interrupt_on=interrupt_config,
+    )
+    return agent
+
+@app.post("/api/agent/stream")
+async def stream_agent(request: Request):
+    """Stream agent responses via SSE."""
+    data = await request.json()
+    user_id = data.get("user_id", "default")
+    message = data.get("message", "")
+    thread_id = data.get("thread_id")
+    permission_mode = data.get("permission_mode", "default")
+    
+    agent = create_agent_for_user(user_id, permission_mode)
+    
+    async def event_generator():
+        config = {"configurable": {"thread_id": thread_id}} if thread_id else {}
+        
+        async for event in agent.astream_events(
+            {"messages": [HumanMessage(content=message)]},
+            config=config,
+            version="v2"
+        ):
+            kind = event["event"]
+            
+            if kind == "on_chat_model_stream":
+                content = event["data"]["chunk"].content
+                if content:
+                    yield {"event": "message", "data": json.dumps({"content": content})}
+            
+            elif kind == "on_tool_start":
+                tool_name = event["name"]
+                tool_input = event["data"].get("input", {})
+                yield {"event": "tool_start", "data": json.dumps({
+                    "tool": tool_name, 
+                    "input": tool_input
+                })}
+            
+            elif kind == "on_tool_end":
+                tool_output = event["data"].get("output", "")
+                yield {"event": "tool_end", "data": json.dumps({"output": str(tool_output)})}
+        
+        yield {"event": "done", "data": ""}
+    
+    return EventSourceResponse(event_generator())
+
+@app.post("/api/agent/interrupt")
+async def handle_interrupt(request: Request):
+    """Handle human-in-the-loop decisions."""
+    data = await request.json()
+    thread_id = data.get("thread_id")
+    decision = data.get("decision")  # approve, edit, reject
+    edited_input = data.get("edited_input")  # if decision is "edit"
+    
+    # Resume agent with decision
+    # Implementation depends on LangGraph interrupt handling
+    return {"status": "resumed", "decision": decision}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+    </backend_main>
+
+    <frontend_agent_hook language="typescript">
+// src/hooks/useDeepAgent.ts
+import { useState, useCallback } from 'react';
+
+interface AgentMessage {
+  role: 'user' | 'assistant' | 'tool';
+  content: string;
+  toolName?: string;
+  toolInput?: any;
+  toolOutput?: string;
+}
+
+interface Todo {
+  id: string;
+  content: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+}
+
+export function useDeepAgent(threadId: string, permissionMode: string = 'default') {
+  const [messages, setMessages] = useState<AgentMessage[]>([]);
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [pendingApproval, setPendingApproval] = useState<{tool: string; input: any} | null>(null);
+
+  const sendMessage = useCallback(async (content: string) => {
+    setMessages(prev => [...prev, { role: 'user', content }]);
+    setIsStreaming(true);
+
+    const eventSource = new EventSource('/api/agent/stream', {
+      // For POST requests, you'd use fetch with ReadableStream
+    });
+
+    // Using fetch for POST with SSE
+    const response = await fetch('/api/agent/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        message: content, 
+        thread_id: threadId,
+        permission_mode: permissionMode 
+      }),
+    });
+
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+    let assistantContent = '';
+
+    while (reader) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n');
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = JSON.parse(line.slice(6));
+          
+          if (data.content) {
+            assistantContent += data.content;
+            setMessages(prev => {
+              const last = prev[prev.length - 1];
+              if (last?.role === 'assistant') {
+                return [...prev.slice(0, -1), { ...last, content: assistantContent }];
+              }
+              return [...prev, { role: 'assistant', content: assistantContent }];
+            });
+          }
+
+          if (data.todos) {
+            setTodos(data.todos);
+          }
+
+          if (data.interrupt) {
+            setPendingApproval({ tool: data.tool, input: data.input });
+          }
+        }
+      }
+    }
+
+    setIsStreaming(false);
+  }, [threadId, permissionMode]);
+
+  const handleApproval = useCallback(async (
+    decision: 'approve' | 'edit' | 'reject',
+    editedInput?: any
+  ) => {
+    await fetch('/api/agent/interrupt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        thread_id: threadId, 
+        decision,
+        edited_input: editedInput 
+      }),
+    });
+    setPendingApproval(null);
+  }, [threadId]);
+
+  return {
+    messages,
+    todos,
+    isStreaming,
+    pendingApproval,
+    sendMessage,
+    handleApproval,
+  };
+}
+    </frontend_agent_hook>
+  </example_code>
+
+  <keyboard_shortcuts>
+    <global>
+      - Cmd/Ctrl+K: Open command palette
+      - Cmd/Ctrl+N: New conversation
+      - Cmd/Ctrl+O: Open conversation search
+      - Cmd/Ctrl+,: Open settings
+      - Cmd/Ctrl+/: Toggle keyboard shortcuts help
+      - Cmd/Ctrl+D: Toggle dark mode
+      - Escape: Close modal/panel
+    </global>
+    <chat>
+      - Enter: Send message
+      - Shift+Enter: New line in input
+      - Cmd/Ctrl+Enter: Send with extended thinking
+      - Cmd/Ctrl+Shift+R: Regenerate last response
+      - Cmd/Ctrl+.: Stop generation
+      - Up arrow (empty input): Edit last message
+    </chat>
+    <navigation>
+      - Cmd/Ctrl+[: Previous conversation
+      - Cmd/Ctrl+]: Next conversation
+      - Cmd/Ctrl+1-9: Switch to conversation by position
+      - Cmd/Ctrl+B: Toggle sidebar
+      - Cmd/Ctrl+\: Toggle artifacts/files panel
+      - Cmd/Ctrl+T: Toggle todos panel
+    </navigation>
+  </keyboard_shortcuts>
+
+  <success_criteria>
+    <functionality>
+      - DeepAgents integration works smoothly with all built-in tools
+      - Todo system displays and updates in real-time
+      - HITL workflow pauses and resumes correctly
+      - Sub-agent delegation executes properly
+      - File operations display in files panel
+      - Streaming chat responses work smoothly
+      - Artifact detection and rendering accurate
+      - Checkpoints via LangGraph enable safe rollbacks
+      - Long-term memory persists via CompositeBackend
+      - All permission modes function correctly
+    </functionality>
+
+    <user_experience>
+      - Interface matches claude.ai design language
+      - Responsive on all device sizes
+      - Smooth animations and transitions
+      - Fast response times (< 100ms for UI interactions)
+      - Intuitive navigation and workflows
+      - Clear feedback for tool executions
+      - HITL approval is seamless
+      - Todo progress is easy to follow
+    </user_experience>
+
+    <technical_quality>
+      - Clean separation between frontend and agent backend
+      - Proper error handling throughout
+      - Secure API key management
+      - Efficient SSE streaming implementation
+      - Comprehensive testing coverage
+      - TypeScript types for frontend
+      - Python type hints for backend
+      - Proper logging and monitoring
+    </technical_quality>
+
+    <performance>
+      - Initial load under 3 seconds
+      - Message streaming with < 50ms latency
+      - Smooth scrolling with virtualization
+      - Prompt caching reduces API costs
+      - Context summarization prevents overflow
+      - Efficient memory usage
+    </performance>
+  </success_criteria>
+
+  <testing_requirements>
+    <unit_tests>
+      - Agent creation and configuration
+      - Backend routing (CompositeBackend)
+      - API endpoint tests
+      - React component tests
+    </unit_tests>
+    <integration_tests>
+      - Full conversation flow with deepagents
+      - Tool execution flow
+      - HITL workflow tests
+      - Sub-agent delegation tests
+      - Streaming response tests
+    </integration_tests>
+    <e2e_tests>
+      - User journey with agent
+      - Todo workflow test
+      - File operations test
+      - Mobile responsiveness tests
+    </e2e_tests>
+  </testing_requirements>
+
+  <references>
+    <deepagents_docs>https://docs.langchain.com/oss/python/deepagents/overview</deepagents_docs>
+    <github>https://github.com/langchain-ai/deepagents</github>
+    <langgraph>https://langchain-ai.github.io/langgraph/</langgraph>
+  </references>
+</project_specification>

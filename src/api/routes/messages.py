@@ -1,10 +1,16 @@
 """Message management endpoints."""
 
 from typing import Optional
-from uuid import UUID, uuid4
+from datetime import datetime
+from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.core.database import get_db
+from src.models import Message, Conversation
 
 router = APIRouter()
 
@@ -12,9 +18,12 @@ router = APIRouter()
 class MessageCreate(BaseModel):
     """Request model for creating a message."""
 
-    role: str  # user, assistant, system
+    role: str  # user, assistant, system, tool
     content: str
     attachments: Optional[list[dict]] = None
+    tool_calls: Optional[dict] = None
+    tool_results: Optional[dict] = None
+    thinking_content: Optional[str] = None
 
 
 class MessageUpdate(BaseModel):
@@ -23,73 +32,172 @@ class MessageUpdate(BaseModel):
     content: str
 
 
-# In-memory storage for development
-messages_db: dict[UUID, list[dict]] = {}  # conversation_id -> messages
-
-
 @router.get("/conversations/{conversation_id}/messages")
 async def list_messages(
-    conversation_id: UUID,
+    conversation_id: str,
     limit: int = 100,
     offset: int = 0,
+    db: AsyncSession = Depends(get_db),
 ) -> list[dict]:
     """List messages in a conversation."""
-    if conversation_id not in messages_db:
-        return []
-    return messages_db[conversation_id][offset : offset + limit]
+    query = (
+        select(Message)
+        .where(Message.conversation_id == conversation_id)
+        .order_by(Message.created_at.asc())
+        .offset(offset)
+        .limit(limit)
+    )
+
+    result = await db.execute(query)
+    messages = result.scalars().all()
+
+    return [
+        {
+            "id": msg.id,
+            "conversationId": msg.conversation_id,
+            "role": msg.role,
+            "content": msg.content,
+            "tool_calls": msg.tool_calls,
+            "tool_results": msg.tool_results,
+            "thinking_content": msg.thinking_content,
+            "attachments": msg.attachments,
+            "createdAt": msg.created_at.isoformat(),
+            "editedAt": msg.edited_at.isoformat() if msg.edited_at else None,
+        }
+        for msg in messages
+    ]
 
 
 @router.post("/conversations/{conversation_id}/messages", status_code=status.HTTP_201_CREATED)
-async def create_message(conversation_id: UUID, data: MessageCreate) -> dict:
+async def create_message(
+    conversation_id: str,
+    data: MessageCreate,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
     """Create a new message in a conversation."""
-    from datetime import datetime
+    # Verify conversation exists
+    conv_result = await db.execute(
+        select(Conversation).where(Conversation.id == conversation_id)
+    )
+    conversation = conv_result.scalar_one_or_none()
 
-    if conversation_id not in messages_db:
-        messages_db[conversation_id] = []
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
 
-    message = {
-        "id": str(uuid4()),
-        "conversation_id": str(conversation_id),
-        "role": data.role,
-        "content": data.content,
-        "attachments": data.attachments or [],
-        "created_at": datetime.utcnow().isoformat(),
+    now = datetime.utcnow()
+
+    message = Message(
+        conversation_id=conversation_id,
+        role=data.role,
+        content=data.content,
+        attachments=data.attachments,
+        tool_calls=data.tool_calls,
+        tool_results=data.tool_results,
+        thinking_content=data.thinking_content,
+        created_at=now,
+    )
+
+    db.add(message)
+
+    # Update conversation message count and last_message_at
+    conversation.message_count += 1
+    conversation.last_message_at = now
+
+    await db.commit()
+    await db.refresh(message)
+
+    return {
+        "id": message.id,
+        "conversationId": message.conversation_id,
+        "role": message.role,
+        "content": message.content,
+        "tool_calls": message.tool_calls,
+        "tool_results": message.tool_results,
+        "thinking_content": message.thinking_content,
+        "attachments": message.attachments,
+        "createdAt": message.created_at.isoformat(),
+        "editedAt": message.edited_at.isoformat() if message.edited_at else None,
     }
-
-    messages_db[conversation_id].append(message)
-    return message
 
 
 @router.get("/{message_id}")
-async def get_message(message_id: UUID) -> dict:
+async def get_message(
+    message_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
     """Get a specific message."""
-    for conv_messages in messages_db.values():
-        for msg in conv_messages:
-            if msg["id"] == str(message_id):
-                return msg
-    raise HTTPException(status_code=404, detail="Message not found")
+    result = await db.execute(select(Message).where(Message.id == message_id))
+    message = result.scalar_one_or_none()
+
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+    return {
+        "id": message.id,
+        "conversationId": message.conversation_id,
+        "role": message.role,
+        "content": message.content,
+        "tool_calls": message.tool_calls,
+        "tool_results": message.tool_results,
+        "thinking_content": message.thinking_content,
+        "attachments": message.attachments,
+        "createdAt": message.created_at.isoformat(),
+        "editedAt": message.edited_at.isoformat() if message.edited_at else None,
+    }
 
 
 @router.put("/{message_id}")
-async def update_message(message_id: UUID, data: MessageUpdate) -> dict:
+async def update_message(
+    message_id: str,
+    data: MessageUpdate,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
     """Update a message."""
-    from datetime import datetime
+    result = await db.execute(select(Message).where(Message.id == message_id))
+    message = result.scalar_one_or_none()
 
-    for conv_messages in messages_db.values():
-        for msg in conv_messages:
-            if msg["id"] == str(message_id):
-                msg["content"] = data.content
-                msg["edited_at"] = datetime.utcnow().isoformat()
-                return msg
-    raise HTTPException(status_code=404, detail="Message not found")
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+    message.content = data.content
+    message.edited_at = datetime.utcnow()
+
+    await db.commit()
+    await db.refresh(message)
+
+    return {
+        "id": message.id,
+        "conversationId": message.conversation_id,
+        "role": message.role,
+        "content": message.content,
+        "tool_calls": message.tool_calls,
+        "tool_results": message.tool_results,
+        "thinking_content": message.thinking_content,
+        "attachments": message.attachments,
+        "createdAt": message.created_at.isoformat(),
+        "editedAt": message.edited_at.isoformat() if message.edited_at else None,
+    }
 
 
 @router.delete("/{message_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_message(message_id: UUID) -> None:
+async def delete_message(
+    message_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> None:
     """Delete a message."""
-    for conv_messages in messages_db.values():
-        for i, msg in enumerate(conv_messages):
-            if msg["id"] == str(message_id):
-                del conv_messages[i]
-                return
-    raise HTTPException(status_code=404, detail="Message not found")
+    result = await db.execute(select(Message).where(Message.id == message_id))
+    message = result.scalar_one_or_none()
+
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+
+    # Update conversation message count
+    conv_result = await db.execute(
+        select(Conversation).where(Conversation.id == message.conversation_id)
+    )
+    conversation = conv_result.scalar_one_or_none()
+    if conversation:
+        conversation.message_count = max(0, conversation.message_count - 1)
+
+    await db.delete(message)
+    await db.commit()

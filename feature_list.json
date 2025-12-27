@@ -1,6 +1,29 @@
 [
   {
     "category": "functional",
+    "description": "ARCHITECTURE: Application uses LangChain DeepAgents framework (langchain-ai/deepagents) as the core agent harness with planning, filesystem backend, and sub-agent delegation",
+    "steps": [
+      "Step 1: Verify deepagents package is installed (pip install deepagents)",
+      "Step 2: Verify create_deep_agent is imported from deepagents module",
+      "Step 3: Verify agent is created using create_deep_agent() with custom tools",
+      "Step 4: Verify TodoListMiddleware provides write_todos and read_todos tools",
+      "Step 5: Verify FilesystemMiddleware provides ls, read_file, write_file, edit_file, glob, grep tools",
+      "Step 6: Verify SubAgentMiddleware provides task() tool for sub-agent delegation",
+      "Step 7: Verify SummarizationMiddleware handles context exceeding 170k tokens",
+      "Step 8: Verify AnthropicPromptCachingMiddleware is enabled for cost reduction",
+      "Step 9: Verify HumanInTheLoopMiddleware handles tool approval with interrupt_on config",
+      "Step 10: Verify backend is configured (StateBackend, FilesystemBackend, or CompositeBackend)",
+      "Step 11: Verify agent.invoke() returns proper ResultMessage with LangGraph state",
+      "Step 12: Verify streaming responses work via agent event stream",
+      "Step 13: Verify custom subagents can be registered using subagents parameter",
+      "Step 14: Verify long-term memory works via CompositeBackend with StoreBackend routes"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
     "description": "Application loads without errors and displays the main chat interface",
     "steps": [
       "Step 1: Open the application URL in a browser",

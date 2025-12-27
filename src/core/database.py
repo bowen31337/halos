@@ -2,10 +2,16 @@
 
 from typing import AsyncGenerator
 
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from src.core.config import settings
+
+
+# Create Base class directly to avoid circular import
+class Base(DeclarativeBase):
+    """Base class for SQLAlchemy models."""
+    pass
 
 # Create async engine
 engine = create_async_engine(
@@ -20,12 +26,6 @@ async_session_factory = async_sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False,
 )
-
-
-class Base(DeclarativeBase):
-    """Base class for SQLAlchemy models."""
-
-    pass
 
 
 async def init_db() -> None:

@@ -3,7 +3,7 @@
 from fastapi import APIRouter
 
 from src.api.routes import (
-    agent,
+    # agent,  # Temporarily disabled - requires deepagents
     artifacts,
     auth,
     checkpoints,
@@ -24,7 +24,7 @@ router.include_router(health.router, prefix="/health", tags=["Health"])
 router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 router.include_router(conversations.router, prefix="/conversations", tags=["Conversations"])
 router.include_router(messages.router, prefix="/messages", tags=["Messages"])
-router.include_router(agent.router, prefix="/agent", tags=["Agent"])
+# router.include_router(agent.router, prefix="/agent", tags=["Agent"])  # Temporarily disabled
 router.include_router(artifacts.router, prefix="/artifacts", tags=["Artifacts"])
 router.include_router(checkpoints.router, prefix="/checkpoints", tags=["Checkpoints"])
 router.include_router(projects.router, prefix="/projects", tags=["Projects"])

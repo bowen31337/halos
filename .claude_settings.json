@@ -1,0 +1,22 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true
+  },
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Read(./**)",
+      "Write(./**)",
+      "Edit(./**)",
+      "Glob(./**)",
+      "Grep(./**)",
+      "Bash(*)",
+      "WebSearch(*)",
+      "WebFetch(*)",
+      "TodoRead(*)",
+      "TodoWrite(*)",
+      "Task(*)"
+    ]
+  }
+}

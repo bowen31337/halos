@@ -5,10 +5,12 @@ from typing import Optional
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, HTTPException, Request
+from langchain_core.messages import HumanMessage
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
 from src.core.config import settings
+from src.services.agent_service import agent_service
 
 router = APIRouter()
 
@@ -40,15 +42,49 @@ pending_approvals: dict[str, dict] = {}
 @router.post("/invoke")
 async def invoke_agent(data: AgentRequest) -> dict:
     """Synchronously invoke the agent and return complete response."""
-    # TODO: Implement full DeepAgents integration
     thread_id = data.thread_id or str(uuid4())
 
-    return {
-        "thread_id": thread_id,
-        "response": f"Agent response to: {data.message}",
-        "model": data.model,
-        "status": "completed",
-    }
+    try:
+        # Get or create agent
+        agent = agent_service.get_or_create_agent(
+            user_id="default",
+            permission_mode=data.permission_mode,
+            model=data.model,
+        )
+
+        if agent is None:
+            # Fallback mock response if agent creation failed
+            return {
+                "thread_id": thread_id,
+                "response": f"Agent unavailable. Mock response to: {data.message}",
+                "model": data.model,
+                "status": "error",
+                "error": "Agent creation failed - check API key configuration",
+            }
+
+        # Invoke agent with message
+        config = {"configurable": {"thread_id": thread_id}}
+        result = agent.invoke({"messages": [HumanMessage(content=data.message)]}, config=config)
+
+        # Extract response from result
+        response_message = result.get("messages", [])[-1]
+        response_content = response_message.content if hasattr(response_message, 'content') else str(response_message)
+
+        return {
+            "thread_id": thread_id,
+            "response": response_content,
+            "model": data.model,
+            "status": "completed",
+        }
+
+    except Exception as e:
+        return {
+            "thread_id": thread_id,
+            "response": f"Error invoking agent: {str(e)}",
+            "model": data.model,
+            "status": "error",
+            "error": str(e),
+        }
 
 
 @router.post("/stream")
@@ -69,17 +105,66 @@ async def stream_agent(request: Request) -> EventSourceResponse:
                 "data": json.dumps({"thread_id": thread_id, "model": model}),
             }
 
-            # TODO: Integrate with DeepAgents
-            # For now, return a mock response
-            response_text = f"This is a streaming response to: {message}"
+            # Get or create agent
+            agent = agent_service.get_or_create_agent(
+                user_id="default",
+                permission_mode=permission_mode,
+                model=model,
+            )
 
-            # Stream response word by word
-            words = response_text.split()
-            for i, word in enumerate(words):
+            if agent is None:
+                # Agent creation failed, return mock response
+                response_text = f"Agent unavailable. This is a mock response to: {message}"
+                for word in response_text.split():
+                    yield {
+                        "event": "message",
+                        "data": json.dumps({"content": word + " "}),
+                    }
                 yield {
-                    "event": "message",
-                    "data": json.dumps({"content": word + " "}),
+                    "event": "done",
+                    "data": json.dumps({"thread_id": thread_id, "error": "Agent creation failed"}),
                 }
+                return
+
+            # Stream agent response
+            config = {"configurable": {"thread_id": thread_id}}
+
+            async for event in agent.astream_events(
+                {"messages": [HumanMessage(content=message)]},
+                config=config,
+                version="v2",
+            ):
+                event_kind = event.get("event", "")
+
+                # Stream message content
+                if event_kind == "on_chat_model_stream":
+                    chunk = event.get("data", {}).get("chunk", {})
+                    content = chunk.content if hasattr(chunk, 'content') else ""
+                    if content:
+                        yield {
+                            "event": "message",
+                            "data": json.dumps({"content": content}),
+                        }
+
+                # Tool start event
+                elif event_kind == "on_tool_start":
+                    tool_name = event.get("name", "")
+                    tool_input = event.get("data", {}).get("input", {})
+                    yield {
+                        "event": "tool_start",
+                        "data": json.dumps({
+                            "tool": tool_name,
+                            "input": tool_input,
+                        }),
+                    }
+
+                # Tool end event
+                elif event_kind == "on_tool_end":
+                    tool_output = event.get("data", {}).get("output", "")
+                    yield {
+                        "event": "tool_end",
+                        "data": json.dumps({"output": str(tool_output)[:500]}),  # Limit output size
+                    }
 
             # Done event
             yield {

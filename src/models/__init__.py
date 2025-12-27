@@ -1,11 +1,13 @@
 """SQLAlchemy database models."""
 
-from src.core.database import Base
+from sqlalchemy.orm import DeclarativeBase
 
-# Import all models here for Alembic migrations
-# from src.models.user import User
-# from src.models.conversation import Conversation
-# from src.models.message import Message
-# etc.
+# Create Base class here to avoid circular import
+class Base(DeclarativeBase):
+    """Base class for SQLAlchemy models."""
+    pass
 
-__all__ = ["Base"]
+from src.models.conversation import Conversation
+from src.models.message import Message
+
+__all__ = ["Base", "Conversation", "Message"]

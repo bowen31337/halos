@@ -1,10 +1,16 @@
 """Conversation management endpoints."""
 
 from typing import Optional
-from uuid import UUID, uuid4
+from uuid import UUID
+from datetime import datetime
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, Field
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.core.database import get_db
+from src.models import Conversation
 
 router = APIRouter()
 
@@ -39,107 +45,193 @@ class Conversation(BaseModel):
     updated_at: str
 
 
-# In-memory storage for development
-conversations_db: dict[UUID, dict] = {}
-
-
 @router.get("")
 async def list_conversations(
     project_id: Optional[UUID] = None,
     archived: bool = False,
     limit: int = 50,
     offset: int = 0,
+    db: AsyncSession = Depends(get_db),
 ) -> list[dict]:
     """List all conversations."""
-    result = []
-    for conv_id, conv in conversations_db.items():
-        if archived == conv.get("is_archived", False):
-            if project_id is None or conv.get("project_id") == project_id:
-                result.append(conv)
-    return result[offset : offset + limit]
+    query = select(Conversation).where(Conversation.is_deleted == False)
+
+    if archived:
+        query = query.where(Conversation.is_archived == True)
+    else:
+        query = query.where(Conversation.is_archived == False)
+
+    if project_id:
+        query = query.where(Conversation.project_id == str(project_id))
+
+    query = query.order_by(Conversation.updated_at.desc()).offset(offset).limit(limit)
+
+    result = await db.execute(query)
+    conversations = result.scalars().all()
+
+    return [
+        {
+            "id": conv.id,
+            "title": conv.title,
+            "model": conv.model,
+            "project_id": conv.project_id,
+            "is_archived": conv.is_archived,
+            "is_pinned": conv.is_pinned,
+            "message_count": conv.message_count,
+            "created_at": conv.created_at.isoformat(),
+            "updated_at": conv.updated_at.isoformat(),
+        }
+        for conv in conversations
+    ]
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-async def create_conversation(data: ConversationCreate) -> dict:
+async def create_conversation(
+    data: ConversationCreate,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
     """Create a new conversation."""
-    from datetime import datetime
+    now = datetime.utcnow()
 
-    conv_id = uuid4()
-    now = datetime.utcnow().isoformat()
+    conversation = Conversation(
+        title=data.title or "New Conversation",
+        model=data.model,
+        project_id=str(data.project_id) if data.project_id else None,
+        created_at=now,
+        updated_at=now,
+        last_message_at=now,
+    )
 
-    conversation = {
-        "id": str(conv_id),
-        "title": data.title or "New Conversation",
-        "model": data.model,
-        "project_id": str(data.project_id) if data.project_id else None,
-        "is_archived": False,
-        "is_pinned": False,
-        "message_count": 0,
-        "created_at": now,
-        "updated_at": now,
+    db.add(conversation)
+    await db.commit()
+    await db.refresh(conversation)
+
+    return {
+        "id": conversation.id,
+        "title": conversation.title,
+        "model": conversation.model,
+        "project_id": conversation.project_id,
+        "is_archived": conversation.is_archived,
+        "is_pinned": conversation.is_pinned,
+        "message_count": conversation.message_count,
+        "created_at": conversation.created_at.isoformat(),
+        "updated_at": conversation.updated_at.isoformat(),
     }
-
-    conversations_db[conv_id] = conversation
-    return conversation
 
 
 @router.get("/{conversation_id}")
-async def get_conversation(conversation_id: UUID) -> dict:
+async def get_conversation(
+    conversation_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
     """Get a specific conversation."""
-    if conversation_id not in conversations_db:
+    result = await db.execute(select(Conversation).where(Conversation.id == conversation_id))
+    conversation = result.scalar_one_or_none()
+
+    if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
-    return conversations_db[conversation_id]
+
+    return {
+        "id": conversation.id,
+        "title": conversation.title,
+        "model": conversation.model,
+        "project_id": conversation.project_id,
+        "is_archived": conversation.is_archived,
+        "is_pinned": conversation.is_pinned,
+        "message_count": conversation.message_count,
+        "created_at": conversation.created_at.isoformat(),
+        "updated_at": conversation.updated_at.isoformat(),
+    }
 
 
 @router.put("/{conversation_id}")
-async def update_conversation(conversation_id: UUID, data: ConversationUpdate) -> dict:
+async def update_conversation(
+    conversation_id: str,
+    data: ConversationUpdate,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
     """Update a conversation."""
-    if conversation_id not in conversations_db:
+    result = await db.execute(select(Conversation).where(Conversation.id == conversation_id))
+    conversation = result.scalar_one_or_none()
+
+    if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
-    from datetime import datetime
-
-    conv = conversations_db[conversation_id]
-
     if data.title is not None:
-        conv["title"] = data.title
+        conversation.title = data.title
     if data.is_archived is not None:
-        conv["is_archived"] = data.is_archived
+        conversation.is_archived = data.is_archived
     if data.is_pinned is not None:
-        conv["is_pinned"] = data.is_pinned
+        conversation.is_pinned = data.is_pinned
 
-    conv["updated_at"] = datetime.utcnow().isoformat()
+    conversation.updated_at = datetime.utcnow()
+    await db.commit()
+    await db.refresh(conversation)
 
-    return conv
+    return {
+        "id": conversation.id,
+        "title": conversation.title,
+        "model": conversation.model,
+        "project_id": conversation.project_id,
+        "is_archived": conversation.is_archived,
+        "is_pinned": conversation.is_pinned,
+        "message_count": conversation.message_count,
+        "created_at": conversation.created_at.isoformat(),
+        "updated_at": conversation.updated_at.isoformat(),
+    }
 
 
 @router.delete("/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_conversation(conversation_id: UUID) -> None:
-    """Delete a conversation."""
-    if conversation_id not in conversations_db:
+async def delete_conversation(
+    conversation_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """Delete a conversation (soft delete)."""
+    result = await db.execute(select(Conversation).where(Conversation.id == conversation_id))
+    conversation = result.scalar_one_or_none()
+
+    if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
-    del conversations_db[conversation_id]
+
+    conversation.is_deleted = True
+    await db.commit()
 
 
 @router.post("/{conversation_id}/duplicate")
-async def duplicate_conversation(conversation_id: UUID) -> dict:
+async def duplicate_conversation(
+    conversation_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
     """Duplicate a conversation."""
-    if conversation_id not in conversations_db:
+    result = await db.execute(select(Conversation).where(Conversation.id == conversation_id))
+    original = result.scalar_one_or_none()
+
+    if not original:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
-    from datetime import datetime
+    now = datetime.utcnow()
 
-    original = conversations_db[conversation_id]
-    new_id = uuid4()
-    now = datetime.utcnow().isoformat()
+    duplicate = Conversation(
+        title=f"{original.title} (Copy)",
+        model=original.model,
+        project_id=original.project_id,
+        created_at=now,
+        updated_at=now,
+        last_message_at=now,
+    )
 
-    duplicate = {
-        **original,
-        "id": str(new_id),
-        "title": f"{original['title']} (Copy)",
-        "created_at": now,
-        "updated_at": now,
+    db.add(duplicate)
+    await db.commit()
+    await db.refresh(duplicate)
+
+    return {
+        "id": duplicate.id,
+        "title": duplicate.title,
+        "model": duplicate.model,
+        "project_id": duplicate.project_id,
+        "is_archived": duplicate.is_archived,
+        "is_pinned": duplicate.is_pinned,
+        "message_count": duplicate.message_count,
+        "created_at": duplicate.created_at.isoformat(),
+        "updated_at": duplicate.updated_at.isoformat(),
     }
-
-    conversations_db[new_id] = duplicate
-    return duplicate
