@@ -33,10 +33,13 @@ export function SubAgentIndicator() {
       <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right-2 duration-300">
         <div className="bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg shadow-lg p-4 min-w-64">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-[var(--primary)] rounded-full flex items-center justify-center animate-pulse">
+            <div className="relative w-8 h-8 bg-[var(--primary)] rounded-full flex items-center justify-center">
               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
+              <span className="absolute -bottom-1 -right-1 loading-dots primary">
+                <span></span><span></span><span></span>
+              </span>
             </div>
             <div>
               <h4 className="font-medium text-[var(--text-primary)]">Extended Thinking</h4>
@@ -84,7 +87,7 @@ export function SubAgentIndicator() {
               </svg>
             </div>
             {isVisible && (
-              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full loading-pulse" />
             )}
           </div>
 

@@ -166,7 +166,7 @@ export function FilesPanel() {
           <>
             {isLoading && files.length === 0 ? (
               <div className="text-sm text-[var(--text-secondary)] text-center py-8">
-                <div className="animate-spin mb-2 mx-auto w-5 h-5 border-2 border-[var(--primary)] border-t-transparent rounded-full"></div>
+                <div className="loading-spinner primary mb-2 mx-auto"></div>
                 Loading files...
               </div>
             ) : error ? (

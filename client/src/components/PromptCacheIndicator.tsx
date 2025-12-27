@@ -52,7 +52,7 @@ export function PromptCacheIndicator() {
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1">
           <span className="text-sm font-medium text-[var(--text-primary)]">Cache</span>
-          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+          <div className="w-2 h-2 bg-green-400 rounded-full loading-pulse" />
         </div>
 
         <div className="text-xs text-[var(--text-secondary)]">

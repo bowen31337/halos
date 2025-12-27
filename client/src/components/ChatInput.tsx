@@ -910,9 +910,14 @@ export function ChatInput() {
         <button
           onClick={handleSend}
           disabled={(!inputValue.trim() && images.length === 0) || isLoading}
-          className="px-6 py-3 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className={`px-6 py-3 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-lg font-medium transition-smooth disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${isLoading ? 'loading' : ''}`}
         >
-          {isStreaming ? 'Stop' : 'Send'}
+          {isLoading ? (
+            <>
+              <span className="loading-spinner primary small"></span>
+              <span>Sending...</span>
+            </>
+          ) : isStreaming ? 'Stop' : 'Send'}
         </button>
       </div>
       <div className="flex justify-between mt-2 text-xs text-[var(--text-secondary)]">
@@ -922,11 +927,11 @@ export function ChatInput() {
 
       {/* Recording status indicator */}
       {isRecording && (
-        <div className="mt-2 flex items-center gap-2 text-sm text-red-500">
-          <div className="flex gap-1">
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+        <div className="mt-2 flex items-center gap-2 text-sm text-[var(--error)]">
+          <div className="loading-dots">
+            <span></span>
+            <span></span>
+            <span></span>
           </div>
           <span>Recording...</span>
           <span className="text-xs text-[var(--text-secondary)]">Click microphone to stop</span>

@@ -179,8 +179,12 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
             </span>
             {/* Thinking indicator badge */}
             {isThinking && (
-              <span className="text-xs px-2 py-0.5 bg-[var(--surface-elevated)] rounded-full text-[var(--text-secondary)] flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-[var(--text-secondary)] rounded-full animate-pulse"></span>
+              <span className="text-xs px-2 py-0.5 bg-[var(--surface-elevated)] rounded-full text-[var(--text-secondary)] flex items-center gap-2">
+                <span className="loading-dots">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
                 Thinking...
               </span>
             )}
@@ -357,7 +361,7 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
                 {message.content || (isStreaming ? '' : '...')}
               </ReactMarkdown>
               {isStreaming && (
-                <span className="inline-block w-2 h-4 ml-1 bg-[var(--text-secondary)] animate-pulse align-middle"></span>
+                <span className="typing-indicator"></span>
               )}
             </>
           )}

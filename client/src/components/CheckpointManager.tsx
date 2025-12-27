@@ -145,7 +145,7 @@ export const CheckpointManager: React.FC<CheckpointManagerProps> = ({ onClose })
             >
               {isCreating ? (
                 <>
-                  <span className="animate-spin">⟳</span>
+                  <span className="loading-spinner small"></span>
                   Creating...
                 </>
               ) : (
@@ -160,7 +160,7 @@ export const CheckpointManager: React.FC<CheckpointManagerProps> = ({ onClose })
           {/* Checkpoints List */}
           {isLoading ? (
             <div className="flex justify-center py-8">
-              <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+              <div className="loading-spinner large"></div>
             </div>
           ) : checkpoints.length === 0 ? (
             <div className="text-center py-8 text-gray-400">

@@ -56,7 +56,7 @@ export function CacheIndicator({ conversationId }: CacheIndicatorProps) {
     return (
       <div className="bg-[var(--bg-secondary)] border border-[var(--border-primary)] rounded-lg p-4">
         <div className="flex items-center gap-3">
-          <div className="w-4 h-4 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin"></div>
+          <div className="loading-spinner primary small"></div>
           <span className="text-sm text-[var(--text-secondary)]">Loading cache statistics...</span>
         </div>
       </div>

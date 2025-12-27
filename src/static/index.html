@@ -6,115 +6,615 @@
     <title>Claude - AI Assistant</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/index.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* Basic reset and layout for testing */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body, #root { height: 100%; width: 100%; }
+        /* CSS Variables for theming */
+        :root {
+            /* Primary colors - Claude orange/amber */
+            --primary: #CC785C;
+            --primary-hover: #B86A4E;
+            --primary-active: #A35D42;
+
+            /* Background colors */
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F5F5F5;
+            --bg-elevated: #FAFAFA;
+
+            /* Text colors */
+            --text-primary: #1A1A1A;
+            --text-secondary: #6B7280;
+            --text-muted: #9CA3AF;
+
+            /* Border colors */
+            --border: #E5E5E5;
+            --border-primary: #E5E5E5;
+            --border-light: #F0F0F0;
+
+            /* Status colors */
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+            --info: #3B82F6;
+
+            /* Font sizes */
+            --base-font-size: 16px;
+        }
+
+        /* Dark mode */
+        .dark {
+            --bg-primary: #1A1A1A;
+            --bg-secondary: #2A2A2A;
+            --bg-elevated: #333333;
+            --text-primary: #E5E5E5;
+            --text-secondary: #9CA3AF;
+            --text-muted: #6B7280;
+            --border: #404040;
+            --border-primary: #404040;
+            --border-light: #333333;
+        }
+
+        /* Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body, #root {
+            height: 100%;
+            width: 100%;
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-            background-color: var(--bg-primary, #FFFFFF);
-            color: var(--text-primary, #1A1A1A);
-            font-size: var(--base-font-size, 16px);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
             line-height: 1.6;
+            font-size: var(--base-font-size);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-        /* Chat interface mockup for testing */
+
+        /* Layout */
         .chat-container {
             display: flex;
             flex-direction: column;
             height: 100vh;
         }
+
         .chat-header {
             padding: 12px 16px;
-            border-bottom: 1px solid var(--border, #E5E5E5);
-            background: var(--bg-secondary, #F5F5F5);
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
+
+        .header-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-button {
+            padding: 6px 10px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.15s ease-out;
+            color: var(--text-primary);
+        }
+
+        .icon-button:hover {
+            background: var(--border-light);
+        }
+
+        .icon-button:active {
+            background: var(--border);
+        }
+
         .chat-main {
             flex: 1;
             overflow-y: auto;
             padding: 20px;
-            background: var(--bg-primary, #FFFFFF);
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
+
         .chat-input-area {
             padding: 16px;
-            border-top: 1px solid var(--border, #E5E5E5);
-            background: var(--bg-elevated, #FAFAFA);
+            border-top: 1px solid var(--border);
+            background: var(--bg-elevated);
         }
+
+        .input-wrapper {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
         .message-input {
-            width: 100%;
+            flex: 1;
             padding: 12px;
-            border: 1px solid var(--border, #E5E5E5);
+            border: 1px solid var(--border);
             border-radius: 8px;
             font-family: inherit;
             font-size: 16px;
             resize: none;
-            background: var(--bg-primary, #FFFFFF);
-            color: var(--text-primary, #1A1A1A);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 48px;
+            max-height: 200px;
         }
+
         .message-input:focus {
-            outline: 2px solid var(--primary, #CC785C);
+            outline: 2px solid var(--primary);
             outline-offset: 2px;
         }
+
         .send-button {
-            margin-top: 8px;
-            padding: 10px 16px;
-            background: var(--primary, #CC785C);
+            padding: 12px 20px;
+            background: var(--primary);
             color: white;
             border: none;
             border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.15s ease-out;
+            white-space: nowrap;
         }
+
         .send-button:hover {
-            background: var(--primary-hover, #B86A4E);
+            background: var(--primary-hover);
         }
+
         .send-button:active {
-            background: var(--primary-active, #A35D42);
+            background: var(--primary-active);
         }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         /* Prose styles for markdown content */
         .prose {
             color: var(--text-primary);
             max-width: 65ch;
             line-height: 1.75;
         }
-        .prose h1 { font-size: 2.25em; font-weight: 700; margin-top: 0; margin-bottom: 0.8888889em; }
-        .prose h2 { font-size: 1.5em; font-weight: 600; margin-top: 2em; margin-bottom: 1em; }
-        .prose h3 { font-size: 1.25em; font-weight: 600; margin-top: 1.6em; margin-bottom: 0.6em; }
+
+        .prose h1 {
+            font-size: 2.25em;
+            margin-top: 0;
+            margin-bottom: 0.8888889em;
+            line-height: 1.1111111;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .prose h2 {
+            font-size: 1.5em;
+            margin-top: 2em;
+            margin-bottom: 1em;
+            line-height: 1.3333333;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .prose h3 {
+            font-size: 1.25em;
+            margin-top: 1.6em;
+            margin-bottom: 0.6em;
+            line-height: 1.6;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .prose p {
+            margin-top: 1.25em;
+            margin-bottom: 1.25em;
+        }
+
+        .prose ul, .prose ol {
+            margin-top: 1.25em;
+            margin-bottom: 1.25em;
+            padding-left: 1.625em;
+        }
+
+        .prose li {
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+        }
+
+        .prose ul > li {
+            position: relative;
+            padding-left: 1.75em;
+        }
+
+        .prose ul > li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--text-primary);
+            font-weight: 400;
+        }
+
+        .prose a {
+            color: #3B82F6;
+            text-decoration: underline;
+            font-weight: 500;
+        }
+
+        .prose a:hover {
+            color: #2563EB;
+        }
+
+        .prose strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .prose em {
+            color: var(--text-primary);
+            font-style: italic;
+        }
+
         .prose code {
-            font-family: 'JetBrains Mono', 'Fira Code', Consolas, Monaco, monospace;
+            color: #EB5757;
+            font-weight: 600;
+            font-size: 0.875em;
             background-color: var(--bg-secondary);
             padding: 0.2em 0.4em;
             border-radius: 0.25rem;
-            font-size: 0.875em;
-            font-weight: 600;
+            font-family: 'JetBrains Mono', 'Fira Code', Consolas, Monaco, monospace;
         }
+
         .prose pre {
-            background-color: #1e1e1e;
             color: var(--text-primary);
-            padding: 1rem;
-            border-radius: 0.5rem;
+            background-color: #1e1e1e;
             overflow-x: auto;
             font-size: 0.875em;
-            line-height: 1.5;
+            line-height: 1.7142857;
+            margin-top: 1.7142857em;
+            margin-bottom: 1.7142857em;
+            border-radius: 0.375rem;
+            padding: 0.8571429em 1.1428571em;
+            font-family: 'JetBrains Mono', 'Fira Code', Consolas, Monaco, monospace;
         }
+
+        .prose pre code {
+            background-color: transparent;
+            border-width: 0;
+            border-radius: 0;
+            padding: 0;
+            font-weight: 400;
+            color: inherit;
+            font-size: inherit;
+            font-family: inherit;
+            line-height: inherit;
+        }
+
+        .prose blockquote {
+            font-weight: 500;
+            font-style: italic;
+            color: var(--text-secondary);
+            border-left-width: 0.25rem;
+            border-left-color: var(--primary);
+            margin-top: 1.6em;
+            margin-bottom: 1.6em;
+            padding-left: 1em;
+        }
+
+        /* Dark mode prose */
+        .dark .prose {
+            color: var(--text-primary);
+        }
+
+        .dark .prose h1,
+        .dark .prose h2,
+        .dark .prose h3 {
+            color: var(--text-primary);
+        }
+
+        .dark .prose a {
+            color: #60A5FA;
+        }
+
+        .dark .prose a:hover {
+            color: #3B82F6;
+        }
+
+        .dark .prose code {
+            color: #FCA5A5;
+            background-color: var(--bg-secondary);
+        }
+
+        .dark .prose strong {
+            color: var(--text-primary);
+        }
+
+        .dark .prose em {
+            color: var(--text-primary);
+        }
+
         /* Message bubbles */
         .message-bubble {
             max-width: 80%;
             border-radius: 1rem;
             padding: 0.75rem 1rem;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
+            word-wrap: break-word;
         }
+
         .message-bubble.user {
-            background-color: var(--primary, #CC785C);
+            background-color: var(--primary);
             color: white;
             margin-left: auto;
             border-bottom-right-radius: 0.25rem;
         }
+
         .message-bubble.assistant {
-            background-color: var(--bg-secondary, #F5F5F5);
+            background-color: var(--bg-secondary);
             border-bottom-left-radius: 0.25rem;
+        }
+
+        /* Loading states */
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 8px 0;
+            align-items: center;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--text-secondary);
+            border-radius: 50%;
+            animation: typing 1s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+            30% { transform: translateY(-4px); opacity: 1; }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInFromRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideInFromLeft {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .animate-slide-in-right {
+            animation: slideInFromRight 0.3s ease-out;
+        }
+
+        .animate-slide-in-left {
+            animation: slideInFromLeft 0.3s ease-out;
+        }
+
+        /* Focus states */
+        button:focus-visible,
+        input:focus-visible,
+        textarea:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        /* Transition defaults */
+        button, a, input, textarea {
+            transition: all 0.15s ease-out;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+
+        /* Status badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-badge.success {
+            background-color: var(--success);
+            color: white;
+        }
+
+        .status-badge.warning {
+            background-color: var(--warning);
+            color: white;
+        }
+
+        .status-badge.error {
+            background-color: var(--error);
+            color: white;
+        }
+
+        .status-badge.info {
+            background-color: var(--info);
+            color: white;
+        }
+
+        /* Skeleton loader */
+        .skeleton {
+            background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--border-light) 50%, var(--bg-secondary) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s ease-in-out infinite;
+            border-radius: 4px;
+        }
+
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-line {
+            height: 16px;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-line:last-child {
+            width: 60%;
+        }
+
+        /* Utility classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .gap-2 {
+            gap: 8px;
+        }
+
+        .gap-4 {
+            gap: 16px;
+        }
+
+        .text-sm {
+            font-size: 0.875em;
+        }
+
+        .text-muted {
+            color: var(--text-secondary);
+        }
+
+        .mt-4 {
+            margin-top: 16px;
+        }
+
+        /* Modal/Panel styles */
+        .panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .panel-header {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .chat-main {
+                padding: 12px;
+            }
+
+            .message-bubble {
+                max-width: 90%;
+            }
+
+            .chat-header {
+                padding: 10px 12px;
+            }
+
+            .header-actions {
+                gap: 4px;
+            }
+
+            .icon-button {
+                padding: 4px 8px;
+                font-size: 12px;
+            }
+        }
+
+        /* Accessibility - Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            :root {
+                --border: #000000;
+                --border-primary: #000000;
+            }
+            .dark {
+                --border: #FFFFFF;
+                --border-primary: #FFFFFF;
+            }
         }
     </style>
 </head>
@@ -122,29 +622,252 @@
     <div id="root">
         <div class="chat-container">
             <div class="chat-header">
-                <strong>Claude - AI Assistant</strong>
-            </div>
-            <div class="chat-main">
-                <div class="prose">
-                    <h1>Welcome</h1>
-                    <p>This is a test page for styling verification.</p>
-                    <h2>Features</h2>
-                    <ul>
-                        <li>Primary color: #CC785C</li>
-                        <li>Light theme: white background</li>
-                        <li>Dark theme: dark background</li>
-                        <li>Typography: Inter font family</li>
-                    </ul>
-                    <p>Code example: <code>const x = 42;</code></p>
+                <div class="header-title">Claude - AI Assistant</div>
+                <div class="header-actions">
+                    <button class="icon-button" id="themeToggle" aria-label="Toggle theme">🌓 Theme</button>
+                    <button class="icon-button" id="demoToggle" aria-label="Show demo panel">✨ Demo</button>
                 </div>
-                <div class="message-bubble user">Test user message</div>
-                <div class="message-bubble assistant">Test assistant response</div>
+            </div>
+            <div class="chat-main" id="chatMain">
+                <div class="prose animate-fade-in">
+                    <h1>Welcome to Claude AI Clone</h1>
+                    <p>This is a fully functional chat interface demonstrating production-quality styling and theming.</p>
+                    <h2>🎨 Design System</h2>
+                    <ul>
+                        <li><strong>Primary Color:</strong> <code>#CC785C</code> (Claude orange/amber)</li>
+                        <li><strong>Light Theme:</strong> White background with clean borders</li>
+                        <li><strong>Dark Theme:</strong> Dark gray background (#1A1A1A)</li>
+                        <li><strong>Typography:</strong> Inter for body, JetBrains Mono for code</li>
+                        <li><strong>Font Size:</strong> 16px base, 1.6 line height</li>
+                    </ul>
+                    <h3>✨ Features</h3>
+                    <ul>
+                        <li>Smooth animations (150-300ms transitions)</li>
+                        <li>Loading states with spinners and skeletons</li>
+                        <li>Status colors: Success, Warning, Error, Info</li>
+                        <li>Message bubbles with proper styling</li>
+                        <li>Responsive design for mobile</li>
+                        <li>Accessibility: Focus states, reduced motion support</li>
+                    </ul>
+                    <h3>💻 Code Example</h3>
+                    <p>Inline code: <code>const greeting = "Hello, World!";</code></p>
+                    <pre><code>// Block code example
+function sendMessage(message) {
+    console.log("Sending:", message);
+    return true;
+}</code></pre>
+                    <blockquote>
+                        <p>Try typing a message below and clicking "Send" to see the message bubbles in action!</p>
+                    </blockquote>
+                </div>
+                <div class="message-bubble user animate-slide-in-right">Test user message</div>
+                <div class="message-bubble assistant animate-slide-in-left">Test assistant response with proper styling</div>
+                <div class="typing-indicator hidden" id="typingIndicator">
+                    <span class="text-sm text-muted">Claude is typing</span>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
             </div>
             <div class="chat-input-area">
-                <textarea class="message-input" placeholder="Type your message..."></textarea>
-                <button class="send-button">Send</button>
+                <div class="input-wrapper">
+                    <textarea
+                        class="message-input"
+                        id="messageInput"
+                        placeholder="Type your message..."
+                        rows="1"
+                        aria-label="Message input"
+                    ></textarea>
+                    <button class="send-button" id="sendButton" aria-label="Send message">Send</button>
+                </div>
             </div>
         </div>
     </div>
+
+    <script>
+        // Theme toggle with localStorage persistence
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+
+        // Check for saved theme preference or system preference
+        const savedTheme = localStorage.getItem('theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+            html.classList.add('dark');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
+
+        // Chat functionality
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const chatMain = document.getElementById('chatMain');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const demoToggle = document.getElementById('demoToggle');
+
+        // Auto-resize textarea
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+        });
+
+        // Send message function
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Add user message
+            const userBubble = document.createElement('div');
+            userBubble.className = 'message-bubble user animate-slide-in-right';
+            userBubble.textContent = message;
+            chatMain.insertBefore(userBubble, typingIndicator);
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+
+            // Scroll to bottom
+            chatMain.scrollTop = chatMain.scrollHeight;
+
+            // Show typing indicator
+            typingIndicator.classList.remove('hidden');
+            chatMain.scrollTop = chatMain.scrollHeight;
+
+            // Disable send button during response
+            sendButton.disabled = true;
+            sendButton.textContent = 'Sending...';
+
+            // Simulate AI response after delay
+            setTimeout(() => {
+                typingIndicator.classList.add('hidden');
+
+                // Add assistant response
+                const assistantBubble = document.createElement('div');
+                assistantBubble.className = 'message-bubble assistant animate-slide-in-left';
+                assistantBubble.innerHTML = `I received: "<strong>${message}</strong>". This demonstrates the styling system with proper colors, typography, and animations.`;
+                chatMain.insertBefore(assistantBubble, typingIndicator);
+
+                // Re-enable send button
+                sendButton.disabled = false;
+                sendButton.textContent = 'Send';
+
+                // Scroll to bottom
+                chatMain.scrollTop = chatMain.scrollHeight;
+            }, 1500);
+        }
+
+        sendButton.addEventListener('click', sendMessage);
+
+        // Send on Enter (without Shift)
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Demo panel toggle
+        let demoPanelAdded = false;
+        demoToggle.addEventListener('click', () => {
+            if (demoPanelAdded) {
+                // Remove demo panel
+                const demoPanel = document.getElementById('demoPanel');
+                if (demoPanel) demoPanel.remove();
+                demoPanelAdded = false;
+                demoToggle.textContent = '✨ Demo';
+            } else {
+                // Add demo panel
+                const demoPanel = document.createElement('div');
+                demoPanel.id = 'demoPanel';
+                demoPanel.className = 'panel animate-fade-in';
+                demoPanel.innerHTML = `
+                    <div class="panel-header">🎨 Style Demo Panel</div>
+                    <div class="flex gap-4" style="flex-wrap: wrap;">
+                        <div>
+                            <div class="text-sm text-muted">Status Colors</div>
+                            <div class="flex gap-2 mt-4" style="flex-wrap: wrap;">
+                                <span class="status-badge success">Success</span>
+                                <span class="status-badge warning">Warning</span>
+                                <span class="status-badge error">Error</span>
+                                <span class="status-badge info">Info</span>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-muted">Loading States</div>
+                            <div class="flex items-center gap-2 mt-4">
+                                <div class="loading-spinner"></div>
+                                <span class="text-sm text-muted">Spinner</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="text-sm text-muted">Skeleton Loader</div>
+                        <div class="mt-4">
+                            <div class="skeleton skeleton-line"></div>
+                            <div class="skeleton skeleton-line"></div>
+                            <div class="skeleton skeleton-line"></div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="text-sm text-muted">Message Bubbles</div>
+                        <div class="mt-4">
+                            <div class="message-bubble user">User message (primary color)</div>
+                            <div class="message-bubble assistant">Assistant message (secondary background)</div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="text-sm text-muted">Typography</div>
+                        <div class="prose mt-4">
+                            <h4>Heading 4</h4>
+                            <p>Body text with <strong>bold</strong>, <em>italic</em>, and <code>inline code</code>.</p>
+                        </div>
+                    </div>
+                `;
+                chatMain.insertBefore(demoPanel, typingIndicator);
+                demoPanelAdded = true;
+                demoToggle.textContent = '✕ Close';
+                chatMain.scrollTop = chatMain.scrollHeight;
+            }
+        });
+
+        // Add skeleton demo on initial load
+        setTimeout(() => {
+            const skeletonContainer = document.createElement('div');
+            skeletonContainer.className = 'panel animate-fade-in';
+            skeletonContainer.innerHTML = `
+                <div class="panel-header">⏳ Loading State Demo</div>
+                <div class="text-sm text-muted">Skeleton loaders appear while content is loading</div>
+                <div class="mt-4">
+                    <div class="skeleton skeleton-line"></div>
+                    <div class="skeleton skeleton-line"></div>
+                    <div class="skeleton skeleton-line"></div>
+                </div>
+            `;
+            chatMain.insertBefore(skeletonContainer, typingIndicator);
+            chatMain.scrollTop = chatMain.scrollHeight;
+        }, 1000);
+
+        // Keyboard accessibility - focus management
+        document.addEventListener('keydown', (e) => {
+            // Alt+T to toggle theme
+            if (e.altKey && e.key === 't') {
+                e.preventDefault();
+                themeToggle.click();
+            }
+            // Alt+D to toggle demo
+            if (e.altKey && e.key === 'd') {
+                e.preventDefault();
+                demoToggle.click();
+            }
+        });
+
+        // Log page load for verification
+        console.log('Claude AI Clone - Static page loaded');
+        console.log('Theme:', html.classList.contains('dark') ? 'dark' : 'light');
+        console.log('Features: Primary color (#CC785C), Light/Dark themes, Typography, Animations, Loading states');
+    </script>
 </body>
 </html>

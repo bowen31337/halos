@@ -54,7 +54,7 @@ export function BranchSelector({ conversationId }: BranchSelectorProps) {
         <span>
           {branchPath.length > 1 ? `Branch ${branchPath.length}` : 'Main'}
         </span>
-        {isBranching && <span className="animate-spin">⏳</span>}
+        {isBranching && <span className="loading-spinner small"></span>}
       </button>
 
       {/* Dropdown menu */}
