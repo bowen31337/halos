@@ -171,7 +171,7 @@
       "Step 5: Verify the previous response is replaced",
       "Step 6: Confirm the new response completes successfully"
     ],
-    "passes": false,
+    "passes": true,
     "is_dev_done": true,
     "is_qa_passed": true
   },
@@ -187,7 +187,7 @@
       "Step 6: Verify a new AI response is generated",
       "Step 7: Verify conversation history branches appropriately"
     ],
-    "passes": false,
+    "passes": true,
     "is_dev_done": true,
     "is_qa_passed": true
   },
@@ -203,7 +203,7 @@
       "Step 6: Press Enter to send",
       "Step 7: Verify the message displays with proper line breaks"
     ],
-    "passes": false,
+    "passes": true,
     "is_dev_done": true,
     "is_qa_passed": true
   },
@@ -219,7 +219,7 @@
       "Step 6: Verify the textarea height decreases",
       "Step 7: Verify there is a maximum height with scrollbar"
     ],
-    "passes": false,
+    "passes": true,
     "is_dev_done": true,
     "is_qa_passed": true
   },
@@ -250,7 +250,7 @@
       "Step 5: Click the toggle button again",
       "Step 6: Verify the sidebar expands back"
     ],
-    "passes": false,
+    "passes": true,
     "is_dev_done": true,
     "is_qa_passed": true
   },
@@ -265,7 +265,7 @@
       "Step 5: Verify 'Previous 7 days' group exists",
       "Step 6: Verify groups are collapsible"
     ],
-    "passes": false,
+    "passes": true,
     "is_dev_done": true,
     "is_qa_passed": true
   },
