@@ -6,17 +6,17 @@
 |--------|-------|--------|
 | **Total Features** | 201 | |
 | **Dev Done** | 140 | 69.7% ✅ |
-| **QA Passed** | 141 | 70.1% ✅ |
+| **QA Passed** | 140 | 69.7% ✅ |
 | **Dev Queue** | 61 | 30.3% remaining |
-| **QA Queue** | 60 | 29.9% remaining |
+| **QA Queue** | 61 | 30.3% remaining |
 
 ### 🎯 Recently Completed Features (Session 51)
 
 | # | Feature | Status |
 |---|---------|--------|
-| #132 | Color blind modes provide distinguishable UI elements | ✅ Complete |
-| #133 | WebSocket connection handles reconnection gracefully | ✅ Complete |
-| #136 | Local storage persists user preferences between sessions | ✅ Complete |
+| #131 | Color blind modes provide distinguishable UI elements | ✅ Complete |
+| #132 | WebSocket connection handles reconnection gracefully | ✅ Complete |
+| #135 | Local storage persists user preferences between sessions | ✅ Complete |
 
 ---
 
