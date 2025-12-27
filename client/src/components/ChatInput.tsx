@@ -286,9 +286,6 @@ export function ChatInput() {
                         })
                       })
                       // Open the artifact panel
-                      const { setPanelOpen } = useUIStore.getState()
-                      setPanelOpen(true)
-                      // Set panel type to artifacts
                       const { setPanelType } = useUIStore.getState()
                       setPanelType('artifacts')
                     }
@@ -354,6 +351,7 @@ export function ChatInput() {
         const detectedArtifacts = await detectArtifacts(fullAssistantContent, convId)
         if (detectedArtifacts.length > 0) {
           // Auto-open the artifacts panel
+          setPanelType('artifacts')
           setPanelOpen(true)
           console.log(`Detected ${detectedArtifacts.length} artifact(s)`)
         }
