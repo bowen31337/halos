@@ -1487,6 +1487,186 @@ textarea:focus-visible {
   --status-info: #C41E3A;
 }
 
+/* Color Blind Mode - Achromatopsia (Complete color blindness, grayscale) */
+.colorblind-achromatopsia {
+  /* Use only grayscale colors with high contrast */
+  --primary: #000000; /* Black */
+  --primary-hover: #333333;
+  --primary-active: #555555;
+
+  /* Status colors in grayscale */
+  --success: #000000; /* Black for success */
+  --error: #FFFFFF; /* White for error (inverted) */
+  --warning: #666666; /* Dark gray for warning */
+  --info: #333333; /* Medium gray for info */
+
+  /* Status color variables */
+  --status-success: #000000;
+  --status-error: #FFFFFF;
+  --status-warning: #666666;
+  --status-info: #333333;
+
+  /* High contrast text */
+  --text-primary: #000000;
+  --text-secondary: #1A1A1A;
+  --text-muted: #333333;
+
+  /* Backgrounds for contrast */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F5F5F5;
+  --bg-elevated: #FAFAFA;
+}
+
+/* Combined color blind mode styles - enhanced borders for all modes */
+.colorblind-deuteranopia,
+.colorblind-protanopia,
+.colorblind-tritanopia {
+  /* Enhanced borders for better visibility */
+  --border: #000000;
+  --border-primary: #000000;
+  --border-light: #666666;
+
+  /* Stronger focus indicators */
+  --focus-ring: #000000;
+}
+
+/* Dark mode variants for color blind modes */
+.colorblind-deuteranopia.dark {
+  --primary: #66B2FF;
+  --primary-hover: #4499DD;
+  --primary-active: #2277BB;
+  --success: #66B2FF;
+  --error: #FF6666;
+  --warning: #FFCC66;
+  --info: #66CCFF;
+
+  --status-success: #66B2FF;
+  --status-error: #FF6666;
+  --status-warning: #FFCC66;
+  --status-info: #66CCFF;
+
+  --text-primary: #E5E5E5;
+  --text-secondary: #CCCCCC;
+  --text-muted: #999999;
+
+  --border: #FFFFFF;
+  --border-primary: #FFFFFF;
+  --border-light: #999999;
+}
+
+.colorblind-protanopia.dark {
+  --primary: #66B2FF;
+  --primary-hover: #4499DD;
+  --primary-active: #2277BB;
+  --success: #66DDCC;
+  --error: #FF6666;
+  --warning: #FFCC66;
+  --info: #66B2FF;
+
+  --status-success: #66DDCC;
+  --status-error: #FF6666;
+  --status-warning: #FFCC66;
+  --status-info: #66B2FF;
+
+  --text-primary: #E5E5E5;
+  --text-secondary: #CCCCCC;
+  --text-muted: #999999;
+
+  --border: #FFFFFF;
+  --border-primary: #FFFFFF;
+  --border-light: #999999;
+}
+
+.colorblind-tritanopia.dark {
+  --primary: #FF6666;
+  --primary-hover: #DD4444;
+  --primary-active: #BB2222;
+  --success: #66FF66;
+  --error: #FF6666;
+  --warning: #FFCC66;
+  --info: #FF6666;
+
+  --status-success: #66FF66;
+  --status-error: #FF6666;
+  --status-warning: #FFCC66;
+  --status-info: #FF6666;
+
+  --text-primary: #E5E5E5;
+  --text-secondary: #CCCCCC;
+  --text-muted: #999999;
+
+  --border: #FFFFFF;
+  --border-primary: #FFFFFF;
+  --border-light: #999999;
+}
+
+.colorblind-achromatopsia.dark {
+  --primary: #FFFFFF;
+  --primary-hover: #CCCCCC;
+  --primary-active: #999999;
+
+  --success: #FFFFFF;
+  --error: #000000;
+  --warning: #999999;
+  --info: #CCCCCC;
+
+  --status-success: #FFFFFF;
+  --status-error: #000000;
+  --status-warning: #999999;
+  --status-info: #CCCCCC;
+
+  --text-primary: #FFFFFF;
+  --text-secondary: #CCCCCC;
+  --text-muted: #999999;
+
+  --border: #FFFFFF;
+  --border-primary: #FFFFFF;
+  --border-light: #CCCCCC;
+}
+
+/* Enhanced focus indicators for color blind modes */
+.colorblind-deuteranopia :focus-visible,
+.colorblind-protanopia :focus-visible,
+.colorblind-tritanopia :focus-visible,
+.colorblind-achromatopsia :focus-visible {
+  outline: 3px solid var(--primary) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Enhanced borders for all color blind modes */
+.colorblind-deuteranopia,
+.colorblind-protanopia,
+.colorblind-tritanopia,
+.colorblind-achromatopsia {
+  --border: #000000;
+  --border-primary: #000000;
+  --border-light: #666666;
+}
+
+/* High contrast + color blind mode combination */
+.high-contrast.colorblind-deuteranopia,
+.high-contrast.colorblind-protanopia,
+.high-contrast.colorblind-tritanopia,
+.high-contrast.colorblind-achromatopsia {
+  --border: #000000;
+  --border-primary: #000000;
+  --text-primary: #000000;
+  --text-secondary: #000000;
+  --text-muted: #000000;
+}
+
+.high-contrast.colorblind-deuteranopia.dark,
+.high-contrast.colorblind-protanopia.dark,
+.high-contrast.colorblind-tritanopia.dark,
+.high-contrast.colorblind-achromatopsia.dark {
+  --border: #FFFFFF;
+  --border-primary: #FFFFFF;
+  --text-primary: #FFFFFF;
+  --text-secondary: #FFFFFF;
+  --text-muted: #FFFFFF;
+}
+
 /* Print Styles */
 @media print {
   /* Hide UI elements */

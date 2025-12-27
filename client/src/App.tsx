@@ -6,7 +6,7 @@ import { SharedView } from './pages/SharedView'
 import { useUIStore } from './stores/uiStore'
 
 function App() {
-  const { theme, setTheme, fontSize, setFontSize, highContrast, setHighContrast } = useUIStore()
+  const { theme, setTheme, fontSize, setFontSize, highContrast, setHighContrast, colorBlindMode, setColorBlindMode } = useUIStore()
 
   // Initialize theme on mount
   useEffect(() => {
@@ -22,6 +22,11 @@ function App() {
   useEffect(() => {
     setHighContrast(highContrast)
   }, [highContrast, setHighContrast])
+
+  // Initialize color blind mode on mount
+  useEffect(() => {
+    setColorBlindMode(colorBlindMode)
+  }, [colorBlindMode, setColorBlindMode])
 
   return (
     <Routes>

@@ -5,7 +5,7 @@ interface UIState {
   // Theme
   theme: 'light' | 'dark' | 'system'
   highContrast: boolean
-  colorBlindMode: 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia'
+  colorBlindMode: 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia' | 'achromatopsia' | 'achromatopsia'
 
   // Sidebar
   sidebarOpen: boolean
@@ -42,7 +42,7 @@ interface UIState {
   setTheme: (theme: 'light' | 'dark' | 'system') => void
   setHighContrast: (enabled: boolean) => void
   toggleHighContrast: () => void
-  setColorBlindMode: (mode: 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia') => void
+  setColorBlindMode: (mode: 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia' | 'achromatopsia') => void
   toggleSidebar: () => void
   setSidebarOpen: (open: boolean) => void
   setSidebarWidth: (width: number) => void
@@ -121,7 +121,12 @@ export const useUIStore = create<UIState>()(
       setColorBlindMode: (mode) => {
         set({ colorBlindMode: mode })
         // Remove all color blind classes first
-        document.documentElement.classList.remove('colorblind-deuteranopia', 'colorblind-protanopia', 'colorblind-tritanopia')
+        document.documentElement.classList.remove(
+          'colorblind-deuteranopia',
+          'colorblind-protanopia',
+          'colorblind-tritanopia',
+          'colorblind-achromatopsia'
+        )
         // Apply the new class if not 'none'
         if (mode === 'deuteranopia') {
           document.documentElement.classList.add('colorblind-deuteranopia')
@@ -129,6 +134,8 @@ export const useUIStore = create<UIState>()(
           document.documentElement.classList.add('colorblind-protanopia')
         } else if (mode === 'tritanopia') {
           document.documentElement.classList.add('colorblind-tritanopia')
+        } else if (mode === 'achromatopsia') {
+          document.documentElement.classList.add('colorblind-achromatopsia')
         }
       },
 

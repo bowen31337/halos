@@ -13,6 +13,10 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const {
     theme,
     setTheme,
+    highContrast,
+    setHighContrast,
+    colorBlindMode,
+    setColorBlindMode,
     extendedThinkingEnabled,
     toggleExtendedThinking,
     fontSize,
@@ -76,6 +80,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           if (settings.memory_enabled !== undefined && settings.memory_enabled !== memoryEnabled) {
             toggleMemoryEnabled()
           }
+          if (settings.high_contrast !== undefined) setHighContrast(settings.high_contrast)
+          if (settings.color_blind_mode) setColorBlindMode(settings.color_blind_mode as any)
         }
       } catch (error) {
         console.error('Failed to load settings:', error)
@@ -83,7 +89,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     }
 
     loadSettings()
-  }, [setTheme, setFontSize, setCustomInstructions, setSystemPromptOverride, setTemperature, setMaxTokens, toggleExtendedThinking, extendedThinkingEnabled, memoryEnabled, toggleMemoryEnabled])
+  }, [setTheme, setFontSize, setCustomInstructions, setSystemPromptOverride, setTemperature, setMaxTokens, toggleExtendedThinking, extendedThinkingEnabled, memoryEnabled, toggleMemoryEnabled, setHighContrast, setColorBlindMode])
 
   // Load API key status on mount
   useEffect(() => {
@@ -363,6 +369,70 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             >
               <span className="capitalize text-[var(--text-primary)]">{t}</span>
               {theme === t && (
+                <svg className="w-5 h-5 text-[var(--primary)]" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">High Contrast Mode</h3>
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-[var(--text-secondary)]">
+            Increase contrast for better readability
+          </span>
+          <button
+            onClick={async () => {
+              setHighContrast(!highContrast)
+              await saveSettings({ high_contrast: !highContrast })
+            }}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              highContrast ? 'bg-[var(--primary)]' : 'bg-[var(--border-primary)]'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                highContrast ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Color Blind Mode</h3>
+        <p className="text-xs text-[var(--text-secondary)] mb-3">
+          Select a color vision deficiency mode to adjust the UI for better distinguishability
+        </p>
+        <div className="space-y-2">
+          {([
+            { id: 'none', label: 'None', description: 'Standard color palette' },
+            { id: 'deuteranopia', label: 'Deuteranopia', description: 'Green-blind (most common)' },
+            { id: 'protanopia', label: 'Protanopia', description: 'Red-blind' },
+            { id: 'tritanopia', label: 'Tritanopia', description: 'Blue-blind (rare)' },
+            { id: 'achromatopsia', label: 'Achromatopsia', description: 'Complete color blindness (grayscale)' },
+            { id: 'achromatopsia', label: 'Achromatopsia', description: 'Total color blindness' },
+          ] as const).map((mode) => (
+            <button
+              key={mode.id}
+              onClick={async () => {
+                setColorBlindMode(mode.id)
+                await saveSettings({ color_blind_mode: mode.id })
+              }}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-colors ${
+                colorBlindMode === mode.id
+                  ? 'border-[var(--primary)] bg-[var(--surface-elevated)]'
+                  : 'border-[var(--border-primary)] hover:bg-[var(--surface-elevated)]'
+              }`}
+            >
+              <div>
+                <div className="font-medium text-[var(--text-primary)]">{mode.label}</div>
+                <div className="text-xs text-[var(--text-secondary)]">{mode.description}</div>
+              </div>
+              {colorBlindMode === mode.id && (
                 <svg className="w-5 h-5 text-[var(--primary)]" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>

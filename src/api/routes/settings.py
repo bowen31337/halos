@@ -31,6 +31,7 @@ class SettingsUpdate(BaseModel):
     max_tokens: Optional[int] = None
     extended_thinking_enabled: Optional[bool] = None
     memory_enabled: Optional[bool] = None
+    color_blind_mode: Optional[str] = None
 
 
 class CustomInstructionsUpdate(BaseModel):
@@ -53,6 +54,7 @@ user_settings: dict = {
     "extended_thinking_enabled": True,
     "temperature": 0.7,
     "max_tokens": 4096,
+    "color_blind_mode": "none",
 }
 
 
@@ -89,6 +91,8 @@ async def update_settings(data: SettingsUpdate) -> dict:
         user_settings["extended_thinking_enabled"] = data.extended_thinking_enabled
     if data.memory_enabled is not None:
         user_settings["memory_enabled"] = data.memory_enabled
+    if data.color_blind_mode is not None:
+        user_settings["color_blind_mode"] = data.color_blind_mode
 
     return user_settings
 
