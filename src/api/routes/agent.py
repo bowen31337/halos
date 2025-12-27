@@ -549,9 +549,10 @@ async def stream_agent(
 
                 # Interrupt event (HITL - Human in the Loop)
                 elif event_kind == "on_interrupt":
-                    tool_name = event.get("name", "")
-                    tool_input = event.get("data", {}).get("input", {})
-                    reason = event.get("data", {}).get("reason", "Tool execution requires approval")
+                    event_data = event.get("data", {})
+                    tool_name = event_data.get("tool", event.get("name", ""))
+                    tool_input = event_data.get("input", {})
+                    reason = event_data.get("reason", "Tool execution requires approval")
 
                     # Store in pending approvals
                     pending_approvals[thread_id] = {

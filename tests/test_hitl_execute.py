@@ -70,9 +70,11 @@ async def test_execute_tool_interrupts_in_default_mode(client, test_db):
 
     assert interrupt_found, "Should have emitted interrupt event"
     assert interrupt_data is not None
-    assert interrupt_data["tool"] == "execute"
-    assert "command" in interrupt_data["input"]
+    # The tool name should be "execute"
+    assert interrupt_data.get("tool") == "execute"
     assert "reason" in interrupt_data
+    # Check that the input contains the command
+    assert interrupt_data.get("input", {}).get("command", "").lower().find("echo") >= 0
 
 
 @pytest.mark.asyncio
