@@ -35,8 +35,8 @@ def test_responsive_css_media_queries():
     assert re.search(r'@media\s*\(prefers-contrast:\s*high\)', css_content), \
         "High contrast media query should exist"
 
-    # Verify tablet styles include sidebar overlay
-    tablet_section = re.search(r'@media\s*\(max-width:\s*768px\)\s*\{[^}]+\}', css_content, re.DOTALL)
+    # Verify tablet styles include sidebar overlay (use non-greedy matching for full section)
+    tablet_section = re.search(r'@media\s*\(max-width:\s*768px\)\s*\{[\s\S]*?(?=\n@media|\n\}|$)', css_content)
     assert tablet_section, "Tablet section should exist"
     tablet_content = tablet_section.group(0)
     assert 'position: fixed' in tablet_content or 'fixed' in tablet_content, \
@@ -44,7 +44,7 @@ def test_responsive_css_media_queries():
     assert 'z-index' in tablet_content, "Tablet styles should include z-index"
 
     # Verify mobile styles include full-width panels
-    mobile_section = re.search(r'@media\s*\(max-width:\s*375px\)\s*\{[^}]+\}', css_content, re.DOTALL)
+    mobile_section = re.search(r'@media\s*\(max-width:\s*375px\)\s*\{[\s\S]*?(?=\n@media|\n\}|$)', css_content)
     assert mobile_section, "Mobile section should exist"
     mobile_content = mobile_section.group(0)
     assert 'width: 100%' in mobile_content or 'max-width: 100%' in mobile_content, \
