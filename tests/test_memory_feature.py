@@ -3,10 +3,11 @@
 import pytest
 import asyncio
 from uuid import uuid4
+from langchain_core.messages import HumanMessage
 
 
 @pytest.mark.asyncio
-async def test_memory_save_with_mock_agent(db_session):
+async def test_memory_save_with_mock_agent(test_db):
     """Test that mock agent detects 'remember' keywords and saves memories."""
     from src.services.mock_agent import MockAgent
     from src.models.memory import Memory
@@ -45,17 +46,18 @@ async def test_memory_save_with_mock_agent(db_session):
 
 
 @pytest.mark.asyncio
-async def test_memory_retrieve_with_mock_agent(db_session):
+async def test_memory_retrieve_with_mock_agent(test_db):
     """Test that mock agent retrieves memories when asked."""
     from src.services.mock_agent import MockAgent
+    from src.models.memory import Memory
 
     # Create a test memory first
     memory = Memory(
         content="User's favorite color is blue",
         category="preference",
     )
-    db_session.add(memory)
-    await db_session.commit()
+    test_db.add(memory)
+    await test_db.commit()
 
     # Create mock agent
     agent = MockAgent()
@@ -80,7 +82,7 @@ async def test_memory_retrieve_with_mock_agent(db_session):
             print(f"  Query: {memory_data['query']}")
 
 
-def test_memory_backend_api(db_session):
+def test_memory_backend_api(test_db):
     """Test memory backend API endpoints."""
     from src.models.memory import Memory
     from sqlalchemy import select
@@ -88,12 +90,12 @@ def test_memory_backend_api(db_session):
     # Create test memories
     memory1 = Memory(content="User loves Python", category="preference")
     memory2 = Memory(content="User lives in SF", category="fact")
-    db_session.add_all([memory1, memory2])
-    asyncio.run(db_session.commit())
+    test_db.add_all([memory1, memory2])
+    asyncio.run(test_db.commit())
 
     # Test listing memories
     result = asyncio.run(
-        db_session.execute(select(Memory).where(Memory.is_active == True))
+        test_db.execute(select(Memory).where(Memory.is_active == True))
     )
     memories = result.scalars().all()
 
@@ -102,55 +104,60 @@ def test_memory_backend_api(db_session):
 
 
 def test_memory_panel_component():
-    """Test that MemoryPanel component exists and has required methods."""
-    try:
-        from client.src.components.MemoryPanel import MemoryPanel
-        assert MemoryPanel is not None
-        print("✓ MemoryPanel component exists")
-    except ImportError as e:
-        print(f"✗ MemoryPanel component import failed: {e}")
-        raise
+    """Test that MemoryPanel component exists."""
+    import os
+    component_path = "client/src/components/MemoryPanel.tsx"
+    assert os.path.exists(component_path), f"MemoryPanel component not found at {component_path}"
+    print(f"✓ MemoryPanel component exists at {component_path}")
 
 
 def test_memory_api_methods():
     """Test that API service has memory methods."""
-    try:
-        from client.src.services.api import APIService
+    import os
 
-        api = APIService()
+    # Read the api.ts file and check for memory methods
+    api_path = "client/src/services/api.ts"
+    assert os.path.exists(api_path), f"API service not found at {api_path}"
 
-        # Check for memory methods
-        assert hasattr(api, "listMemories")
-        assert hasattr(api, "searchMemories")
-        assert hasattr(api, "getMemory")
-        assert hasattr(api, "createMemory")
-        assert hasattr(api, "updateMemory")
-        assert hasattr(api, "deleteMemory")
+    with open(api_path, 'r') as f:
+        content = f.read()
 
-        print("✓ API service has all memory methods")
-    except ImportError as e:
-        print(f"✗ API service import failed: {e}")
-        raise
+    # Check for memory methods
+    required_methods = [
+        "listMemories",
+        "searchMemories",
+        "getMemory",
+        "createMemory",
+        "updateMemory",
+        "deleteMemory",
+    ]
+
+    for method in required_methods:
+        assert method in content, f"Method {method} not found in api.ts"
+
+    print(f"✓ API service has all memory methods at {api_path}")
 
 
 def test_memory_toggle_in_settings():
     """Test that settings modal has memory toggle."""
-    try:
-        from client.src.stores.uiStore import useUIStore
+    import os
 
-        # Check if memoryEnabled exists in store
-        store_state = useUIStore.getState()
-        assert hasattr(store_state, "memoryEnabled")
-        assert hasattr(store_state, "toggleMemoryEnabled")
+    # Check uiStore.ts for memoryEnabled
+    store_path = "client/src/stores/uiStore.ts"
+    assert os.path.exists(store_path), f"UI store not found at {store_path}"
 
-        print("✓ Settings modal has memory toggle")
-    except ImportError as e:
-        print(f"✗ UI store import failed: {e}")
-        raise
+    with open(store_path, 'r') as f:
+        content = f.read()
+
+    # Check for memoryEnabled and toggleMemoryEnabled
+    assert "memoryEnabled" in content, "memoryEnabled not found in uiStore.ts"
+    assert "toggleMemoryEnabled" in content, "toggleMemoryEnabled not found in uiStore.ts"
+
+    print(f"✓ Settings modal has memory toggle at {store_path}")
 
 
 @pytest.mark.asyncio
-async def test_memory_end_to_end_workflow(db_session):
+async def test_memory_end_to_end_workflow(test_db):
     """Test complete memory workflow: save -> retrieve -> use."""
     from src.services.mock_agent import MockAgent
     from src.models.memory import Memory
@@ -178,8 +185,8 @@ async def test_memory_end_to_end_workflow(db_session):
                 category=memory_data["category"],
                 source_conversation_id=thread_id,
             )
-            db_session.add(memory)
-            await db_session.commit()
+            test_db.add(memory)
+            await test_db.commit()
             print(f"✓ Memory saved: {memory_data['content']}")
 
     # Step 2: Retrieve the memory
@@ -198,7 +205,7 @@ async def test_memory_end_to_end_workflow(db_session):
 
     # Step 3: Verify memory exists in database
     print("\n=== Step 3: Verifying in database ===")
-    result = await db_session.execute(
+    result = await test_db.execute(
         select(Memory).where(Memory.content.ilike("%dark mode%"))
     )
     memories = result.scalars().all()
