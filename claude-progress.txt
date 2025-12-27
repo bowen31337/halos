@@ -95,6 +95,20 @@ Implemented Progressive Web App functionality:
 - Background sync capability
 - Update detection
 
+**5. Local Storage Persistence (Feature #135)**
+
+Verified user preference persistence across sessions:
+- **uiStore.ts**: Zustand persist middleware with `claude-ui-settings` key
+- **Partialize function**: Selective state persistence
+- **App.tsx**: Initialization on mount
+- **SettingsModal.tsx**: Load/save to backend API
+
+**Persisted Preferences:**
+- Theme, high contrast, color blind mode
+- Font size, model selection, extended thinking
+- Custom instructions, temperature, max tokens
+- Permission mode, memory enabled
+
 ### Files Created/Modified
 
 **New Files:**
