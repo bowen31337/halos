@@ -64,7 +64,7 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -79,7 +79,7 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -92,9 +92,9 @@
       "Step 5: Press Enter or click outside to save",
       "Step 6: Verify the new name is displayed in the sidebar"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -108,9 +108,9 @@
       "Step 6: Verify the conversation is removed from the list",
       "Step 7: Confirm the conversation no longer appears when refreshing"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -125,9 +125,9 @@
       "Step 7: Verify inline code is styled correctly",
       "Step 8: Verify blockquotes are properly indented"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -141,9 +141,9 @@
       "Step 6: Verify the code is copied to clipboard",
       "Step 7: Verify a 'Copied!' feedback message appears"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -156,9 +156,9 @@
       "Step 5: Verify the partial response remains visible",
       "Step 6: Verify the regenerate button becomes available"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",

@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 export function ChatInput() {
   const [inputValue, setInputValue] = useState('')
-  const { isStreaming, isLoading, addMessage, appendToLastMessage, setStreaming, setLoading } = useConversationStore()
+  const { isStreaming, isLoading, addMessage, appendToLastMessage, setStreaming, setLoading, currentConversationId } = useConversationStore()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
 
@@ -27,9 +27,10 @@ export function ChatInput() {
 
     if (!inputValue.trim() || isLoading) return
 
+    const convId = currentConversationId || 'default'
     const userMessage = {
       id: uuidv4(),
-      conversationId: 'default',
+      conversationId: convId,
       role: 'user' as const,
       content: inputValue,
       createdAt: new Date().toISOString(),
@@ -45,7 +46,7 @@ export function ChatInput() {
     const assistantMessageId = uuidv4()
     const assistantMessage = {
       id: assistantMessageId,
-      conversationId: 'default',
+      conversationId: convId,
       role: 'assistant' as const,
       content: '',
       createdAt: new Date().toISOString(),
@@ -58,11 +59,15 @@ export function ChatInput() {
     abortControllerRef.current = abortController
 
     try {
-      // Call the backend SSE API
+      // Call the backend SSE API with conversation ID
       const response = await fetch('/api/agent/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: messageToSend }),
+        body: JSON.stringify({
+          message: messageToSend,
+          conversationId: convId,
+          thread_id: convId
+        }),
         signal: abortController.signal,
       })
 
@@ -150,7 +155,7 @@ export function ChatInput() {
         // Add error message
         addMessage({
           id: uuidv4(),
-          conversationId: 'default',
+          conversationId: convId,
           role: 'assistant',
           content: `Error: ${error.message}. The backend may not be running or API key not configured.`,
           createdAt: new Date().toISOString(),

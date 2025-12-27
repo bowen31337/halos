@@ -1,6 +1,9 @@
 import { Message } from '../stores/conversationStore'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { useState } from 'react'
 
 interface MessageBubbleProps {
   message: Message
@@ -10,6 +13,17 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === 'user'
   const isTool = message.role === 'tool'
   const isStreaming = message.isStreaming
+  const [copiedCode, setCopiedCode] = useState<string | null>(null)
+
+  const copyToClipboard = async (text: string, language: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopiedCode(language)
+      setTimeout(() => setCopiedCode(null), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
 
   if (isTool) {
     return (
@@ -48,7 +62,52 @@ export function MessageBubble({ message }: MessageBubbleProps) {
             <p className="whitespace-pre-wrap">{message.content}</p>
           ) : (
             <>
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  code({ node, inline, className, children, ...props }) {
+                    const match = /language-(\w+)/.exec(className || '')
+                    const language = match ? match[1] : ''
+                    const codeString = String(children).replace(/\n$/, '')
+
+                    if (!inline && language) {
+                      return (
+                        <div className="relative group my-4">
+                          <div className="flex items-center justify-between bg-[var(--bg-secondary)] px-4 py-2 rounded-t-lg border border-[var(--border)] border-b-0">
+                            <span className="text-xs font-medium text-[var(--text-secondary)]">
+                              {language}
+                            </span>
+                            <button
+                              onClick={() => copyToClipboard(codeString, language)}
+                              className="text-xs px-2 py-1 rounded bg-[var(--bg-primary)] hover:bg-[var(--border)] text-[var(--text-secondary)] transition-colors"
+                            >
+                              {copiedCode === language ? '✓ Copied!' : '📋 Copy'}
+                            </button>
+                          </div>
+                          <SyntaxHighlighter
+                            style={oneDark}
+                            language={language}
+                            PreTag="div"
+                            className="!mt-0 !rounded-t-none"
+                            customStyle={{
+                              background: 'var(--bg-primary)',
+                              padding: '1rem',
+                            }}
+                          >
+                            {codeString}
+                          </SyntaxHighlighter>
+                        </div>
+                      )
+                    }
+
+                    return (
+                      <code className="bg-[var(--bg-secondary)] px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
+                        {children}
+                      </code>
+                    )
+                  },
+                }}
+              >
                 {message.content || (isStreaming ? '' : '...')}
               </ReactMarkdown>
               {isStreaming && (

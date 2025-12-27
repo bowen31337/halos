@@ -8,9 +8,10 @@ export function Sidebar() {
     conversations,
     currentConversationId,
     setCurrentConversation,
-    addConversation,
-    deleteConversation,
-    updateConversation,
+    loadConversations,
+    createConversation,
+    removeConversation,
+    updateConversationTitle,
   } = useConversationStore()
 
   const { sidebarOpen, setSidebarOpen } = useUIStore()
@@ -29,34 +30,14 @@ export function Sidebar() {
   // Load conversations from API on mount
   useEffect(() => {
     loadConversations()
-  }, [])
-
-  const loadConversations = async () => {
-    try {
-      const response = await fetch('/api/conversations')
-      if (response.ok) {
-        const data = await response.json()
-        setConversations(data)
-      }
-    } catch (error) {
-      console.error('Failed to load conversations:', error)
-    }
-  }
+  }, [loadConversations])
 
   const handleNewConversation = async () => {
     setIsCreating(true)
     try {
-      const response = await fetch('/api/conversations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: 'New Conversation' }),
-      })
-      if (response.ok) {
-        const newConv = await response.json()
-        addConversation(newConv)
-        setCurrentConversation(newConv.id)
-        navigate(`/c/${newConv.id}`)
-      }
+      const newConv = await createConversation('New Conversation')
+      setCurrentConversation(newConv.id)
+      navigate(`/c/${newConv.id}`)
     } catch (error) {
       console.error('Failed to create conversation:', error)
     } finally {
@@ -79,15 +60,10 @@ export function Sidebar() {
 
     setDeletingId(id)
     try {
-      const response = await fetch(`/api/conversations/${id}`, {
-        method: 'DELETE',
-      })
-      if (response.ok) {
-        deleteConversation(id)
-        if (currentConversationId === id) {
-          setCurrentConversation(null)
-          navigate('/')
-        }
+      await removeConversation(id)
+      if (currentConversationId === id) {
+        setCurrentConversation(null)
+        navigate('/')
       }
     } catch (error) {
       console.error('Failed to delete conversation:', error)
@@ -96,19 +72,11 @@ export function Sidebar() {
     }
   }
 
-  const handleRename = async (id: string, currentTitle: string) => {
-    const newTitle = prompt('Rename conversation:', currentTitle)
-    if (!newTitle || newTitle === currentTitle) return
+  const handleRename = async (id: string, newTitle: string) => {
+    if (!newTitle.trim()) return
 
     try {
-      const response = await fetch(`/api/conversations/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: newTitle }),
-      })
-      if (response.ok) {
-        updateConversation(id, { title: newTitle })
-      }
+      await updateConversationTitle(id, newTitle)
     } catch (error) {
       console.error('Failed to rename conversation:', error)
     }
@@ -179,7 +147,7 @@ export function Sidebar() {
                 isSelected={currentConversationId === conv.id}
                 onSelect={() => handleSelectConversation(conv)}
                 onDelete={(e) => handleDelete(e, conv.id)}
-                onRename={() => handleRename(conv.id, conv.title)}
+                onRename={(newTitle) => handleRename(conv.id, newTitle)}
                 isDeleting={deletingId === conv.id}
               />
             ))}
@@ -196,7 +164,7 @@ export function Sidebar() {
                 isSelected={currentConversationId === conv.id}
                 onSelect={() => handleSelectConversation(conv)}
                 onDelete={(e) => handleDelete(e, conv.id)}
-                onRename={() => handleRename(conv.id, conv.title)}
+                onRename={(newTitle) => handleRename(conv.id, newTitle)}
                 isDeleting={deletingId === conv.id}
               />
             ))}
@@ -213,7 +181,7 @@ export function Sidebar() {
                 isSelected={currentConversationId === conv.id}
                 onSelect={() => handleSelectConversation(conv)}
                 onDelete={(e) => handleDelete(e, conv.id)}
-                onRename={() => handleRename(conv.id, conv.title)}
+                onRename={(newTitle) => handleRename(conv.id, newTitle)}
                 isDeleting={deletingId === conv.id}
               />
             ))}
@@ -240,7 +208,7 @@ interface ConversationItemProps {
   isSelected: boolean
   onSelect: () => void
   onDelete: (e: React.MouseEvent) => void
-  onRename: () => void
+  onRename: (newTitle: string) => Promise<void>
   isDeleting: boolean
 }
 
@@ -253,6 +221,35 @@ function ConversationItem({
   isDeleting,
 }: ConversationItemProps) {
   const [showActions, setShowActions] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editTitle, setEditTitle] = useState(conv.title)
+
+  const handleStartEdit = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setIsEditing(true)
+    setEditTitle(conv.title)
+  }
+
+  const handleSubmitEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (editTitle.trim() && editTitle !== conv.title) {
+      await onRename(editTitle)
+    }
+    setIsEditing(false)
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    setEditTitle(conv.title)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSubmitEdit(e)
+    } else if (e.key === 'Escape') {
+      handleCancelEdit()
+    }
+  }
 
   return (
     <div
@@ -261,43 +258,79 @@ function ConversationItem({
           ? 'bg-[var(--primary)] text-white'
           : 'hover:bg-[var(--bg-primary)] text-[var(--text-primary)]'
       } ${isDeleting ? 'opacity-50' : ''}`}
-      onClick={onSelect}
+      onClick={!isEditing ? onSelect : undefined}
       onMouseEnter={() => setShowActions(true)}
-      onMouseLeave={() => setShowActions(false)}
+      onMouseLeave={() => {
+        setShowActions(false)
+        if (isEditing) {
+          handleCancelEdit()
+        }
+      }}
     >
-      <span className="flex-1 truncate text-sm">
-        {conv.title || 'Untitled'}
-      </span>
-
-      {/* Actions - show on hover or when selected */}
-      {(showActions || isSelected) && !isDeleting && (
-        <div className="flex gap-1">
+      {isEditing ? (
+        <form
+          onSubmit={handleSubmitEdit}
+          className="flex-1 flex items-center gap-2"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <input
+            type="text"
+            value={editTitle}
+            onChange={(e) => setEditTitle(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onBlur={handleSubmitEdit}
+            className={`flex-1 px-2 py-1 text-sm rounded ${
+              isSelected
+                ? 'bg-white/20 text-white placeholder-white/70'
+                : 'bg-[var(--bg-primary)] text-[var(--text-primary)]'
+            }`}
+            autoFocus
+            onFocus={(e) => e.target.select()}
+          />
           <button
-            onClick={(e) => {
-              e.stopPropagation()
-              onRename()
-            }}
-            title="Rename"
-            className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
-              isSelected ? 'hover:bg-white/20' : ''
+            type="button"
+            onClick={handleCancelEdit}
+            className={`p-1 rounded text-xs ${
+              isSelected ? 'hover:bg-white/20' : 'hover:bg-[var(--bg-secondary)]'
             }`}
           >
-            ✏️
+            ✕
           </button>
-          <button
-            onClick={onDelete}
-            title="Delete"
-            className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
-              isSelected ? 'hover:bg-white/20' : ''
-            }`}
-          >
-            🗑️
-          </button>
-        </div>
-      )}
+        </form>
+      ) : (
+        <>
+          <span className="flex-1 truncate text-sm">
+            {conv.title || 'Untitled'}
+          </span>
 
-      {isDeleting && (
-        <span className="text-xs">Deleting...</span>
+          {/* Actions - show on hover or when selected */}
+          {(showActions || isSelected) && !isDeleting && (
+            <div className="flex gap-1">
+              <button
+                onClick={handleStartEdit}
+                title="Rename"
+                className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
+                  isSelected ? 'hover:bg-white/20' : ''
+                }`}
+              >
+                ✏️
+              </button>
+              <button
+                onClick={onDelete}
+                title="Delete"
+                className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
+                  isSelected ? 'hover:bg-white/20' : ''
+                }`}
+              >
+                🗑️
+              </button>
+            </div>
+          )}
+
+          {isDeleting && (
+            <span className="text-xs">Deleting...</span>
+          )}
+        </>
       )}
     </div>
   )
