@@ -1,18 +1,22 @@
 """Agent interaction endpoints with DeepAgents integration."""
 
 import json
+import re
 from typing import Optional
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, HTTPException, Request, Depends
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, AIMessage
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from src.core.config import settings
 from src.core.database import get_db
 from src.services.agent_service import agent_service
+from src.models.artifact import Artifact
+from src.models.conversation import Conversation
 
 router = APIRouter()
 
@@ -64,8 +68,6 @@ async def get_project_files_content(
 
     Returns a formatted string containing file contents for the agent context.
     """
-    from sqlalchemy import select
-    from src.models.conversation import Conversation
     from src.models.project_file import ProjectFile
 
     if not conversation_id:
@@ -102,6 +104,168 @@ async def get_project_files_content(
 
     file_context += "[END PROJECT FILES CONTEXT]\n\n"
     return file_context
+
+
+# Artifact detection constants
+LANGUAGE_ALIASES = {
+    "javascript": "js",
+    "typescript": "ts",
+    "python": "py",
+    "java": "java",
+    "cpp": "cpp",
+    "c++": "cpp",
+    "csharp": "cs",
+    "c#": "cs",
+    "go": "go",
+    "rust": "rs",
+    "ruby": "rb",
+    "php": "php",
+    "swift": "swift",
+    "kotlin": "kt",
+    "html": "html",
+    "css": "css",
+    "json": "json",
+    "yaml": "yaml",
+    "markdown": "md",
+    "bash": "bash",
+    "shell": "bash",
+    "sql": "sql",
+    "graphql": "graphql",
+    "xml": "xml",
+}
+
+REACT_PATTERNS = [
+    r"import\s+.*React",
+    r"export\s+default\s+function\s+\w+\([^)]*\)\s*{[^}]*return[^}]*<",
+    r"const\s+\w+\s*=\s*\([^)]*\)\s*=>\s*{[^}]*return[^}]*<",
+    r"function\s+\w+\([^)]*\)\s*{[^}]*return[^}]*<",
+    r"jsx",
+    r"tsx",
+]
+
+
+def detect_language(code: str, language_hint: str = "") -> str:
+    """Detect the programming language of a code block."""
+    if language_hint:
+        normalized = language_hint.lower().strip()
+        return LANGUAGE_ALIASES.get(normalized, normalized)
+
+    for pattern in REACT_PATTERNS:
+        if re.search(pattern, code, re.IGNORECASE):
+            return "React/JSX"
+
+    if "def " in code and ":" in code and "import " not in code:
+        return "python"
+    if "function " in code or "=> " in code or "let " in code or "const " in code:
+        return "javascript"
+    if "public class " in code or "System.out.println" in code:
+        return "java"
+    if "#include " in code or "std::" in code:
+        return "cpp"
+    if "package " in code and "func " in code:
+        return "go"
+
+    return "code"
+
+
+def extract_title_from_code(code: str, language: str) -> str:
+    """Extract a meaningful title from code content."""
+    patterns = [
+        r"function\s+(\w+)",
+        r"const\s+(\w+)\s*=\s*\(",
+        r"export\s+default\s+function\s+(\w+)",
+        r"class\s+(\w+)",
+        r"def\s+(\w+)",
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, code)
+        if match:
+            name = match.group(1)
+            if language == "React/JSX" and name[0].islower():
+                name = name[0].upper() + name[1:]
+            return name
+
+    first_line = code.strip().split('\n')[0]
+    if len(first_line) < 50:
+        return first_line.strip().strip('/*#').strip()
+
+    return "Code Artifact"
+
+
+def extract_code_blocks(content: str) -> list[dict]:
+    """Extract code blocks from markdown content."""
+    pattern = r"```(\w+)?\n(.*?)\n```"
+    matches = re.findall(pattern, content, re.DOTALL)
+
+    artifacts = []
+    for language_hint, code in matches:
+        if not code.strip():
+            continue
+
+        language = detect_language(code, language_hint)
+        title = extract_title_from_code(code, language)
+
+        artifacts.append({
+            "content": code,
+            "language": language,
+            "title": title,
+        })
+
+    return artifacts
+
+
+async def create_artifacts_from_response(
+    content: str,
+    conversation_id: Optional[str],
+    db: AsyncSession
+) -> list[dict]:
+    """
+    Detect code blocks in content and create artifacts in the database.
+    Returns list of created artifact IDs.
+    """
+    if not conversation_id:
+        return []
+
+    # Extract code blocks
+    artifacts_data = extract_code_blocks(content)
+    if not artifacts_data:
+        return []
+
+    created_artifacts = []
+
+    for artifact_data in artifacts_data:
+        # Auto-detect artifact type
+        language_lower = artifact_data["language"].lower()
+        if language_lower in ["html", "htm"]:
+            artifact_type = "html"
+        elif language_lower in ["svg"]:
+            artifact_type = "svg"
+        elif language_lower in ["mermaid"]:
+            artifact_type = "mermaid"
+        elif language_lower in ["latex", "tex"]:
+            artifact_type = "latex"
+        else:
+            artifact_type = "code"
+
+        artifact = Artifact(
+            conversation_id=conversation_id,
+            content=artifact_data["content"],
+            title=artifact_data["title"],
+            language=artifact_data["language"],
+            artifact_type=artifact_type,
+        )
+
+        db.add(artifact)
+        created_artifacts.append({
+            "id": artifact.id,
+            "title": artifact.title,
+            "language": artifact.language,
+            "artifact_type": artifact.artifact_type,
+        })
+
+    await db.commit()
+    return created_artifacts
 
 
 class AgentRequest(BaseModel):
@@ -201,11 +365,21 @@ async def invoke_agent(
         response_message = result.get("messages", [])[-1] if result.get("messages") else AIMessage(content="No response")
         response_content = response_message.content if hasattr(response_message, 'content') else str(response_message)
 
+        # Detect and save artifacts from response
+        created_artifacts = []
+        if data.conversation_id:
+            created_artifacts = await create_artifacts_from_response(
+                response_content,
+                str(data.conversation_id),
+                db
+            )
+
         return {
             "thread_id": thread_id,
             "response": response_content,
             "model": data.model,
             "status": "completed",
+            "artifacts": created_artifacts,
         }
 
     except Exception as e:
@@ -305,8 +479,9 @@ async def stream_agent(
                 }
             }
 
-            # Track thinking content when extended thinking is enabled
+            # Track thinking content and full response for artifact detection
             thinking_content = ""
+            full_response = ""
 
             # Send thinking status indicator first
             if extended_thinking:
@@ -339,6 +514,7 @@ async def stream_agent(
                     chunk = event.get("data", {}).get("chunk", {})
                     content = chunk.content if hasattr(chunk, 'content') else ""
                     if content:
+                        full_response += content
                         yield {
                             "event": "message",
                             "data": json.dumps({"content": content}),
@@ -364,10 +540,25 @@ async def stream_agent(
                         "data": json.dumps({"output": str(tool_output)[:500]}),  # Limit output size
                     }
 
-            # Done event with thinking content if extended thinking was enabled
+            # Detect and create artifacts from the full response
+            artifacts = []
+            if full_response and conversation_id:
+                try:
+                    artifacts = await create_artifacts_from_response(
+                        full_response,
+                        str(conversation_id),
+                        db
+                    )
+                except Exception as e:
+                    # Don't fail the response if artifact creation fails
+                    print(f"Artifact creation error: {e}")
+
+            # Done event with thinking content and artifacts if available
             done_data = {"thread_id": thread_id}
             if extended_thinking and thinking_content:
                 done_data["thinking_content"] = thinking_content
+            if artifacts:
+                done_data["artifacts"] = artifacts
             yield {
                 "event": "done",
                 "data": json.dumps(done_data),

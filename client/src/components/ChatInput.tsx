@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useConversationStore } from '../stores/conversationStore'
 import { useUIStore } from '../stores/uiStore'
 import { useProjectStore } from '../stores/projectStore'
+import { useArtifactStore } from '../stores/artifactStore'
 import { api } from '../services/api'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -30,8 +31,12 @@ export function ChatInput() {
     extendedThinkingEnabled,
     customInstructions,
     temperature,
-    maxTokens
+    maxTokens,
+    setPanelOpen,
+    setPanelType
   } = useUIStore()
+
+  const { detectArtifacts } = useArtifactStore()
 
   // Use local state for immediate UI feedback, sync with store
   const [inputValue, setInputValue] = useState(storeInputMessage)
@@ -265,6 +270,28 @@ export function ChatInput() {
                     if (eventData.thinking_content) {
                       fullThinkingContent = eventData.thinking_content
                     }
+                    // Handle artifacts created by backend
+                    if (eventData.artifacts && eventData.artifacts.length > 0) {
+                      // Add artifacts to the store
+                      const { addArtifact } = useArtifactStore.getState()
+                      eventData.artifacts.forEach((artifact: any) => {
+                        addArtifact({
+                          id: artifact.id,
+                          title: artifact.title,
+                          content: artifact.content,
+                          language: artifact.language,
+                          version: artifact.version,
+                          createdAt: artifact.created_at || new Date().toISOString(),
+                          conversationId: convId,
+                        })
+                      })
+                      // Open the artifact panel
+                      const { setPanelOpen } = useUIStore.getState()
+                      setPanelOpen(true)
+                      // Set panel type to artifacts
+                      const { setPanelType } = useUIStore.getState()
+                      setPanelType('artifacts')
+                    }
                     break
                   case 'error':
                     console.error('Stream error:', eventData.error)
@@ -320,6 +347,18 @@ export function ChatInput() {
         })
       } catch (e) {
         console.warn('Failed to persist assistant message:', e)
+      }
+
+      // Detect artifacts in the assistant response
+      try {
+        const detectedArtifacts = await detectArtifacts(fullAssistantContent, convId)
+        if (detectedArtifacts.length > 0) {
+          // Auto-open the artifacts panel
+          setPanelOpen(true)
+          console.log(`Detected ${detectedArtifacts.length} artifact(s)`)
+        }
+      } catch (e) {
+        console.warn('Failed to detect artifacts:', e)
       }
 
     } catch (error: unknown) {

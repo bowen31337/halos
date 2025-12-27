@@ -4,6 +4,8 @@ import remarkGfm from 'remark-gfm'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { useState } from 'react'
+import { useArtifactStore } from '../stores/artifactStore'
+import { useUIStore } from '../stores/uiStore'
 
 interface MessageBubbleProps {
   message: Message
@@ -22,6 +24,12 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
   const [isEditing, setIsEditing] = useState(false)
   const [editedContent, setEditedContent] = useState(message.content)
   const [thinkingExpanded, setThinkingExpanded] = useState(false)
+  const [isExtracting, setIsExtracting] = useState(false)
+
+  const { detectArtifacts } = useArtifactStore()
+  const { setPanelType, setPanelOpen } = useUIStore()
+
+  const hasCodeBlocks = message.content && /```/.test(message.content)
 
   const copyToClipboard = async (text: string, language: string) => {
     try {
@@ -37,6 +45,21 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
     if (isUser && onEdit) {
       onEdit(message.id, editedContent)
       setIsEditing(false)
+    }
+  }
+
+  const handleExtractArtifacts = async () => {
+    setIsExtracting(true)
+    try {
+      const artifacts = await detectArtifacts(message.content, message.conversationId)
+      if (artifacts.length > 0) {
+        setPanelType('artifacts')
+        setPanelOpen(true)
+      }
+    } catch (error) {
+      console.error('Failed to extract artifacts:', error)
+    } finally {
+      setIsExtracting(false)
     }
   }
 
@@ -83,6 +106,16 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
             {/* Action buttons for assistant messages */}
             {showActions && !isStreaming && !isEditing && (
               <div className="flex gap-1 ml-2">
+                {hasCodeBlocks && (
+                  <button
+                    onClick={handleExtractArtifacts}
+                    disabled={isExtracting}
+                    className="p-1 hover:bg-[var(--bg-secondary)] rounded transition-colors"
+                    title="Extract artifacts"
+                  >
+                    {isExtracting ? '⏳' : '📦'}
+                  </button>
+                )}
                 {onRegenerate && (
                   <button
                     onClick={() => onRegenerate(message.id)}

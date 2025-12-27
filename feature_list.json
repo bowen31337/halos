@@ -622,7 +622,7 @@
     "is_dev_done": true,
     "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "Backend: POST/GET/DELETE /api/projects/{id}/files. Frontend: ProjectFilesModal.tsx. Store: projectStore.ts file actions. Tests: 6 passing tests in test_project_file_upload.py"
+    "notes": "Backend: POST/GET/DELETE /api/projects/{id}/files with file upload/download. Frontend: ProjectFilesModal.tsx with upload UI. ProjectFiles component in ProjectModal. Header.tsx includes Files button. Tests: 6 passing tests in test_project_file_upload.py"
   },
   {
     "category": "functional",

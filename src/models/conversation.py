@@ -34,3 +34,4 @@ class Conversation(Base):
 
     # Relationships
     messages = relationship("Message", back_populates="conversation", cascade="all, delete-orphan")
+    artifacts = relationship("Artifact", back_populates="conversation", cascade="all, delete-orphan")

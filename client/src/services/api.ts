@@ -341,6 +341,78 @@ class APIService {
     const response = await fetch(`${API_BASE}/projects/${projectId}/files/${fileId}/content`)
     return response.json()
   }
+
+  // Artifact APIs
+  async listArtifacts(conversationId: string): Promise<any[]> {
+    const response = await fetch(`${API_BASE}/artifacts/conversations/${conversationId}/artifacts`)
+    return response.json()
+  }
+
+  async createArtifact(data: {
+    conversation_id: string
+    content: string
+    title: string
+    language: string
+  }): Promise<any> {
+    const response = await fetch(`${API_BASE}/artifacts/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to create artifact: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async getArtifact(artifactId: string): Promise<any> {
+    const response = await fetch(`${API_BASE}/artifacts/${artifactId}`)
+    return response.json()
+  }
+
+  async updateArtifact(artifactId: string, data: { content?: string; title?: string }): Promise<any> {
+    const response = await fetch(`${API_BASE}/artifacts/${artifactId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    return response.json()
+  }
+
+  async deleteArtifact(artifactId: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/artifacts/${artifactId}`, {
+      method: 'DELETE',
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to delete artifact: ${response.status}`)
+    }
+  }
+
+  async forkArtifact(artifactId: string): Promise<any> {
+    const response = await fetch(`${API_BASE}/artifacts/${artifactId}/fork`, {
+      method: 'POST',
+    })
+    return response.json()
+  }
+
+  async getArtifactVersions(artifactId: string): Promise<any[]> {
+    const response = await fetch(`${API_BASE}/artifacts/${artifactId}/versions`)
+    return response.json()
+  }
+
+  async downloadArtifact(artifactId: string): Promise<any> {
+    const response = await fetch(`${API_BASE}/artifacts/${artifactId}/download`)
+    return response.json()
+  }
+
+  async detectArtifacts(content: string): Promise<any[]> {
+    const response = await fetch(`${API_BASE}/artifacts/detect`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content }),
+    })
+    return response.json()
+  }
 }
 
 export const api = new APIService()
