@@ -132,8 +132,11 @@ Verified user preference persistence across sessions:
 3. `client/src/App.tsx` - Added PWA prompt
 4. `client/src/main.tsx` - Service worker registration
 5. `client/src/components/SettingsModal.tsx` - Added PWA status
-6. `feature_list.json` - Updated feature statuses
-7. `claude-progress.txt` - Updated progress
+6. `client/src/components/ChatInput.tsx` - Added offline mode handling with queue
+7. `client/src/stores/networkStore.ts` - Added action queue system
+8. `client/src/components/NetworkStatusIndicator.tsx` - Added queue sync
+9. `feature_list.json` - Updated feature statuses
+10. `claude-progress.txt` - Updated progress
 
 ### Test Results
 
