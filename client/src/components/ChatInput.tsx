@@ -27,6 +27,7 @@ export function ChatInput() {
   // Use local state for immediate UI feedback, sync with store
   const [inputValue, setInputValue] = useState(storeInputMessage)
   const [images, setImages] = useState<ImageAttachment[]>([])
+  const [isDragOver, setIsDragOver] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -340,8 +341,64 @@ export function ChatInput() {
     setImages(prev => prev.filter(img => img.id !== id))
   }
 
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      // Check if any item is a file
+      const hasFiles = Array.from(e.dataTransfer.items).some(item => item.kind === 'file')
+      if (hasFiles) {
+        setIsDragOver(true)
+      }
+    }
+  }
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+  }
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+
+    const files = e.dataTransfer.files
+    if (!files || files.length === 0) return
+
+    Array.from(files).forEach(file => {
+      if (!file.type.startsWith('image/')) return
+
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const preview = e.target?.result as string
+        const newImage: ImageAttachment = {
+          id: uuidv4(),
+          url: '',
+          file,
+          preview,
+        }
+        setImages(prev => [...prev, newImage])
+      }
+      reader.readAsDataURL(file)
+    })
+  }
+
   return (
-    <div className="max-w-3xl mx-auto p-4">
+    <div
+      className={`max-w-3xl mx-auto p-4 ${isDragOver ? 'bg-[var(--bg-secondary)]' : ''}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* Drop zone indicator */}
+      {isDragOver && (
+        <div className="mb-3 p-4 border-2 border-dashed border-[var(--primary)] rounded-lg bg-[var(--bg-secondary)] text-[var(--primary)] text-center font-medium">
+          Drop images here to attach
+        </div>
+      )}
       {/* Image previews */}
       {images.length > 0 && (
         <div className="mb-3 flex flex-wrap gap-2">

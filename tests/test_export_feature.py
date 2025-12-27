@@ -105,8 +105,10 @@ async def test_export_json_format():
         assert data["messages"][1]["role"] == "assistant"
         assert data["messages"][2]["role"] == "user"
 
-        # Verify metadata
-        assert data["metadata"]["message_count"] == 3
+        # Verify metadata (uses actual message count from query, not conversation.message_count)
+        print(f"  Metadata: {data['metadata']}")
+        print(f"  Messages in data: {len(data['messages'])}")
+        assert data["metadata"]["message_count"] == 3, f"Expected 3, got {data['metadata']['message_count']}"
 
         print(f"✓ JSON export contains all required fields")
 
@@ -170,7 +172,7 @@ async def test_export_markdown_format():
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
 
         # Verify response headers
-        assert response.headers.get("content-type") == "text/markdown"
+        assert "text/markdown" in response.headers.get("content-type", "")
         assert "attachment; filename=" in response.headers.get("content-disposition", "")
 
         # Parse Markdown

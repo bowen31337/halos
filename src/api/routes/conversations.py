@@ -285,7 +285,7 @@ async def export_conversation(
                 for msg in messages
             ],
             "metadata": {
-                "message_count": conversation.message_count,
+                "message_count": len(messages),
                 "token_count": conversation.token_count,
                 "is_archived": conversation.is_archived,
                 "is_pinned": conversation.is_pinned,
@@ -311,7 +311,7 @@ async def export_conversation(
             f"**Model:** {conversation.model}",
             f"**Created:** {conversation.created_at.strftime('%Y-%m-%d %H:%M:%S')}",
             f"**Updated:** {conversation.updated_at.strftime('%Y-%m-%d %H:%M:%S')}",
-            f"**Message Count:** {conversation.message_count}",
+            f"**Message Count:** {len(messages)}",
             "",
             "---",
             "",

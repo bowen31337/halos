@@ -101,7 +101,7 @@ class APIService {
 
   async createMessage(
     conversationId: string,
-    data: { content: string; role: 'user' | 'assistant' }
+    data: { content: string; role: 'user' | 'assistant'; attachments?: string[] }
   ): Promise<Message> {
     const response = await fetch(`${API_BASE}/messages/conversations/${conversationId}/messages`, {
       method: 'POST',

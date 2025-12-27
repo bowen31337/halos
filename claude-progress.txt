@@ -460,3 +460,90 @@ is_archived BOOLEAN DEFAULT false  -- Already present
 
 *Last Updated: Session 6*
 *Status: Archive Conversations Feature Complete - Ready for Testing*
+
+## Session 7 Summary (Image Upload Implementation)
+
+### Date: 2025-12-27
+
+**Session Focus:** Implemented image upload via file picker and paste from clipboard
+
+### Features Implemented (Features #24, #25)
+
+1. **Backend Image Upload API** ✓
+   - **Location:** `src/api/routes/messages.py`
+   - **Endpoints Added:**
+     - `POST /api/messages/upload-image` - Upload image files
+     - `GET /api/messages/images/{filename}` - Serve uploaded images
+   - **Features:**
+     - Multipart form data support
+     - Image file type validation
+     - Unique filename generation with UUID
+     - Files saved to `/tmp/talos-uploads`
+     - Returns URL, filename, and size
+
+2. **Frontend Image Attachments** ✓
+   - **Location:** `client/src/components/ChatInput.tsx`
+   - **Features Added:**
+     - Image attachment state management
+     - Paperclip attachment button
+     - Hidden file input for image selection
+     - Multiple image support
+     - Image preview display
+     - Remove attachment button
+     - Attachment count indicator
+   - **Upload Flow:**
+     - Images uploaded before message sent
+     - Attachments included in message payload
+     - Cleared after successful send
+
+3. **Paste from Clipboard** ✓
+   - **Implementation:** `onPaste` event handler
+   - **Features:**
+     - Detects images in clipboard
+     - Auto-creates preview
+     - Works with Ctrl+V / Cmd+V
+     - Adds to attachment list
+
+4. **Image Display in Messages** ✓
+   - **Location:** `client/src/components/MessageBubble.tsx`
+   - **Features:**
+     - Display attached images in message bubbles
+     - Max width/height constraints
+     - Responsive object-fit
+     - Border styling
+     - Support for multiple images
+
+5. **Testing** ✓
+   - **File:** `test_image_upload_simple.py`
+   - **Tests:**
+     - Backend image upload endpoint
+     - Image serving endpoint
+     - File validation
+     - URL generation
+   - **Result:** All tests passed
+
+### Technical Implementation Details
+
+**Image Upload Flow:**
+1. User selects/pastes image
+2. FileReader creates base64 preview
+3. Image added to local state
+4. On send, images uploaded via FormData
+5. Backend saves and returns URL
+6. URLs included in message attachments
+7. Message persisted with attachments
+
+**File Handling:**
+- Backend accepts `multipart/form-data`
+- Generates UUID-based filenames
+- Validates content-type starts with "image/"
+- Serves via FileResponse with correct MIME type
+
+**UI/UX Improvements:**
+- Visual preview before sending
+- Remove button on hover
+- Attachment count in status bar
+- Disabled send when no text/images
+- Clear visual feedback
+
+---
