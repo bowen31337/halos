@@ -64,6 +64,12 @@ export function TodoPanel() {
     )
   }
 
+  // Calculate progress
+  const totalTodos = todos.length
+  const completedTodos = todos.filter(t => t.status === 'completed').length
+  const inProgressTodos = todos.filter(t => t.status === 'in_progress').length
+  const progressPercentage = totalTodos > 0 ? (completedTodos / totalTodos) * 100 : 0
+
   return (
     <div className="fixed right-0 top-14 bottom-0 w-80 bg-[var(--bg-primary)] border-l border-[var(--border)] shadow-xl z-20 flex flex-col">
       {/* Header */}
@@ -73,13 +79,38 @@ export function TodoPanel() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
           <span className="text-sm font-semibold text-[var(--text-primary)]">Task List</span>
-          {todos.length > 0 && (
+          {totalTodos > 0 && (
             <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)] text-white">
-              {todos.filter(t => t.status === 'completed').length}/{todos.length}
+              {completedTodos}/{totalTodos}
             </span>
           )}
         </div>
       </div>
+
+      {/* Progress Bar */}
+      {totalTodos > 0 && (
+        <div className="px-4 py-2 bg-[var(--surface-secondary)] border-b border-[var(--border)]">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] text-[var(--text-secondary)]">Progress</span>
+            <span className="text-[10px] font-medium text-[var(--text-primary)]">
+              {Math.round(progressPercentage)}%
+            </span>
+          </div>
+          <div className="w-full h-2 rounded-full bg-[var(--border)] overflow-hidden">
+            <div
+              className="h-full bg-[var(--success)] transition-all duration-300"
+              style={{ width: `${progressPercentage}%` }}
+            />
+          </div>
+          <div className="flex gap-2 mt-1 text-[9px] text-[var(--text-secondary)]">
+            {completedTodos > 0 && <span>✓ {completedTodos} done</span>}
+            {inProgressTodos > 0 && <span>⋯ {inProgressTodos} in progress</span>}
+            {totalTodos - completedTodos - inProgressTodos > 0 && (
+              <span>○ {totalTodos - completedTodos - inProgressTodos} pending</span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">

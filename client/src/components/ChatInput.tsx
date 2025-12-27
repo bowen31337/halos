@@ -41,6 +41,7 @@ export function ChatInput() {
     customInstructions,
     temperature,
     maxTokens,
+    permissionMode,
     setPanelOpen,
     setPanelType
   } = useUIStore()
@@ -185,7 +186,8 @@ export function ChatInput() {
           temperature: temperature,
           max_tokens: maxTokens,
           custom_instructions: effectiveInstructions,
-          model: useUIStore.getState().selectedModel
+          model: useUIStore.getState().selectedModel,
+          permission_mode: permissionMode,
         }),
         signal: abortController.signal,
       })

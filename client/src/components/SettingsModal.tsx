@@ -24,6 +24,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     setTemperature,
     maxTokens,
     setMaxTokens,
+    permissionMode,
+    setPermissionMode,
   } = useUIStore()
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('general')
@@ -103,6 +105,40 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             />
           </button>
         </div>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Permission Mode (HITL)</h3>
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-[var(--text-secondary)]">
+            {permissionMode === 'manual' ? 'Manual approval required for tool execution' : 'Auto-execute tools without approval'}
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPermissionMode('auto')}
+              className={`px-3 py-1.5 rounded text-sm transition-colors ${
+                permissionMode === 'auto'
+                  ? 'bg-[var(--primary)] text-white'
+                  : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--surface-elevated)]'
+              }`}
+            >
+              Auto
+            </button>
+            <button
+              onClick={() => setPermissionMode('manual')}
+              className={`px-3 py-1.5 rounded text-sm transition-colors ${
+                permissionMode === 'manual'
+                  ? 'bg-[var(--primary)] text-white'
+                  : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--surface-elevated)]'
+              }`}
+            >
+              Manual
+            </button>
+          </div>
+        </div>
+        <p className="text-xs text-[var(--text-secondary)] mt-2">
+          Manual mode triggers Human-in-the-Loop approval dialogs for sensitive operations like file writes.
+        </p>
       </div>
     </div>
   )

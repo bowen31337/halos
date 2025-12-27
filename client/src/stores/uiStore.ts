@@ -29,6 +29,9 @@ interface UIState {
   temperature: number
   maxTokens: number
 
+  // Permission mode for HITL
+  permissionMode: 'auto' | 'manual'
+
   // Actions
   setTheme: (theme: 'light' | 'dark' | 'system') => void
   toggleSidebar: () => void
@@ -43,6 +46,7 @@ interface UIState {
   setCustomInstructions: (instructions: string) => void
   setTemperature: (temp: number) => void
   setMaxTokens: (tokens: number) => void
+  setPermissionMode: (mode: 'auto' | 'manual') => void
 }
 
 export const useUIStore = create<UIState>()(
@@ -60,6 +64,7 @@ export const useUIStore = create<UIState>()(
       customInstructions: '',
       temperature: 0.7,
       maxTokens: 4096,
+      permissionMode: 'auto',
 
       // Actions
       setTheme: (theme) => {
@@ -97,6 +102,7 @@ export const useUIStore = create<UIState>()(
       setCustomInstructions: (instructions) => set({ customInstructions: instructions }),
       setTemperature: (temp) => set({ temperature: temp }),
       setMaxTokens: (tokens) => set({ maxTokens: tokens }),
+      setPermissionMode: (mode) => set({ permissionMode: mode }),
     }),
     {
       name: 'claude-ui-settings',
@@ -109,6 +115,7 @@ export const useUIStore = create<UIState>()(
         customInstructions: state.customInstructions,
         temperature: state.temperature,
         maxTokens: state.maxTokens,
+        permissionMode: state.permissionMode,
       }),
     }
   )

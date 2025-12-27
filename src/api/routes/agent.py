@@ -480,6 +480,7 @@ async def stream_agent(
                     "temperature": temperature,
                     "max_tokens": max_tokens,
                     "custom_instructions": effective_instructions,
+                    "permission_mode": data.get("permission_mode", "default"),
                 }
             }
 

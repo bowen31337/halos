@@ -930,8 +930,8 @@
       "Step 5: Verify modified content shows on right",
       "Step 6: Verify changes are highlighted (added/removed)"
     ],
-    "passes": false,
-    "is_dev_done": false,
+    "passes": true,
+    "is_dev_done": true,
     "is_qa_passed": false
   },
   {
@@ -946,8 +946,8 @@
       "Step 6: Open downloaded file",
       "Step 7: Verify content matches"
     ],
-    "passes": false,
-    "is_dev_done": false,
+    "passes": true,
+    "is_dev_done": true,
     "is_qa_passed": false
   },
   {
@@ -962,8 +962,8 @@
       "Step 6: Click to expand tool output",
       "Step 7: Verify file content is shown"
     ],
-    "passes": false,
-    "is_dev_done": false,
+    "passes": true,
+    "is_dev_done": true,
     "is_qa_passed": false
   },
   {
@@ -1898,8 +1898,8 @@
       "Step 5: Verify completed tasks have green checkmark",
       "Step 6: Verify progress bar styling"
     ],
-    "passes": false,
-    "is_dev_done": false,
+    "passes": true,
+    "is_dev_done": true,
     "is_qa_passed": false
   },
   {
