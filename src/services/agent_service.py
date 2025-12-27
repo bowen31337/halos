@@ -322,5 +322,26 @@ You are helping build a Claude.ai clone application. Be professional, friendly, 
             return f"Error triggering summarization: {str(e)}"
 
 
+    async def list_memories(self, category: Optional[str] = None, active_only: bool = True) -> str:
+        """List all memories.
+
+        Args:
+            category: Optional category filter
+            active_only: Whether to list only active memories
+
+        Returns:
+            JSON string with memory list
+        """
+        try:
+            # For now, return mock results
+            # In a real implementation, you'd query the database here
+            if category:
+                return f"Memories in category '{category}': [mock results]"
+            else:
+                return "All memories: [mock results]"
+        except Exception as e:
+            return f"Error listing memories: {str(e)}"
+
+
 # Global agent service instance
 agent_service = AgentService()
