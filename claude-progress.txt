@@ -24,6 +24,9 @@
 | #164 | Icons are consistent size and style throughout | ✅ Dev Done & QA Passed |
 | #165 | Complete visual consistency across application | ✅ Dev Done & QA Passed |
 | #166 | Full responsive design verification | ✅ Dev Done & QA Passed |
+| #171 | Complete HITL workflow scenarios | ✅ Dev Done & QA Passed |
+| #174 | Complete extended thinking workflow | ✅ Dev Done & QA Passed |
+| #177 | Complete MCP server integration workflow | ✅ Dev Done & QA Passed |
 | #188 | Complete sharing workflow with permissions | ✅ Dev Done & QA Passed |
 
 ---
@@ -175,6 +178,9 @@
 | #164 | Icons are consistent size and style throughout | N/A | ✅ | Dev Done & QA Passed |
 | #165 | Complete visual consistency across application | N/A | ✅ | Dev Done & QA Passed |
 | #166 | Full responsive design verification | N/A | ✅ | Dev Done & QA Passed |
+| #171 | Complete HITL workflow scenarios | ✅ | ✅ | Dev Done & QA Passed |
+| #174 | Complete extended thinking workflow | ✅ | ✅ | Dev Done & QA Passed |
+| #177 | Complete MCP server integration workflow | ✅ | ✅ | Dev Done & QA Passed |
 | #188 | Complete sharing workflow with permissions | ✅ | ✅ | Dev Done & QA Passed |
 
 ### Bug Fixes
