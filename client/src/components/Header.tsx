@@ -20,6 +20,7 @@ import { ComparisonModal } from './ComparisonModal'
 import { Tooltip, IconButtonWithTooltip } from './Tooltip'
 import { useToast } from './ToastManager'
 import { RecentItemsMenu } from './RecentItemsMenu'
+import { ActivityFeed } from './ActivityFeed'
 
 export const MODELS = [
   {
@@ -82,6 +83,7 @@ export function Header() {
   const [promptModalOpen, setPromptModalOpen] = useState(false)
   const [mcpModalOpen, setMcpModalOpen] = useState(false)
   const [recentItemsOpen, setRecentItemsOpen] = useState(false)
+  const [activityFeedOpen, setActivityFeedOpen] = useState(false)
   const [tempComparisonModels, setTempComparisonModels] = useState<string[]>(comparisonModels)
 
   // Responsive state
