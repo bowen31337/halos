@@ -184,6 +184,15 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
                 Thinking...
               </span>
             )}
+            {/* Token usage badge */}
+            {!isThinking && message.inputTokens && message.outputTokens && (
+              <span className="text-xs px-2 py-0.5 bg-[var(--bg-secondary)] rounded-full text-[var(--text-secondary)] flex items-center gap-1">
+                <span className="text-[var(--primary)]">🔢</span>
+                {message.inputTokens} in, {message.outputTokens} out
+                {message.cacheReadTokens ? ` (${message.cacheReadTokens} cached)` : ''}
+                {message.cacheWriteTokens ? ` (+${message.cacheWriteTokens} cache)` : ''}
+              </span>
+            )}
             {/* Action buttons for assistant messages */}
             {showActions && !isStreaming && !isEditing && (
               <div className="flex gap-1 ml-2">

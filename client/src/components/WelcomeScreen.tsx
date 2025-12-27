@@ -1,27 +1,39 @@
+import { useConversationStore } from '../stores/conversationStore'
+
 const suggestions = [
   {
     title: 'Help me write',
     description: 'An email, essay, or story',
-    icon: '✍️'
+    icon: '✍️',
+    prompt: 'Help me write an email'
   },
   {
     title: 'Explain a topic',
     description: 'From quantum physics to history',
-    icon: '💡'
+    icon: '💡',
+    prompt: 'Explain quantum computing in simple terms'
   },
   {
     title: 'Help me code',
     description: 'Debug or write new features',
-    icon: '💻'
+    icon: '💻',
+    prompt: 'Help me debug this Python code'
   },
   {
     title: 'Analyze data',
     description: 'Find patterns and insights',
-    icon: '📊'
+    icon: '📊',
+    prompt: 'Analyze this data and find patterns'
   }
 ]
 
 export function WelcomeScreen() {
+  const { setInputMessage } = useConversationStore()
+
+  const handleSuggestion = (prompt: string) => {
+    setInputMessage(prompt)
+  }
+
   return (
     <div className="h-full flex flex-col items-center justify-center p-8">
       <div className="max-w-2xl w-full">
@@ -36,6 +48,7 @@ export function WelcomeScreen() {
           {suggestions.map((suggestion) => (
             <button
               key={suggestion.title}
+              onClick={() => handleSuggestion(suggestion.prompt)}
               className="flex items-start gap-4 p-4 rounded-lg border border-[var(--border-primary)] hover:border-[var(--border-hover)] hover:bg-[var(--surface-elevated)] transition-colors text-left group"
             >
               <span className="text-2xl">{suggestion.icon}</span>

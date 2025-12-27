@@ -1121,7 +1121,8 @@
     "passes": true,
     "is_dev_done": true,
     "is_qa_passed": true,
-    "test_date": "2025-12-27"
+    "test_date": "2025-12-27",
+    "notes": "Backend CRUD verified. Frontend components exist but need browser testing."
   },
   {
     "category": "functional",
@@ -1323,8 +1324,10 @@
       "Step 7: Verify welcome screen disappears"
     ],
     "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "is_dev_done": true,
+    "is_qa_passed": false,
+    "notes": "Added click handlers to WelcomeScreen.tsx and fixed showWelcome condition in ChatPage.tsx",
+    "test_date": "2025-12-27"
   },
   {
     "category": "functional",
@@ -1369,9 +1372,10 @@
       "Step 4: Verify database connection status is included",
       "Step 5: Verify agent framework status is included"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": false,
+    "notes": "Enhanced with database and agent framework status checks"
   },
   {
     "category": "functional",

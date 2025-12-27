@@ -659,6 +659,59 @@ class APIService {
     }
     return response.json()
   }
+
+  // Usage dashboard APIs
+  async getDailyUsage(): Promise<{
+    date: string
+    total_tokens: number
+    input_tokens: number
+    output_tokens: number
+    cache_read_tokens: number
+    cache_write_tokens: number
+    conversations: number
+    messages: number
+    estimated_cost: number
+  }> {
+    const response = await fetch(`${API_BASE}/usage/daily`)
+    if (!response.ok) {
+      throw new Error(`Failed to get daily usage: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async getMonthlyUsage(): Promise<{
+    month: string
+    total_tokens: number
+    input_tokens: number
+    output_tokens: number
+    cache_read_tokens: number
+    cache_write_tokens: number
+    conversations: number
+    messages: number
+    estimated_cost: number
+    daily_breakdown: any[]
+  }> {
+    const response = await fetch(`${API_BASE}/usage/monthly`)
+    if (!response.ok) {
+      throw new Error(`Failed to get monthly usage: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async getUsageByModel(): Promise<Array<{
+    model: string
+    total_tokens: number
+    input_tokens: number
+    output_tokens: number
+    messages: number
+    estimated_cost: number
+  }>> {
+    const response = await fetch(`${API_BASE}/usage/by-model`)
+    if (!response.ok) {
+      throw new Error(`Failed to get usage by model: ${response.status}`)
+    }
+    return response.json()
+  }
 }
 
 export const api = new APIService()

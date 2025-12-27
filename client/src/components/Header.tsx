@@ -10,6 +10,7 @@ import { BranchSelector } from './BranchSelector'
 import { CheckpointManager } from './CheckpointManager'
 import { SubAgentModal } from './SubAgentModal'
 import { MemoryManager } from './MemoryManager'
+import { ShareModal } from './ShareModal'
 
 const MODELS = [
   { id: 'claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5', description: 'Balanced' },
@@ -40,6 +41,7 @@ export function Header() {
   const [checkpointManagerOpen, setCheckpointManagerOpen] = useState(false)
   const [subAgentModalOpen, setSubAgentModalOpen] = useState(false)
   const [memoryManagerOpen, setMemoryManagerOpen] = useState(false)
+  const [shareModalOpen, setShareModalOpen] = useState(false)
 
   // Fetch projects on mount
   useEffect(() => {

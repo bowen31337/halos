@@ -269,7 +269,12 @@ console.log(greet("World"));
             # End with done event
             yield {
                 "event": "on_chain_end",
-                "data": {},
+                "data": {
+                    "input_tokens": len(actual_message.split()),
+                    "output_tokens": len(confirmation.split()),
+                    "cache_read_tokens": 0,
+                    "cache_write_tokens": 0,
+                },
             }
             return
 
@@ -557,6 +562,18 @@ I'll help you with this. Let me break it down:
                     "event": "on_custom_event",
                     "name": "todo_update",
                     "data": {"todos": self._thread_state["todos"]},
+                }
+
+            # Emit final tokens at the end of streaming
+            if i == len(words) - 1:
+                yield {
+                    "event": "on_chain_end",
+                    "data": {
+                        "input_tokens": len(actual_message.split()),
+                        "output_tokens": len(response_text.split()),
+                        "cache_read_tokens": 0,
+                        "cache_write_tokens": 0,
+                    },
                 }
 
 

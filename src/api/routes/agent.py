@@ -692,6 +692,24 @@ async def stream_agent(
                     # Stop streaming - will be resumed after approval
                     return
 
+                # Handle on_chain_end event (end of streaming with token info)
+                elif event_kind == "on_chain_end":
+                    event_data = event.get("data", {})
+                    # Extract token information if available
+                    input_tokens = event_data.get("input_tokens", 0)
+                    output_tokens = event_data.get("output_tokens", 0)
+                    cache_read_tokens = event_data.get("cache_read_tokens", 0)
+                    cache_write_tokens = event_data.get("cache_write_tokens", 0)
+
+                    # Store token information in thread state for the done event
+                    thread_states[thread_id] = thread_states.get(thread_id, {})
+                    thread_states[thread_id]["tokens"] = {
+                        "input_tokens": input_tokens,
+                        "output_tokens": output_tokens,
+                        "cache_read_tokens": cache_read_tokens,
+                        "cache_write_tokens": cache_write_tokens,
+                    }
+
                 # Handle custom events (e.g., todos from mock agent)
                 elif event_kind == "on_custom_event":
                     event_name = event.get("name", "")
@@ -877,6 +895,9 @@ async def stream_agent(
             # Include files in done event for immediate UI update
             if hasattr(agent, '_thread_state') and 'files' in agent._thread_state:
                 done_data["files"] = agent._thread_state["files"]
+            # Include tokens from thread state if available
+            if thread_id in thread_states and "tokens" in thread_states[thread_id]:
+                done_data.update(thread_states[thread_id]["tokens"])
             yield {
                 "event": "done",
                 "data": json.dumps(done_data),

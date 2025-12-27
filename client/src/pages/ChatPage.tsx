@@ -14,6 +14,7 @@ import { SubAgentIndicator } from '../components/SubAgentIndicator'
 import { MemoryPanel } from '../components/MemoryPanel'
 import { PromptCacheIndicator } from '../components/PromptCacheIndicator'
 import { TokenUsageDisplay } from '../components/TokenUsageDisplay'
+import { UsageDashboard } from '../components/UsageDashboard'
 
 export function ChatPage() {
   const { conversationId } = useParams()
@@ -38,7 +39,7 @@ export function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  const showWelcome = messages.length === 0 && !currentConversationId
+  const showWelcome = messages.length === 0
 
   // Determine panel width based on type
   const getPanelWidth = () => {
@@ -69,6 +70,9 @@ export function ChatPage() {
 
       {/* Token Usage Display */}
       <TokenUsageDisplay />
+
+      {/* Usage Dashboard */}
+      <UsageDashboard />
 
       {/* Input area */}
       <div className={`flex-shrink-0 border-t border-[var(--border-primary)] transition-all duration-300 ${panelOpen ? getPanelWidth() : ''}`}>

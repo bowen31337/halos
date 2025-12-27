@@ -42,48 +42,37 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     const loadSettings = async () => {
       try {
         const settings = await api.getSettings()
-        // Update local state with backend settings
-        if (settings.theme) setTheme(settings.theme as any)
-        if (settings.fontSize) setFontSize(settings.fontSize)
-        if (settings.customInstructions !== undefined) setCustomInstructions(settings.customInstructions)
-        if (settings.system_prompt_override !== undefined) setSystemPromptOverride(settings.system_prompt_override)
-        if (settings.temperature !== undefined) {
-          setTemperature(settings.temperature)
-          setTempValue(settings.temperature)
-        }
-        if (settings.maxTokens !== undefined) {
-          setMaxTokens(settings.maxTokens)
-          setTokensValue(settings.maxTokens)
-        }
-        if (settings.extended_thinking_enabled !== undefined && settings.extended_thinking_enabled !== extendedThinkingEnabled) {
-          toggleExtendedThinking()
-        }
-        if (settings.memory_enabled !== undefined && settings.memory_enabled !== memoryEnabled) {
-          toggleMemoryEnabled()
+        if (settings) {
+          // Set local state based on API response
+          if (settings.theme) setTheme(settings.theme)
+          if (settings.font_size) setFontSize(settings.font_size)
+          if (settings.custom_instructions) setCustomInstructions(settings.custom_instructions)
+          if (settings.system_prompt_override) setSystemPromptOverride(settings.system_prompt_override)
+          if (settings.temperature !== undefined) setTempValue(settings.temperature)
+          if (settings.max_tokens !== undefined) setTokensValue(settings.max_tokens)
+          if (settings.extended_thinking_enabled !== undefined && settings.extended_thinking_enabled !== extendedThinkingEnabled) {
+            toggleExtendedThinking()
+          }
+          if (settings.memory_enabled !== undefined && settings.memory_enabled !== memoryEnabled) {
+            toggleMemoryEnabled()
+          }
         }
       } catch (error) {
-        console.warn('Could not load settings from backend:', error)
+        console.error('Failed to load settings:', error)
       }
     }
+
     loadSettings()
   }, [setTheme, setFontSize, setCustomInstructions, setSystemPromptOverride, setTemperature, setMaxTokens, toggleExtendedThinking, extendedThinkingEnabled, memoryEnabled, toggleMemoryEnabled])
 
-  // Save settings to backend helper
   const saveSettings = async (updates: any) => {
-    setIsSaving(true)
     try {
+      setIsSaving(true)
       await api.updateSettings(updates)
+      setIsSaving(false)
     } catch (error) {
       console.error('Failed to save settings:', error)
-    } finally {
       setIsSaving(false)
-    }
-  }
-
-  // Close on backdrop click
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      onClose()
     }
   }
 
@@ -91,10 +80,45 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const renderGeneralTab = () => (
     <div className="space-y-6">
       <div>
+        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Models</h3>
+        <div className="space-y-2">
+          {(['claude-haiku-4-5-20251001', 'claude-sonnet-4-5-20250929', 'claude-opus-4-1-20250805'] as const).map((model) => (
+            <button
+              key={model}
+              onClick={async () => {
+                await saveSettings({ model })
+              }}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-colors ${
+                model === 'claude-sonnet-4-5-20250929'
+                  ? 'border-[var(--primary)] bg-[var(--surface-elevated)]'
+                  : 'border-[var(--border-primary)] hover:bg-[var(--surface-elevated)]'
+              }`}
+            >
+              <div>
+                <div className="font-medium text-[var(--text-primary)] capitalize">
+                  {model.replace('claude-', '').replace('-', ' ')}
+                </div>
+                <div className="text-xs text-[var(--text-secondary)]">
+                  {model === 'claude-haiku-4-5-20251001' && 'Fast, efficient'}
+                  {model === 'claude-sonnet-4-5-20250929' && 'Balanced, default'}
+                  {model === 'claude-opus-4-1-20250805' && 'Most capable'}
+                </div>
+              </div>
+              {model === 'claude-sonnet-4-5-20250929' && (
+                <svg className="w-5 h-5 text-[var(--primary)]" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
         <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Extended Thinking</h3>
         <div className="flex items-center justify-between">
           <span className="text-sm text-[var(--text-secondary)]">
-            Enable extended thinking mode for complex problems
+            Enable extended thinking for complex problem solving
           </span>
           <button
             onClick={async () => {
@@ -112,36 +136,75 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             />
           </button>
         </div>
+        <p className="text-xs text-[var(--text-secondary)] mt-2">
+          Extended thinking mode allows the AI to think longer and use tools for complex tasks.
+        </p>
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Permission Mode (HITL)</h3>
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-[var(--text-secondary)]">
-            {permissionMode === 'manual' ? 'Manual approval required for tool execution' : 'Auto-execute tools without approval'}
-          </span>
-          <div className="flex gap-2">
+        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Permission Mode</h3>
+        <div className="space-y-2">
+          {[
+            { id: 'default', label: 'Default', description: 'Prompts for permission when first using each tool' },
+            { id: 'acceptEdits', label: 'Accept Edits', description: 'Auto-accepts all file editing permissions' },
+            { id: 'plan', label: 'Plan', description: 'Analyze only, no modifications' },
+            { id: 'bypassPermissions', label: 'Bypass', description: 'Skips all permission prompts' },
+          ].map((mode) => (
             <button
-              onClick={() => setPermissionMode('auto')}
-              className={`px-3 py-1.5 rounded text-sm transition-colors ${
-                permissionMode === 'auto'
-                  ? 'bg-[var(--primary)] text-white'
-                  : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--surface-elevated)]'
+              key={mode.id}
+              onClick={async () => {
+                setPermissionMode(mode.id as any)
+                await saveSettings({ permission_mode: mode.id })
+              }}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-colors ${
+                permissionMode === mode.id
+                  ? 'border-[var(--primary)] bg-[var(--surface-elevated)]'
+                  : 'border-[var(--border-primary)] hover:bg-[var(--surface-elevated)]'
               }`}
             >
-              Auto
+              <div>
+                <div className="font-medium text-[var(--text-primary)]">{mode.label}</div>
+                <div className="text-xs text-[var(--text-secondary)]">{mode.description}</div>
+              </div>
+              {permissionMode === mode.id && (
+                <svg className="w-5 h-5 text-[var(--primary)]" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              )}
             </button>
-            <button
-              onClick={() => setPermissionMode('manual')}
-              className={`px-3 py-1.5 rounded text-sm transition-colors ${
-                permissionMode === 'manual'
-                  ? 'bg-[var(--primary)] text-white'
-                  : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--surface-elevated)]'
-              }`}
-            >
-              Manual
-            </button>
-          </div>
+          ))}
+        </div>
+        <p className="text-xs text-[var(--text-secondary)] mt-2">
+          Controls how the AI handles sensitive operations like file writes and code execution.
+        </p>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Human-in-the-Loop</h3>
+        <div className="space-y-2">
+          <button
+            onClick={async () => {
+              setPermissionMode('default')
+              await saveSettings({ permission_mode: 'default' })
+            }}
+            className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-colors ${
+              permissionMode === 'default'
+                ? 'border-[var(--primary)] bg-[var(--surface-elevated)]'
+                : 'border-[var(--border-primary)] hover:bg-[var(--surface-elevated)]'
+            }`}
+          >
+            <div>
+              <div className="font-medium text-[var(--text-primary)]">Manual</div>
+              <div className="text-xs text-[var(--text-secondary)]">
+                Prompts for approval before sensitive operations
+              </div>
+            </div>
+            {permissionMode === 'default' && (
+              <svg className="w-5 h-5 text-[var(--primary)]" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            )}
+          </button>
         </div>
         <p className="text-xs text-[var(--text-secondary)] mt-2">
           Manual mode triggers Human-in-the-Loop approval dialogs for sensitive operations like file writes.
@@ -354,9 +417,9 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         {/* Tabs */}
         <div className="flex border-b border-[var(--border-primary)]">
           {[
-            { id: 'general' as SettingsTab, label: 'General' },
-            { id: 'appearance' as SettingsTab, label: 'Appearance' },
-            { id: 'advanced' as SettingsTab, label: 'Advanced' },
+            { id: 'general', label: 'General' },
+            { id: 'appearance', label: 'Appearance' },
+            { id: 'advanced', label: 'Advanced' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -389,6 +452,17 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           </button>
         </div>
       </div>
+
+      {/* Memory Modal */}
+      {showMemoryModal && (
+        <MemoryModal onClose={() => setShowMemoryModal(false)} />
+      )}
     </div>
   )
+
+  function handleBackdropClick(e: React.MouseEvent) {
+    if (e.target === e.currentTarget) {
+      onClose()
+    }
+  }
 }

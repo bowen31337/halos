@@ -57,6 +57,9 @@ importers:
         specifier: ^5.0.9
         version: 5.0.9(@types/react@19.2.7)(react@19.2.3)
     devDependencies:
+      '@esbuild/linux-x64':
+        specifier: 0.27.2
+        version: 0.27.2
       '@types/node':
         specifier: ^25.0.3
         version: 25.0.3
@@ -1765,8 +1768,7 @@ snapshots:
   '@esbuild/linux-x64@0.18.20':
     optional: true
 
-  '@esbuild/linux-x64@0.27.2':
-    optional: true
+  '@esbuild/linux-x64@0.27.2': {}
 
   '@esbuild/netbsd-arm64@0.27.2':
     optional: true

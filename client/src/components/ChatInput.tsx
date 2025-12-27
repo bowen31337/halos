@@ -410,6 +410,19 @@ export function ChatInput() {
                     break
                   case 'done':
                     console.log('Stream completed')
+                    // Update the assistant message with final content
+                    const { updateMessage } = useConversationStore.getState()
+                    updateMessage(assistantMessageId, {
+                      content: fullAssistantContent,
+                      isStreaming: false,
+                      thinkingContent: fullThinkingContent || undefined,
+                      // Include token information if available
+                      inputTokens: eventData.input_tokens,
+                      outputTokens: eventData.output_tokens,
+                      cacheReadTokens: eventData.cache_read_tokens,
+                      cacheWriteTokens: eventData.cache_write_tokens,
+                    })
+
                     // Store thinking content if present
                     if (eventData.thinking_content) {
                       fullThinkingContent = eventData.thinking_content

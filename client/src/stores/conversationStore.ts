@@ -13,6 +13,10 @@ export interface Message {
   attachments?: string[]  // URLs to uploaded images/files
   thinkingContent?: string  // Extended thinking content
   isThinking?: boolean  // Whether thinking is in progress
+  inputTokens?: number
+  outputTokens?: number
+  cacheReadTokens?: number
+  cacheWriteTokens?: number
 }
 
 export interface Conversation {
@@ -118,6 +122,10 @@ const transformMessage = (apiMsg: any): Message => ({
   attachments: apiMsg.attachments,
   thinkingContent: apiMsg.thinkingContent || apiMsg.thinking_content,
   isThinking: apiMsg.isThinking,
+  inputTokens: apiMsg.input_tokens,
+  outputTokens: apiMsg.output_tokens,
+  cacheReadTokens: apiMsg.cache_read_tokens,
+  cacheWriteTokens: apiMsg.cache_write_tokens,
 })
 
 export const useConversationStore = create<ConversationState>((set) => ({
