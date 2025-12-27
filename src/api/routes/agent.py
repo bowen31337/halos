@@ -67,7 +67,7 @@ async def invoke_agent(data: AgentRequest) -> dict:
         result = agent.invoke({"messages": [HumanMessage(content=data.message)]}, config=config)
 
         # Extract response from result
-        response_message = result.get("messages", [])[-1]
+        response_message = result.get("messages", [])[-1] if result.get("messages") else AIMessage(content="No response")
         response_content = response_message.content if hasattr(response_message, 'content') else str(response_message)
 
         return {

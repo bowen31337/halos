@@ -9,6 +9,7 @@ interface MessageBubbleProps {
 export function MessageBubble({ message }: MessageBubbleProps) {
   const isUser = message.role === 'user'
   const isTool = message.role === 'tool'
+  const isStreaming = message.isStreaming
 
   if (isTool) {
     return (
@@ -46,9 +47,14 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           {isUser ? (
             <p className="whitespace-pre-wrap">{message.content}</p>
           ) : (
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-              {message.content}
-            </ReactMarkdown>
+            <>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {message.content || (isStreaming ? '' : '...')}
+              </ReactMarkdown>
+              {isStreaming && (
+                <span className="inline-block w-2 h-4 ml-1 bg-[var(--text-secondary)] animate-pulse align-middle"></span>
+              )}
+            </>
           )}
         </div>
       </div>

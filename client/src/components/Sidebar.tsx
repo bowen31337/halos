@@ -33,7 +33,7 @@ export function Sidebar() {
 
   const loadConversations = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/conversations')
+      const response = await fetch('/api/conversations')
       if (response.ok) {
         const data = await response.json()
         setConversations(data)
@@ -46,7 +46,7 @@ export function Sidebar() {
   const handleNewConversation = async () => {
     setIsCreating(true)
     try {
-      const response = await fetch('http://localhost:8000/api/conversations', {
+      const response = await fetch('/api/conversations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: 'New Conversation' }),
@@ -79,7 +79,7 @@ export function Sidebar() {
 
     setDeletingId(id)
     try {
-      const response = await fetch(`http://localhost:8000/api/conversations/${id}`, {
+      const response = await fetch(`/api/conversations/${id}`, {
         method: 'DELETE',
       })
       if (response.ok) {
@@ -101,7 +101,7 @@ export function Sidebar() {
     if (!newTitle || newTitle === currentTitle) return
 
     try {
-      const response = await fetch(`http://localhost:8000/api/conversations/${id}`, {
+      const response = await fetch(`/api/conversations/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: newTitle }),

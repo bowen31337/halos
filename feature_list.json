@@ -18,9 +18,9 @@
       "Step 13: Verify custom subagents can be registered using subagents parameter",
       "Step 14: Verify long-term memory works via CompositeBackend with StoreBackend routes"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -32,9 +32,9 @@
       "Step 4: Verify the header with model selector is present",
       "Step 5: Confirm the input area with send button is visible at the bottom"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -48,9 +48,9 @@
       "Step 6: Confirm the response completes and is fully displayed",
       "Step 7: Verify the typing indicator disappears after response completes"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",

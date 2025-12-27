@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_db
-from src.models import Conversation
+from src.models import Conversation as ConversationModel
 
 router = APIRouter()
 
@@ -31,13 +31,13 @@ class ConversationUpdate(BaseModel):
     is_pinned: Optional[bool] = None
 
 
-class Conversation(BaseModel):
+class ConversationResponse(BaseModel):
     """Response model for a conversation."""
 
-    id: UUID
+    id: str
     title: str
     model: str
-    project_id: Optional[UUID] = None
+    project_id: Optional[str] = None
     is_archived: bool = False
     is_pinned: bool = False
     message_count: int = 0
@@ -54,17 +54,17 @@ async def list_conversations(
     db: AsyncSession = Depends(get_db),
 ) -> list[dict]:
     """List all conversations."""
-    query = select(Conversation).where(Conversation.is_deleted == False)
+    query = select(ConversationModel).where(ConversationModel.is_deleted == False)
 
     if archived:
-        query = query.where(Conversation.is_archived == True)
+        query = query.where(ConversationModel.is_archived == True)
     else:
-        query = query.where(Conversation.is_archived == False)
+        query = query.where(ConversationModel.is_archived == False)
 
     if project_id:
-        query = query.where(Conversation.project_id == str(project_id))
+        query = query.where(ConversationModel.project_id == str(project_id))
 
-    query = query.order_by(Conversation.updated_at.desc()).offset(offset).limit(limit)
+    query = query.order_by(ConversationModel.updated_at.desc()).offset(offset).limit(limit)
 
     result = await db.execute(query)
     conversations = result.scalars().all()
@@ -93,7 +93,7 @@ async def create_conversation(
     """Create a new conversation."""
     now = datetime.utcnow()
 
-    conversation = Conversation(
+    conversation = ConversationModel(
         title=data.title or "New Conversation",
         model=data.model,
         project_id=str(data.project_id) if data.project_id else None,
@@ -125,7 +125,7 @@ async def get_conversation(
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Get a specific conversation."""
-    result = await db.execute(select(Conversation).where(Conversation.id == conversation_id))
+    result = await db.execute(select(ConversationModel).where(ConversationModel.id == conversation_id))
     conversation = result.scalar_one_or_none()
 
     if not conversation:
@@ -151,7 +151,7 @@ async def update_conversation(
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Update a conversation."""
-    result = await db.execute(select(Conversation).where(Conversation.id == conversation_id))
+    result = await db.execute(select(ConversationModel).where(ConversationModel.id == conversation_id))
     conversation = result.scalar_one_or_none()
 
     if not conversation:
@@ -187,7 +187,7 @@ async def delete_conversation(
     db: AsyncSession = Depends(get_db),
 ) -> None:
     """Delete a conversation (soft delete)."""
-    result = await db.execute(select(Conversation).where(Conversation.id == conversation_id))
+    result = await db.execute(select(ConversationModel).where(ConversationModel.id == conversation_id))
     conversation = result.scalar_one_or_none()
 
     if not conversation:
@@ -203,7 +203,7 @@ async def duplicate_conversation(
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Duplicate a conversation."""
-    result = await db.execute(select(Conversation).where(Conversation.id == conversation_id))
+    result = await db.execute(select(ConversationModel).where(ConversationModel.id == conversation_id))
     original = result.scalar_one_or_none()
 
     if not original:
@@ -211,7 +211,7 @@ async def duplicate_conversation(
 
     now = datetime.utcnow()
 
-    duplicate = Conversation(
+    duplicate = ConversationModel(
         title=f"{original.title} (Copy)",
         model=original.model,
         project_id=original.project_id,

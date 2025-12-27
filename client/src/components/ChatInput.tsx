@@ -171,29 +171,29 @@ export function ChatInput() {
   }
 
   return (
-    <div className=\"max-w-3xl mx-auto p-4\">
-      <div className=\"flex items-end gap-3\">
-        <div className=\"flex-1 relative\">
+    <div className="max-w-3xl mx-auto p-4">
+      <div className="flex items-end gap-3">
+        <div className="flex-1 relative">
           <textarea
             ref={textareaRef}
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder=\"Type your message...\"
+            placeholder="Type your message..."
             disabled={isLoading || isStreaming}
-            className=\"w-full resize-none border border-[var(--border-primary)] rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--bg-primary)] text-[var(--text-primary)] disabled:opacity-50 min-h-[60px] max-h-[200px]\"
+            className="w-full resize-none border border-[var(--border-primary)] rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--bg-primary)] text-[var(--text-primary)] disabled:opacity-50 min-h-[60px] max-h-[200px]"
             rows={1}
           />
         </div>
         <button
           onClick={handleSend}
           disabled={!inputValue.trim() && !isStreaming}
-          className=\"px-6 py-3 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed\"
+          className="px-6 py-3 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isStreaming ? 'Stop' : 'Send'}
         </button>
       </div>
-      <div className=\"flex justify-between mt-2 text-xs text-[var(--text-secondary)]\">
+      <div className="flex justify-between mt-2 text-xs text-[var(--text-secondary)]">
         <span>{inputValue.length} characters</span>
         <span>Enter to send, Shift+Enter for newline</span>
       </div>
