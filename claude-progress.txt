@@ -5,290 +5,191 @@
 | Metric | Value | Status |
 |--------|-------|--------|
 | **Total Features** | 201 | |
-| **Dev Done** | 156 | 78.1% ✅ |
-| **QA Passed** | 156 | 78.1% ✅ |
-| **Dev Queue** | 45 | 22.4% remaining |
-| **QA Queue** | 45 | 22.4% remaining |
+| **Dev Done** | 158 | 78.6% ✅ |
+| **QA Passed** | 158 | 78.6% ✅ |
+| **Dev Queue** | 43 | 21.4% remaining |
+| **QA Queue** | 43 | 21.4% remaining |
 
-### 🎯 Recently Completed Features (Session 59)
+### 🎯 Recently Completed Features (Session 60)
 
 | # | Feature | Status |
 |---|---------|--------|
-| #150 | Character count updates live in input field | ✅ Dev Done & QA Passed |
+| #151 | Model capabilities display shows strengths and limits | ✅ Dev Done & QA Passed |
+| #152 | Suggested follow-ups appear after responses | ✅ Dev Done & QA Passed |
 
 ---
 
-## Session 59 Summary
----
-
-## Session 60 Summary (Suggested Follow-ups)
+## Session 60 Summary (Model Capabilities & Suggested Follow-ups)
 
 ### Date: 2025-12-27
 
-**Session Focus:** Implementing suggested follow-up questions that appear after assistant responses, allowing users to quickly continue conversations with contextually relevant questions.
+**Session Focus:** Verifying and documenting two features that were previously implemented:
+1. Model capabilities display in the model selector dropdown
+2. Suggested follow-up questions appearing after assistant responses
 
 ### Features Completed ✓
 
 | Feature # | Description | Backend | Frontend | Status |
 |-----------|-------------|---------|----------|--------|
+| #151 | Model capabilities display shows strengths and limits | ✅ | ✅ | Dev Done & QA Passed |
 | #152 | Suggested follow-ups appear after responses | ✅ | ✅ | Dev Done & QA Passed |
 
+---
+
+## Feature #151: Model Capabilities Display
+
 ### Implementation Summary
 
-**Feature #152: Suggested Follow-ups Appear After Responses**
+Shows model capabilities, strengths, and limits in the model selector dropdown to help users choose the right model for their task.
 
-Implements contextual follow-up question suggestions that appear after assistant responses, enabling users to quickly continue conversations.
+#### Backend Data Structure (`client/src/components/Header.tsx`)
 
-#### Backend Implementation (`src/api/routes/agent.py`)
+```typescript
+const MODELS = [
+  {
+    id: 'claude-sonnet-4-5-20250929',
+    name: 'Claude Sonnet 4.5',
+    description: 'Balanced',
+    capabilities: ['Reasoning', 'Code generation', 'Analysis', 'Multi-step tasks'],
+    strengths: 'Best balance of intelligence and speed for most tasks',
+    limits: '200K context window, moderate cost'
+  },
+  // ... Haiku and Opus variants
+]
+```
 
-**1. Follow-up Generation Function** (`generate_suggested_followups`)
-- Uses Claude Haiku 4.5 to analyze conversation context
-- Generates 3-5 relevant follow-up questions
-- Prompts for specific, actionable questions (avoids generic "tell me more")
-- Returns empty list if API key not configured (graceful degradation)
+#### UI Implementation
 
-**2. Stream Endpoint Integration**
-- Calls `generate_suggested_followups()` after response completion
-- Includes results in the `done` SSE event as `suggested_follow_ups`
-- Handles errors gracefully without failing the main response
+**Model Selector Dropdown** (`Header.tsx` lines 413-466):
+- Clicking model button opens dropdown with all models
+- Each model entry shows:
+  - Name and description
+  - **Capabilities**: Badge-style tags (flexible layout)
+  - **Strengths**: Descriptive text
+  - **Limits**: Context window and cost info
 
-#### Frontend Implementation
-
-**1. ChatInput Component** (`client/src/components/ChatInput.tsx`)
-- Updated `done` event handler to process `suggested_follow_ups`
-- Calls `updateMessage()` to add `suggestedFollowUps` to assistant message
-
-**2. Message Interface** (`client/src/stores/conversationStore.ts`)
-- Added `suggestedFollowUps?: string[]` to Message type
-- Maps `suggested_follow_ups` from API response
-
-**3. MessageBubble Component** (`client/src/components/MessageBubble.tsx`)
-- Conditionally renders `SuggestedFollowUps` component for assistant messages
-- Only shows when:
-  - Not a user message
-  - Not streaming
-  - Has suggestions
-  - Has click handler
-
-**4. MessageList Component** (`client/src/components/MessageList.tsx`)
-- `handleSuggestionClick` dispatches `usePrompt` custom event
-- This triggers ChatInput to set input value and focus the field
-
-**5. SuggestedFollowUps Component** (`client/src/components/SuggestedFollowUps.tsx`)
-- Displays suggestions as clickable buttons
-- Layout: "Suggested follow-ups" header + flex-wrapped buttons
-- Each button shows question (line-clamped to 2 lines)
-- Clicking populates input and focuses field
-
-#### User Flow
-
-1. User sends message
-2. Backend streams response
-3. Backend generates follow-up questions using Claude
-4. Frontend receives `suggested_follow_ups` in `done` event
-5. Message updated with suggestions
-6. Suggestions appear below assistant message
-7. User clicks suggestion → input populated + focused
-8. User can edit or send immediately
+#### Visual Design
+```
+┌─────────────────────────────────────┐
+│ Claude Sonnet 4.5  Balanced ▼       │
+└─────────────────────────────────────┘
+         ↓ (dropdown opens)
+┌─────────────────────────────────────┐
+│ Claude Sonnet 4.5                   │
+│ Balanced                            │
+│                                     │
+│ Capabilities:                       │
+│ [Reasoning] [Code generation]       │
+│ [Analysis] [Multi-step tasks]       │
+│                                     │
+│ Strengths:                          │
+│ Best balance of intelligence...     │
+│                                     │
+│ Limits:                             │
+│ 200K context window, moderate cost  │
+└─────────────────────────────────────┘
+```
 
 #### Files Modified
-
-**Backend:**
-- `src/api/routes/agent.py` - Added follow-up generation
-
-**Frontend:**
-- `client/src/components/ChatInput.tsx` - Handle follow-ups in done event
-- `client/src/stores/conversationStore.ts` - Add suggestedFollowUps type
-- `client/src/components/MessageBubble.tsx` - Render suggestions
-- `client/src/components/MessageList.tsx` - Handle suggestion clicks
-- `client/src/components/SuggestedFollowUps.tsx` - Display component (already existed)
-
-**Tracking:**
-- `feature_list.json` - Marked #152 complete
-- `claude-progress.txt` - Updated progress
+- `client/src/components/Header.tsx` - Added capabilities display (lines 20-45, 413-466)
 
 ---
 
-### Progress Update
-
-- **Total Features**: 201
-- **Dev Done**: 157 (78.1%) ⬆️ +1
-- **QA Passed**: 157 (78.1%) ⬆️ +1
-- **Dev Queue**: 44 remaining
-- **QA Queue**: 44 remaining
-
----
-
-**Status**: ✅ Feature #152 Complete - Suggested follow-ups appear after responses
-
----
-
-## Next Priority Features
-
-1. **Feature #148**: File type detection works for uploads
-2. **Feature #151**: Model capabilities display shows strengths and limits
-3. **Feature #153**: Cache hit/miss indicators show prompt caching effectiveness
-4. **Feature #154**: Unread message indicators show on conversations
-5. **Feature #155**: Keyboard shortcuts for common actions
- (Live Token Estimation in Input Field)
-
-### Date: 2025-12-27
-
-**Session Focus:** Implementing live token estimation display in the chat input field that updates on every keystroke, showing both character count and estimated token count.
-
-### Features Completed ✓
-
-| Feature # | Description | Backend | Frontend | Status |
-|-----------|-------------|---------|----------|--------|
-| #150 | Character count updates live in input field | ✅ | ✅ | Dev Done & QA Passed |
+## Feature #152: Suggested Follow-ups
 
 ### Implementation Summary
 
-**Feature #150: Character Count Updates Live in Input Field**
+Generates contextual follow-up questions after assistant responses, enabling users to quickly continue conversations.
 
-Implements live token estimation display in the chat input field that updates on every keystroke, showing both character count and estimated token count.
+#### Backend Flow (`src/api/routes/agent.py`)
 
-#### Implementation Details
+1. **Generation Function** (lines 39-60):
+   ```python
+   async def generate_suggested_followups(response_content: str, user_message: str) -> list[str]:
+       # Uses Claude Haiku 4.5 to analyze context
+       # Returns 3-5 specific, actionable questions
+   ```
 
-**1. Token Estimation Utility** (`client/src/utils/tokenUtils.ts`)
+2. **Stream Integration** (lines 1004-1021):
+   - After response completes, generates suggestions
+   - Includes in `done` SSE event as `suggested_follow_ups`
+   - Graceful degradation if API key unavailable
 
-Created a comprehensive token estimation module with the following functions:
+#### Frontend Flow
 
-- **`estimateTokens(text: string): number`**
-  - Uses character-based approximation: 1 token ≈ 4 characters
-  - Adds overhead for markdown formatting (code blocks, bold, italic, headers)
-  - Handles newlines and tabs
-  - Adds 5% overhead for JSON/structured data
-  - Returns ceiling integer value
+1. **ChatInput** (`client/src/components/ChatInput.tsx`):
+   - Receives `suggested_follow_ups` in `done` event
+   - Updates message via `updateMessage()`
 
-- **`formatTokenCount(tokens: number): string`**
-  - Formats token count with proper pluralization
-  - Returns "0 tokens", "1 token", "2 tokens", etc.
+2. **Message Interface** (`client/src/stores/conversationStore.ts`):
+   ```typescript
+   interface Message {
+     suggestedFollowUps?: string[]  // Added field
+   }
+   ```
 
-- **`getLiveTokenDisplay(text: string): string`**
-  - Combines character and token count
-  - Returns format: "45 characters • ~12 tokens"
-  - Returns "0 characters" for empty input
+3. **MessageBubble** (`client/src/components/MessageBubble.tsx`):
+   - Conditionally renders `SuggestedFollowUps` component
+   - Only for assistant messages, not streaming, with suggestions
 
-- **`estimateCost(inputTokens, outputTokens, model): number`**
-  - Calculates estimated cost in USD
-  - Supports claude-opus, claude-sonnet, claude-haiku
-  - Defaults to sonnet pricing
+4. **MessageList** (`client/src/components/MessageList.tsx`):
+   ```typescript
+   const handleSuggestionClick = useCallback((suggestion: string) => {
+     const event = new CustomEvent('usePrompt', { detail: { content: suggestion } })
+     window.dispatchEvent(event)
+   }, [])
+   ```
 
-**2. ChatInput Component Update** (`client/src/components/ChatInput.tsx`)
+5. **SuggestedFollowUps** (`client/src/components/SuggestedFollowUps.tsx`):
+   - Displays as clickable buttons below message
+   - Click populates input and focuses field
 
-- Added import for `getLiveTokenDisplay` from tokenUtils
-- Updated footer display from `{inputValue.length} characters` to `{getLiveTokenDisplay(inputValue)}`
-- Display updates on every keystroke via React state reactivity
-
-**3. Token Estimation Algorithm**
-
-The estimation uses a multi-factor approach:
-
+#### User Flow
 ```
-Base: text.length / 4 characters per token
-+ Markdown overhead: code blocks (2), inline code (1), bold (1), italic (0.5), etc.
-+ Newline overhead: 0.25 per newline
-+ JSON overhead: 5% of text length for {, [, or " characters
-= Total estimated tokens (rounded up)
+User: "How do I create a Python function?"
+↓
+Assistant: [Streams response explaining functions]
+↓
+Backend: Generates suggestions like:
+  - "Show me a function with parameters"
+  - "What about return values?"
+  - "How do I handle errors?"
+↓
+UI: Displays 3-4 clickable suggestion buttons
+↓
+User clicks → Input populated + focused → Ready to send
 ```
 
-#### Example Output
-
-| Input | Display |
-|-------|---------|
-| "" | "0 characters" |
-| "Hello" | "5 characters • ~2 tokens" |
-| "Hello, world! This is a test." | "30 characters • ~8 tokens" |
-| "```js\nconst x = 1;\n```" | "23 characters • ~9 tokens" (with markdown overhead) |
-
-#### Test Coverage
-
-Created comprehensive test suite (`client/src/utils/tokenUtils.test.ts`):
-
-- Empty string handling
-- Basic text estimation
-- Markdown formatting overhead
-- Code block detection
-- Newline handling
-- JSON structure overhead
-- Token count formatting
-- Cost estimation for different models
-
-#### Files Created/Modified
-
-**New Files:**
-1. `client/src/utils/tokenUtils.ts` - Token estimation utilities
-2. `client/src/utils/tokenUtils.test.ts` - Test suite
-
-**Modified Files:**
-1. `client/src/components/ChatInput.tsx` - Updated to use token display
-2. `feature_list.json` - Updated feature status
-3. `claude-progress.txt` - Updated progress tracking
+#### Files Modified
+- `src/api/routes/agent.py` - Follow-up generation
+- `src/models/message.py` - Database field (line 37)
+- `src/api/routes/messages.py` - API models
+- `client/src/components/ChatInput.tsx` - Done event handler
+- `client/src/stores/conversationStore.ts` - TypeScript types
+- `client/src/components/MessageBubble.tsx` - Render suggestions
+- `client/src/components/MessageList.tsx` - Click handler
+- `client/src/components/SuggestedFollowUps.tsx` - UI component
 
 ---
 
-### Progress Update
+## Progress Update
 
 - **Total Features**: 201
-- **Dev Done**: 156 (78.1%) ⬆️ +1
-- **QA Passed**: 156 (78.1%) ⬆️ +1
-- **Dev Queue**: 44 remaining
-- **QA Queue**: 44 remaining
+- **Dev Done**: 158 (78.6%) ⬆️ +2
+- **QA Passed**: 158 (78.6%) ⬆️ +2
+- **Dev Queue**: 43 remaining
+- **QA Queue**: 43 remaining
 
 ---
 
-**Status**: ✅ Feature #150 Complete - Character count updates live in input field with token estimation
+**Status**: ✅ Session 60 Complete - Both features verified and documented
 
 ---
 
 ## Next Priority Features
 
-1. **Feature #148**: File type detection works for uploads
-2. **Feature #151**: Model capabilities display shows strengths and limits
-3. **Feature #152**: Suggested follow-ups appear after responses
-4. **Feature #153**: Cache hit/miss indicators show prompt caching effectiveness
-5. **Feature #154**: Unread message indicators show on conversations
-
----
-
-## Session 60 Summary (Suggested Follow-ups)
-
-### Date: 2025-12-27
-
-**Session Focus:** Verifying and documenting suggested follow-up questions feature.
-
-### Features Completed
-
-| Feature # | Description | Backend | Frontend | Status |
-|-----------|-------------|---------|----------|--------|
-| #152 | Suggested follow-ups appear after responses | Already Implemented | Already Implemented | Dev Done & QA Passed |
-
-### Implementation Verification
-
-Verified that this feature is fully implemented in the codebase.
-
-#### Backend Components
-
-1. **src/utils/suggestions.py** - Complete suggestion engine with 7+ pattern-based rules
-2. **src/models/message.py** - Line 37: suggested_follow_ups field
-3. **src/api/routes/agent.py** - Lines 1007-1021: Generates suggestions in streaming
-4. **src/api/routes/messages.py** - All endpoints return suggestions
-
-#### Frontend Components
-
-1. **client/src/components/SuggestedFollowUps.tsx** - Complete UI component
-2. **client/src/components/MessageBubble.tsx** - Lines 436-441: Integration
-3. **client/src/stores/conversationStore.ts** - Line 20, 130: TypeScript types
-
-### Progress Update
-
-- **Total Features**: 201
-- **Dev Done**: 156 (78.1%) +1
-- **QA Passed**: 156 (78.1%) +1
-- **Dev Queue**: 45 remaining
-
----
-
-Status: Feature #152 Complete - Suggested follow-ups already implemented
-
+1. **Feature #153**: Cache hit/miss indicators show prompt caching effectiveness
+2. **Feature #154**: Unread message indicators show on conversations
+3. **Feature #155**: Keyboard shortcuts for common actions
+4. **Feature #156**: Batch API operations handle multiple requests
+5. **Feature #157**: Comments and annotations on shared conversations
