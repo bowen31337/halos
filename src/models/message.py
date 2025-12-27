@@ -26,7 +26,7 @@ class Message(Base):
     cache_write_tokens: Mapped[int] = mapped_column(Integer, default=0)
 
     # Additional data
-    attachments: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # Images, files
+    attachments: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)  # List of image URLs
     tool_calls: Mapped[dict | None] = mapped_column(JSON, nullable=True)  # Tool use information
     tool_results: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 

@@ -350,7 +350,7 @@
     "passes": true,
     "is_dev_done": true,
     "is_qa_passed": true,
-    "notes": "Backend and frontend implemented, tested successfully"
+    "notes": "Backend endpoint + frontend UI implemented and tested"
   },
   {
     "category": "functional",
@@ -366,7 +366,7 @@
     "passes": true,
     "is_dev_done": true,
     "is_qa_passed": true,
-    "notes": "Backend and frontend implemented, tested successfully"
+    "notes": "Backend endpoint + frontend UI implemented and tested"
   },
   {
     "category": "functional",

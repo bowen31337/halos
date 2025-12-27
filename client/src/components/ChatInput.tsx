@@ -456,7 +456,7 @@ export function ChatInput() {
             onPaste={handlePaste}
             placeholder="Type your message... (Paste images directly)"
             disabled={isLoading || isStreaming}
-            className="w-full resize-none border border-[var(--border-primary)] rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--bg-primary)] text-[var(--text-primary)] disabled:opacity-50 min-h-[60px] max-h-[200px]"
+            className={`w-full resize-none border border-[var(--border-primary)] rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--bg-primary)] text-[var(--text-primary)] disabled:opacity-50 min-h-[60px] max-h-[200px] ${isDragOver ? 'ring-2 ring-[var(--primary)]' : ''}`}
             rows={1}
           />
         </div>

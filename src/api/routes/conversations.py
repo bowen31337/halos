@@ -4,12 +4,15 @@ import json
 from typing import Optional
 from uuid import UUID
 from datetime import datetime
+from pathlib import Path
+import os
 
-from fastapi import APIRouter, HTTPException, status, Depends
+from fastapi import APIRouter, HTTPException, status, Depends, UploadFile, File
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import HTTPException
 
 from src.core.database import get_db
 from src.models import Conversation as ConversationModel, Message as MessageModel
@@ -385,3 +388,48 @@ async def export_conversation(
             status_code=400,
             detail=f"Unsupported format: {format}. Supported formats: json, markdown"
         )
+
+
+@router.post("/upload-image")
+async def upload_image(
+    file: UploadFile = File(...),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Upload an image file and return a URL."""
+    # Validate file type
+    if not file.content_type.startswith("image/"):
+        raise HTTPException(
+            status_code=400,
+            detail="File must be an image"
+        )
+
+    # Create uploads directory if it doesn't exist
+    uploads_dir = Path("static/uploads")
+    uploads_dir.mkdir(parents=True, exist_ok=True)
+
+    # Generate unique filename
+    import uuid
+    file_extension = Path(file.filename).suffix if file.filename else ".jpg"
+    unique_filename = f"{uuid.uuid4()}{file_extension}"
+    file_path = uploads_dir / unique_filename
+
+    # Save the file
+    try:
+        with open(file_path, "wb") as buffer:
+            content = await file.read()
+            buffer.write(content)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to save file: {str(e)}"
+        )
+
+    # Return the URL
+    file_url = f"/static/uploads/{unique_filename}"
+
+    return {
+        "filename": unique_filename,
+        "url": file_url,
+        "size": len(content),
+        "content_type": file.content_type
+    }

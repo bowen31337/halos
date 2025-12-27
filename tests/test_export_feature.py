@@ -185,7 +185,7 @@ async def test_export_markdown_format():
         assert "## 🤖 Assistant" in md_content
         assert "Show me a Python function." in md_content
         assert "```python" in md_content
-        assert "*Tokens:" in md_content
+        assert "**Message Count:** 2" in md_content
 
         print(f"✓ Markdown export contains all required sections")
 

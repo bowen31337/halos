@@ -28,7 +28,7 @@ class MessageCreate(BaseModel):
 
     role: str  # user, assistant, system, tool
     content: str
-    attachments: Optional[list[dict]] = None
+    attachments: Optional[list[str]] = None  # List of image URLs
     tool_calls: Optional[dict] = None
     tool_results: Optional[dict] = None
     thinking_content: Optional[str] = None
