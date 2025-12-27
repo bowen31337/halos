@@ -1,0 +1,2766 @@
+[
+  {
+    "category": "functional",
+    "description": "Application loads without errors and displays the main chat interface",
+    "steps": [
+      "Step 1: Open the application URL in a browser",
+      "Step 2: Verify the page loads completely without console errors",
+      "Step 3: Confirm the three-column layout is visible (sidebar, chat, panel)",
+      "Step 4: Verify the header with model selector is present",
+      "Step 5: Confirm the input area with send button is visible at the bottom"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "User can send a chat message and receive a streaming response from the AI",
+    "steps": [
+      "Step 1: Navigate to the chat interface",
+      "Step 2: Type 'Hello, how are you?' in the input field",
+      "Step 3: Click the send button or press Enter",
+      "Step 4: Verify the user message appears in the chat",
+      "Step 5: Verify a streaming response begins from the AI",
+      "Step 6: Confirm the response completes and is fully displayed",
+      "Step 7: Verify the typing indicator disappears after response completes"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "User can create a new conversation using the new chat button",
+    "steps": [
+      "Step 1: Navigate to the chat interface with an existing conversation",
+      "Step 2: Click the 'New Chat' button in the sidebar",
+      "Step 3: Verify a new conversation is created",
+      "Step 4: Confirm the chat area is cleared and shows welcome screen",
+      "Step 5: Verify the new conversation appears in the sidebar list"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "User can switch between existing conversations in the sidebar",
+    "steps": [
+      "Step 1: Create at least two conversations with messages",
+      "Step 2: Click on a different conversation in the sidebar",
+      "Step 3: Verify the chat area updates to show the selected conversation",
+      "Step 4: Confirm all messages from the selected conversation are displayed",
+      "Step 5: Switch back to the original conversation",
+      "Step 6: Verify the original messages are restored"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "User can rename a conversation using inline editing",
+    "steps": [
+      "Step 1: Create a new conversation and send a message",
+      "Step 2: Locate the conversation title in the header or sidebar",
+      "Step 3: Click the pencil icon or double-click the title",
+      "Step 4: Enter a new name 'My Test Conversation'",
+      "Step 5: Press Enter or click outside to save",
+      "Step 6: Verify the new name is displayed in the sidebar"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "User can delete a conversation with confirmation dialog",
+    "steps": [
+      "Step 1: Create a test conversation",
+      "Step 2: Hover over the conversation in the sidebar",
+      "Step 3: Click the delete button (trash icon)",
+      "Step 4: Verify a confirmation dialog appears",
+      "Step 5: Click 'Delete' to confirm",
+      "Step 6: Verify the conversation is removed from the list",
+      "Step 7: Confirm the conversation no longer appears when refreshing"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Markdown rendering works correctly in assistant messages",
+    "steps": [
+      "Step 1: Send a message asking AI to respond with markdown formatting",
+      "Step 2: Wait for the response",
+      "Step 3: Verify headers are rendered with proper styling",
+      "Step 4: Verify bold and italic text renders correctly",
+      "Step 5: Verify bullet points and numbered lists render properly",
+      "Step 6: Verify links are clickable",
+      "Step 7: Verify inline code is styled correctly",
+      "Step 8: Verify blockquotes are properly indented"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Code blocks display with syntax highlighting and copy button",
+    "steps": [
+      "Step 1: Send a message asking AI to write a Python function",
+      "Step 2: Wait for the code block response",
+      "Step 3: Verify the code block has syntax highlighting",
+      "Step 4: Verify the language label shows 'python'",
+      "Step 5: Locate and click the copy button",
+      "Step 6: Verify the code is copied to clipboard",
+      "Step 7: Verify a 'Copied!' feedback message appears"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "User can stop a streaming response mid-generation",
+    "steps": [
+      "Step 1: Send a message requesting a long response",
+      "Step 2: While the response is streaming, locate the stop button",
+      "Step 3: Click the stop button",
+      "Step 4: Verify streaming stops immediately",
+      "Step 5: Verify the partial response remains visible",
+      "Step 6: Verify the regenerate button becomes available"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "User can regenerate the last AI response",
+    "steps": [
+      "Step 1: Send a message and wait for the response",
+      "Step 2: Locate the regenerate button on the last assistant message",
+      "Step 3: Click the regenerate button",
+      "Step 4: Verify a new response begins streaming",
+      "Step 5: Verify the previous response is replaced",
+      "Step 6: Confirm the new response completes successfully"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "User can edit and resend their previous message",
+    "steps": [
+      "Step 1: Send a message and receive a response",
+      "Step 2: Click the edit button on the user message",
+      "Step 3: Modify the message content",
+      "Step 4: Click submit or press Enter",
+      "Step 5: Verify the message updates",
+      "Step 6: Verify a new AI response is generated",
+      "Step 7: Verify conversation history branches appropriately"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Multi-line messages work with Shift+Enter for newlines",
+    "steps": [
+      "Step 1: Click in the input field",
+      "Step 2: Type 'Line 1'",
+      "Step 3: Press Shift+Enter",
+      "Step 4: Type 'Line 2'",
+      "Step 5: Verify the input field shows two lines",
+      "Step 6: Press Enter to send",
+      "Step 7: Verify the message displays with proper line breaks"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Input textarea auto-resizes as user types more content",
+    "steps": [
+      "Step 1: Click in the input field",
+      "Step 2: Note the initial height of the textarea",
+      "Step 3: Type multiple lines using Shift+Enter",
+      "Step 4: Verify the textarea height increases",
+      "Step 5: Delete some lines",
+      "Step 6: Verify the textarea height decreases",
+      "Step 7: Verify there is a maximum height with scrollbar"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Model selector dropdown allows switching between AI models",
+    "steps": [
+      "Step 1: Locate the model selector in the header",
+      "Step 2: Click to open the dropdown",
+      "Step 3: Verify Claude Sonnet 4.5, Haiku 4.5, and Opus 4.1 are listed",
+      "Step 4: Select a different model",
+      "Step 5: Verify the selector updates to show the new model",
+      "Step 6: Send a message",
+      "Step 7: Verify the response comes from the selected model"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Sidebar can be collapsed and expanded on desktop",
+    "steps": [
+      "Step 1: Verify the sidebar is visible on desktop view",
+      "Step 2: Click the sidebar toggle button",
+      "Step 3: Verify the sidebar collapses with animation",
+      "Step 4: Verify the main chat area expands to fill space",
+      "Step 5: Click the toggle button again",
+      "Step 6: Verify the sidebar expands back"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Conversations are grouped by date in sidebar (Today, Yesterday, etc.)",
+    "steps": [
+      "Step 1: Create multiple conversations over different dates (mock data)",
+      "Step 2: View the sidebar conversation list",
+      "Step 3: Verify 'Today' group contains recent conversations",
+      "Step 4: Verify 'Yesterday' group exists for older conversations",
+      "Step 5: Verify 'Previous 7 days' group exists",
+      "Step 6: Verify groups are collapsible"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Search functionality filters conversations by title and content",
+    "steps": [
+      "Step 1: Create multiple conversations with distinct topics",
+      "Step 2: Locate the search input in the sidebar",
+      "Step 3: Type a search term that matches one conversation",
+      "Step 4: Verify the list filters to show matching conversations",
+      "Step 5: Clear the search",
+      "Step 6: Verify all conversations reappear",
+      "Step 7: Search for content within messages",
+      "Step 8: Verify conversations containing that content are shown"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "User can pin important conversations to keep them at the top",
+    "steps": [
+      "Step 1: Create a test conversation",
+      "Step 2: Right-click or click the menu icon on the conversation",
+      "Step 3: Select 'Pin' from the context menu",
+      "Step 4: Verify a pin icon appears on the conversation",
+      "Step 5: Verify the conversation moves to a 'Pinned' section at top",
+      "Step 6: Unpin the conversation",
+      "Step 7: Verify it returns to its original position"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "User can archive conversations to hide them from main list",
+    "steps": [
+      "Step 1: Create a test conversation",
+      "Step 2: Open the conversation menu",
+      "Step 3: Select 'Archive'",
+      "Step 4: Verify the conversation disappears from main list",
+      "Step 5: Navigate to archived conversations view",
+      "Step 6: Verify the archived conversation appears there",
+      "Step 7: Unarchive the conversation",
+      "Step 8: Verify it returns to main list"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "User can duplicate an existing conversation",
+    "steps": [
+      "Step 1: Create a conversation with some messages",
+      "Step 2: Open the conversation menu",
+      "Step 3: Select 'Duplicate'",
+      "Step 4: Verify a new conversation is created",
+      "Step 5: Verify the new conversation contains all messages from original",
+      "Step 6: Verify the title indicates it's a copy"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Export conversation as JSON format",
+    "steps": [
+      "Step 1: Create a conversation with several messages",
+      "Step 2: Open the conversation menu",
+      "Step 3: Select 'Export' option",
+      "Step 4: Choose 'JSON' format",
+      "Step 5: Verify a JSON file downloads",
+      "Step 6: Open the file and verify it contains all messages",
+      "Step 7: Verify metadata like timestamps and model are included"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Export conversation as Markdown format",
+    "steps": [
+      "Step 1: Create a conversation with code blocks and formatting",
+      "Step 2: Open export options",
+      "Step 3: Select 'Markdown' format",
+      "Step 4: Verify a .md file downloads",
+      "Step 5: Open the file and verify messages are properly formatted",
+      "Step 6: Verify code blocks are preserved"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Image upload via file picker works correctly",
+    "steps": [
+      "Step 1: Locate the attachment button in the input area",
+      "Step 2: Click the attachment button",
+      "Step 3: Select an image file from the file picker",
+      "Step 4: Verify the image thumbnail appears in the input area",
+      "Step 5: Type a message 'What is in this image?'",
+      "Step 6: Send the message",
+      "Step 7: Verify the image is displayed in the conversation",
+      "Step 8: Verify AI responds about the image content"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Image paste from clipboard works correctly",
+    "steps": [
+      "Step 1: Copy an image to clipboard (screenshot or copy from browser)",
+      "Step 2: Click in the input textarea",
+      "Step 3: Press Ctrl/Cmd+V to paste",
+      "Step 4: Verify the image appears as an attachment",
+      "Step 5: Send a message with the image",
+      "Step 6: Verify the image displays in the conversation"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Drag and drop file attachment works correctly",
+    "steps": [
+      "Step 1: Open a file explorer window with an image",
+      "Step 2: Drag the image file over the input area",
+      "Step 3: Verify a drop zone visual indicator appears",
+      "Step 4: Drop the file",
+      "Step 5: Verify the file appears as an attachment",
+      "Step 6: Verify the attachment can be removed before sending"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Extended thinking mode can be enabled for complex problems",
+    "steps": [
+      "Step 1: Locate the extended thinking toggle",
+      "Step 2: Enable extended thinking mode",
+      "Step 3: Verify the toggle shows as enabled",
+      "Step 4: Send a complex analytical question",
+      "Step 5: Verify a 'Thinking...' indicator appears",
+      "Step 6: Verify the thinking process is shown (collapsible)",
+      "Step 7: Verify the final response includes deeper analysis"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Thinking process is collapsible in message display",
+    "steps": [
+      "Step 1: Enable extended thinking and send a message",
+      "Step 2: Wait for the response with thinking",
+      "Step 3: Locate the thinking section in the message",
+      "Step 4: Verify it can be collapsed",
+      "Step 5: Click to collapse",
+      "Step 6: Verify thinking content is hidden",
+      "Step 7: Click to expand",
+      "Step 8: Verify thinking content reappears"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Settings modal opens and displays all setting categories",
+    "steps": [
+      "Step 1: Click the settings icon in the sidebar",
+      "Step 2: Verify the settings modal opens",
+      "Step 3: Verify tabs for General, Appearance, Advanced, etc. exist",
+      "Step 4: Click through each tab",
+      "Step 5: Verify content loads for each tab",
+      "Step 6: Close the modal with X button",
+      "Step 7: Verify modal closes smoothly"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Theme switching between light, dark, and auto modes",
+    "steps": [
+      "Step 1: Open settings modal",
+      "Step 2: Navigate to Appearance settings",
+      "Step 3: Select 'Dark' theme",
+      "Step 4: Verify the UI changes to dark colors",
+      "Step 5: Select 'Light' theme",
+      "Step 6: Verify the UI changes to light colors",
+      "Step 7: Select 'Auto' theme",
+      "Step 8: Verify theme matches system preference"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Font size adjustment affects the interface",
+    "steps": [
+      "Step 1: Open settings modal",
+      "Step 2: Navigate to Appearance settings",
+      "Step 3: Locate font size slider (12-24px)",
+      "Step 4: Increase font size",
+      "Step 5: Verify text throughout the app increases",
+      "Step 6: Decrease font size",
+      "Step 7: Verify text decreases accordingly"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Custom instructions can be set and affect AI responses",
+    "steps": [
+      "Step 1: Open settings modal",
+      "Step 2: Navigate to Custom Instructions",
+      "Step 3: Enter instruction: 'Always respond in Spanish'",
+      "Step 4: Save the settings",
+      "Step 5: Start a new conversation",
+      "Step 6: Send 'Hello, how are you?'",
+      "Step 7: Verify AI responds in Spanish",
+      "Step 8: Clear custom instructions and verify normal responses"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Temperature control slider affects response creativity",
+    "steps": [
+      "Step 1: Open advanced settings",
+      "Step 2: Locate temperature slider (0-1)",
+      "Step 3: Set temperature to 0",
+      "Step 4: Send 'Give me a creative story idea'",
+      "Step 5: Note the response",
+      "Step 6: Set temperature to 1",
+      "Step 7: Send the same message",
+      "Step 8: Verify response differs in creativity"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Max tokens setting limits response length",
+    "steps": [
+      "Step 1: Open advanced settings",
+      "Step 2: Set max tokens to 100",
+      "Step 3: Send a message requesting a long explanation",
+      "Step 4: Verify response is truncated around 100 tokens",
+      "Step 5: Set max tokens to 4096",
+      "Step 6: Send the same request",
+      "Step 7: Verify response can be longer"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Project creation and management works correctly",
+    "steps": [
+      "Step 1: Click 'New Project' button",
+      "Step 2: Enter project name 'Test Project'",
+      "Step 3: Add a description",
+      "Step 4: Select a color and icon",
+      "Step 5: Click Create",
+      "Step 6: Verify project appears in project selector",
+      "Step 7: Select the project",
+      "Step 8: Verify conversations filter to project scope"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Move conversation between projects",
+    "steps": [
+      "Step 1: Create two projects",
+      "Step 2: Create a conversation in Project A",
+      "Step 3: Open conversation menu",
+      "Step 4: Select 'Move to Project'",
+      "Step 5: Choose Project B",
+      "Step 6: Verify conversation disappears from Project A view",
+      "Step 7: Switch to Project B",
+      "Step 8: Verify conversation appears in Project B"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Project-specific custom instructions override global instructions",
+    "steps": [
+      "Step 1: Set global custom instruction to 'Be formal'",
+      "Step 2: Create a project with instruction 'Be casual and fun'",
+      "Step 3: Start conversation outside any project",
+      "Step 4: Verify AI is formal",
+      "Step 5: Switch to the project",
+      "Step 6: Start a new conversation",
+      "Step 7: Verify AI is casual and fun"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Upload files to project knowledge base",
+    "steps": [
+      "Step 1: Open a project",
+      "Step 2: Navigate to project files/knowledge base",
+      "Step 3: Click upload button",
+      "Step 4: Select a PDF document",
+      "Step 5: Verify upload progress shows",
+      "Step 6: Verify file appears in project files list",
+      "Step 7: Start a conversation referencing the file content",
+      "Step 8: Verify AI can access the document content"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Artifact detection renders code artifacts in side panel",
+    "steps": [
+      "Step 1: Send a message: 'Create a React component for a button'",
+      "Step 2: Wait for AI response with code artifact",
+      "Step 3: Verify the artifacts panel opens automatically",
+      "Step 4: Verify the code is displayed with syntax highlighting",
+      "Step 5: Verify the artifact title shows component name",
+      "Step 6: Verify language badge shows 'React/JSX'"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "HTML artifact preview renders correctly with live preview",
+    "steps": [
+      "Step 1: Send a message: 'Create an HTML page with a form'",
+      "Step 2: Wait for artifact response",
+      "Step 3: Verify artifacts panel shows HTML preview",
+      "Step 4: Verify the form renders correctly in preview",
+      "Step 5: Interact with form elements in preview",
+      "Step 6: Verify CSS styles are applied",
+      "Step 7: Toggle between code view and preview"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "SVG artifact renders as graphic in preview",
+    "steps": [
+      "Step 1: Send a message: 'Create an SVG icon of a star'",
+      "Step 2: Wait for artifact response",
+      "Step 3: Verify SVG renders as graphic in artifacts panel",
+      "Step 4: Verify code view shows SVG markup",
+      "Step 5: Download the SVG file",
+      "Step 6: Verify downloaded file opens correctly"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Mermaid diagram artifact renders correctly",
+    "steps": [
+      "Step 1: Send a message: 'Create a Mermaid flowchart for user login'",
+      "Step 2: Wait for artifact response",
+      "Step 3: Verify Mermaid diagram renders visually",
+      "Step 4: Verify flowchart shows correct nodes and connections",
+      "Step 5: Toggle to code view",
+      "Step 6: Verify Mermaid syntax is visible"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Download artifact content as file",
+    "steps": [
+      "Step 1: Create an artifact (code or document)",
+      "Step 2: Locate the download button in artifacts panel",
+      "Step 3: Click download",
+      "Step 4: Verify file downloads with correct extension",
+      "Step 5: Open the downloaded file",
+      "Step 6: Verify content matches the artifact"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Edit artifact and re-prompt for changes",
+    "steps": [
+      "Step 1: Create a code artifact",
+      "Step 2: Click the edit button on the artifact",
+      "Step 3: Modify the code content",
+      "Step 4: Enter a prompt: 'Add error handling to this code'",
+      "Step 5: Submit the re-prompt",
+      "Step 6: Verify AI generates an updated artifact",
+      "Step 7: Verify changes are incorporated"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Artifact version history navigation",
+    "steps": [
+      "Step 1: Create an artifact",
+      "Step 2: Edit and re-prompt to create a new version",
+      "Step 3: Repeat to create a third version",
+      "Step 4: Click the version selector",
+      "Step 5: Select version 1",
+      "Step 6: Verify original content displays",
+      "Step 7: Select version 3",
+      "Step 8: Verify latest content displays"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Full-screen artifact view toggle",
+    "steps": [
+      "Step 1: Create an artifact",
+      "Step 2: Click the full-screen toggle button",
+      "Step 3: Verify artifact expands to full viewport",
+      "Step 4: Verify controls are still accessible",
+      "Step 5: Click exit full-screen or press Escape",
+      "Step 6: Verify returns to normal panel view"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Multiple artifacts can be viewed in tabs",
+    "steps": [
+      "Step 1: Create multiple artifacts in one conversation",
+      "Step 2: Verify tabs appear in artifacts panel",
+      "Step 3: Click on different tabs",
+      "Step 4: Verify correct artifact content shows for each tab",
+      "Step 5: Close a tab",
+      "Step 6: Verify tab disappears and another becomes active"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "LaTeX/math equations render correctly with KaTeX",
+    "steps": [
+      "Step 1: Send a message: 'Show me the quadratic formula'",
+      "Step 2: Wait for response with math notation",
+      "Step 3: Verify the equation renders properly",
+      "Step 4: Verify inline math expressions render",
+      "Step 5: Verify display-mode equations are centered",
+      "Step 6: Verify complex equations like integrals render"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Conversation branching creates alternative paths from any message",
+    "steps": [
+      "Step 1: Create a conversation with several exchanges",
+      "Step 2: Hover over a middle message",
+      "Step 3: Click the 'Branch' button",
+      "Step 4: Send a different message from that point",
+      "Step 5: Verify a new branch is created",
+      "Step 6: Verify branch indicator shows",
+      "Step 7: Switch between branches",
+      "Step 8: Verify each branch has independent history"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Branch visualization shows conversation tree structure",
+    "steps": [
+      "Step 1: Create a conversation with multiple branches",
+      "Step 2: Open branch visualization view",
+      "Step 3: Verify tree structure displays correctly",
+      "Step 4: Verify branch points are marked",
+      "Step 5: Click on a branch node",
+      "Step 6: Verify conversation switches to that branch"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Checkpoint system creates restore points",
+    "steps": [
+      "Step 1: Start a conversation",
+      "Step 2: Send several messages",
+      "Step 3: Click 'Create Checkpoint'",
+      "Step 4: Add a note 'Before major change'",
+      "Step 5: Continue conversation with more messages",
+      "Step 6: View checkpoint list",
+      "Step 7: Verify checkpoint appears with timestamp and note"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Restore conversation to previous checkpoint",
+    "steps": [
+      "Step 1: Create a checkpoint at message 5",
+      "Step 2: Continue to message 10",
+      "Step 3: Open checkpoint manager",
+      "Step 4: Select the earlier checkpoint",
+      "Step 5: Click 'Restore'",
+      "Step 6: Confirm the restore action",
+      "Step 7: Verify conversation reverts to message 5 state",
+      "Step 8: Verify later messages are removed"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Compare checkpoint states with diff view",
+    "steps": [
+      "Step 1: Create two checkpoints at different points",
+      "Step 2: Open checkpoint manager",
+      "Step 3: Select both checkpoints for comparison",
+      "Step 4: Click 'Compare'",
+      "Step 5: Verify diff view opens showing differences",
+      "Step 6: Verify added messages are highlighted",
+      "Step 7: Verify removed content is indicated"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Todo list displays agent's task planning progress",
+    "steps": [
+      "Step 1: Send a complex request: 'Help me set up a new React project with TypeScript'",
+      "Step 2: Verify todo panel opens with task list",
+      "Step 3: Verify tasks are listed with pending status",
+      "Step 4: Verify tasks update to in_progress as agent works",
+      "Step 5: Verify completed tasks show checkmarks",
+      "Step 6: Verify progress bar updates accordingly"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Files panel shows agent workspace files",
+    "steps": [
+      "Step 1: Ask agent to create some files: 'Create a simple Express server'",
+      "Step 2: Verify files panel shows created files",
+      "Step 3: Verify file tree structure is correct",
+      "Step 4: Click on a file",
+      "Step 5: Verify file content preview shows",
+      "Step 6: Verify syntax highlighting in preview"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Diff viewer shows file changes made by agent",
+    "steps": [
+      "Step 1: Have agent create a file",
+      "Step 2: Ask agent to modify the file",
+      "Step 3: Open diff viewer for that file",
+      "Step 4: Verify original content shows on left",
+      "Step 5: Verify modified content shows on right",
+      "Step 6: Verify changes are highlighted (added/removed)"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Download files created by agent",
+    "steps": [
+      "Step 1: Have agent create a file",
+      "Step 2: Open files panel",
+      "Step 3: Select the file",
+      "Step 4: Click download button",
+      "Step 5: Verify file downloads correctly",
+      "Step 6: Open downloaded file",
+      "Step 7: Verify content matches"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Tool execution visualization shows tool calls inline",
+    "steps": [
+      "Step 1: Ask agent to read a file",
+      "Step 2: Verify tool call block appears in message",
+      "Step 3: Verify tool name 'read_file' is shown",
+      "Step 4: Verify tool input (file path) is displayed",
+      "Step 5: Verify tool output is collapsible",
+      "Step 6: Click to expand tool output",
+      "Step 7: Verify file content is shown"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Human-in-the-loop approval dialog for execute tool",
+    "steps": [
+      "Step 1: Set permission mode to 'default'",
+      "Step 2: Ask agent to execute a shell command",
+      "Step 3: Verify approval dialog appears",
+      "Step 4: Verify tool name and command are displayed",
+      "Step 5: Click 'Approve'",
+      "Step 6: Verify execution continues",
+      "Step 7: Verify output is displayed"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Edit tool input in HITL approval dialog",
+    "steps": [
+      "Step 1: Trigger a tool that requires approval",
+      "Step 2: Verify approval dialog shows",
+      "Step 3: Click 'Edit' option",
+      "Step 4: Modify the tool input/arguments",
+      "Step 5: Submit the edited input",
+      "Step 6: Verify agent uses the modified input",
+      "Step 7: Verify execution continues with changes"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Reject tool execution in HITL dialog",
+    "steps": [
+      "Step 1: Trigger a tool requiring approval",
+      "Step 2: Verify approval dialog shows",
+      "Step 3: Click 'Reject'",
+      "Step 4: Verify tool execution is cancelled",
+      "Step 5: Verify agent acknowledges rejection",
+      "Step 6: Verify conversation can continue"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Permission mode switch between default, acceptEdits, plan, bypass",
+    "steps": [
+      "Step 1: Locate permission mode selector",
+      "Step 2: Verify current mode indicator",
+      "Step 3: Switch to 'acceptEdits' mode",
+      "Step 4: Verify file edit operations auto-approve",
+      "Step 5: Switch to 'plan' mode",
+      "Step 6: Verify agent can only analyze, not modify",
+      "Step 7: Switch to 'bypassPermissions'",
+      "Step 8: Verify all tools auto-execute"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Sub-agent delegation indicator shows when task is delegated",
+    "steps": [
+      "Step 1: Ask main agent to research a topic (triggers research subagent)",
+      "Step 2: Verify delegation indicator appears",
+      "Step 3: Verify subagent name is shown (research-agent)",
+      "Step 4: Verify subagent progress is displayed",
+      "Step 5: Verify main agent incorporates subagent results",
+      "Step 6: Verify delegation indicator clears on completion"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Built-in subagents are available (research, code-review, docs, test)",
+    "steps": [
+      "Step 1: Open subagents library modal",
+      "Step 2: Verify research-agent is listed",
+      "Step 3: Verify code-review-agent is listed",
+      "Step 4: Verify documentation-agent is listed",
+      "Step 5: Verify test-writing-agent is listed",
+      "Step 6: Click on each to view description and tools"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Create custom subagent with specific tools and prompt",
+    "steps": [
+      "Step 1: Open subagents library",
+      "Step 2: Click 'Create Custom Subagent'",
+      "Step 3: Enter name 'my-helper'",
+      "Step 4: Enter description and system prompt",
+      "Step 5: Select available tools",
+      "Step 6: Choose model (Sonnet/Haiku)",
+      "Step 7: Save the subagent",
+      "Step 8: Verify it appears in the library",
+      "Step 9: Use it in a conversation",
+      "Step 10: Verify it works correctly"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Long-term memory stores user preferences across conversations",
+    "steps": [
+      "Step 1: Enable memory in settings",
+      "Step 2: Tell AI: 'Remember that my favorite color is blue'",
+      "Step 3: Verify AI confirms it will remember",
+      "Step 4: Start a new conversation",
+      "Step 5: Ask: 'What is my favorite color?'",
+      "Step 6: Verify AI recalls 'blue'",
+      "Step 7: View memory in memory management UI"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Memory management UI allows viewing and deleting memories",
+    "steps": [
+      "Step 1: Open memory management modal",
+      "Step 2: Verify list of stored memories displays",
+      "Step 3: Verify each memory shows category and content",
+      "Step 4: Click to edit a memory",
+      "Step 5: Modify content and save",
+      "Step 6: Verify changes persist",
+      "Step 7: Delete a memory",
+      "Step 8: Verify it no longer appears"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Context summarization occurs when context exceeds limit",
+    "steps": [
+      "Step 1: Engage in a very long conversation (many messages)",
+      "Step 2: Monitor context usage indicator",
+      "Step 3: Continue until context approaches 170k tokens",
+      "Step 4: Verify summarization notification appears",
+      "Step 5: Verify conversation continues smoothly",
+      "Step 6: Verify summary preserves important context"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Manual summarization trigger allows user control",
+    "steps": [
+      "Step 1: Have a moderately long conversation",
+      "Step 2: Find the manual summarize button",
+      "Step 3: Click to trigger summarization",
+      "Step 4: Verify summarization occurs",
+      "Step 5: Verify context is reduced",
+      "Step 6: Continue conversation",
+      "Step 7: Verify AI maintains context understanding"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Prompt caching indicator shows cache statistics",
+    "steps": [
+      "Step 1: Send several messages in a conversation",
+      "Step 2: Locate the cache statistics display",
+      "Step 3: Verify cache hit/miss counts show",
+      "Step 4: Verify cache read tokens are displayed",
+      "Step 5: Verify cache write tokens are displayed",
+      "Step 6: Verify cost savings estimate shows"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Token usage display shows input/output tokens per message",
+    "steps": [
+      "Step 1: Send a message",
+      "Step 2: Locate token usage display on the message",
+      "Step 3: Verify input token count is shown",
+      "Step 4: Verify output token count is shown",
+      "Step 5: Verify total is calculated",
+      "Step 6: Hover for detailed breakdown"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Usage dashboard shows daily and monthly statistics",
+    "steps": [
+      "Step 1: Open usage dashboard modal",
+      "Step 2: Verify daily usage chart displays",
+      "Step 3: Verify monthly summary shows",
+      "Step 4: Verify breakdown by model type",
+      "Step 5: Verify cost estimates display",
+      "Step 6: Export usage report",
+      "Step 7: Verify export file contains all data"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Share conversation via link creates accessible URL",
+    "steps": [
+      "Step 1: Create a conversation with content",
+      "Step 2: Open share modal",
+      "Step 3: Configure share settings (read-only)",
+      "Step 4: Generate share link",
+      "Step 5: Copy the link",
+      "Step 6: Open link in incognito browser",
+      "Step 7: Verify conversation is viewable",
+      "Step 8: Verify editing is restricted"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Command palette opens with Cmd/Ctrl+K and shows actions",
+    "steps": [
+      "Step 1: Press Cmd+K (Mac) or Ctrl+K (Windows)",
+      "Step 2: Verify command palette overlay opens",
+      "Step 3: Type to filter commands",
+      "Step 4: Verify matching commands display",
+      "Step 5: Use arrow keys to select",
+      "Step 6: Press Enter to execute",
+      "Step 7: Verify command executes",
+      "Step 8: Press Escape to close"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Keyboard shortcuts work throughout the application",
+    "steps": [
+      "Step 1: Press Cmd/Ctrl+N for new chat",
+      "Step 2: Verify new chat opens",
+      "Step 3: Press Cmd/Ctrl+, for settings",
+      "Step 4: Verify settings modal opens",
+      "Step 5: Press Escape to close",
+      "Step 6: Press Cmd/Ctrl+B to toggle sidebar",
+      "Step 7: Verify sidebar toggles",
+      "Step 8: Press Cmd/Ctrl+D to toggle dark mode",
+      "Step 9: Verify theme changes"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Prompt library stores and retrieves saved prompts",
+    "steps": [
+      "Step 1: Open prompt library modal",
+      "Step 2: Click 'Create New Prompt'",
+      "Step 3: Enter title and prompt template",
+      "Step 4: Add category tags",
+      "Step 5: Save the prompt",
+      "Step 6: Verify prompt appears in library",
+      "Step 7: Use the prompt in a conversation",
+      "Step 8: Verify template is inserted correctly"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "MCP server management allows adding and removing servers",
+    "steps": [
+      "Step 1: Open MCP configuration modal",
+      "Step 2: Click 'Add Server'",
+      "Step 3: Enter server configuration",
+      "Step 4: Save the server",
+      "Step 5: Verify server appears in list",
+      "Step 6: Test server connection",
+      "Step 7: Verify tools from server are available",
+      "Step 8: Remove the server",
+      "Step 9: Verify tools are no longer available"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Voice input transcribes speech to text in input field",
+    "steps": [
+      "Step 1: Locate voice input button",
+      "Step 2: Click to start recording",
+      "Step 3: Speak 'Hello, how are you today'",
+      "Step 4: Stop recording",
+      "Step 5: Verify transcription appears in input field",
+      "Step 6: Verify text matches spoken words",
+      "Step 7: Send the transcribed message"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Welcome screen shows for new conversations with suggestions",
+    "steps": [
+      "Step 1: Create a new conversation",
+      "Step 2: Verify welcome screen displays",
+      "Step 3: Verify suggested prompts are shown",
+      "Step 4: Click a suggested prompt",
+      "Step 5: Verify it populates the input field",
+      "Step 6: Send the message",
+      "Step 7: Verify welcome screen disappears"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Onboarding tour guides new users through features",
+    "steps": [
+      "Step 1: Clear user data to simulate new user",
+      "Step 2: Load the application",
+      "Step 3: Verify onboarding tour starts",
+      "Step 4: Follow the tour through each step",
+      "Step 5: Verify highlights and tooltips appear",
+      "Step 6: Complete the tour",
+      "Step 7: Verify tour doesn't restart on next visit"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "API key management allows adding and validating keys",
+    "steps": [
+      "Step 1: Open API key settings",
+      "Step 2: Click 'Add API Key'",
+      "Step 3: Enter Anthropic API key",
+      "Step 4: Click validate",
+      "Step 5: Verify validation succeeds",
+      "Step 6: Save the key",
+      "Step 7: Verify key is stored securely (shown masked)",
+      "Step 8: Use the key in a conversation"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Backend API health check endpoint returns status",
+    "steps": [
+      "Step 1: Send GET request to /api/health",
+      "Step 2: Verify 200 OK response",
+      "Step 3: Verify response contains status: 'healthy'",
+      "Step 4: Verify database connection status is included",
+      "Step 5: Verify agent framework status is included"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Conversations API CRUD operations work correctly",
+    "steps": [
+      "Step 1: POST to /api/conversations to create",
+      "Step 2: Verify 201 response with conversation ID",
+      "Step 3: GET /api/conversations/:id to retrieve",
+      "Step 4: Verify conversation data returned",
+      "Step 5: PUT /api/conversations/:id to update title",
+      "Step 6: Verify update succeeds",
+      "Step 7: DELETE /api/conversations/:id",
+      "Step 8: Verify deletion succeeds",
+      "Step 9: GET deleted conversation returns 404"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Messages API handles creating and retrieving messages",
+    "steps": [
+      "Step 1: Create a conversation",
+      "Step 2: POST to /api/conversations/:id/messages",
+      "Step 3: Verify message is created",
+      "Step 4: GET /api/conversations/:id/messages",
+      "Step 5: Verify message list returned",
+      "Step 6: PUT /api/messages/:id to update",
+      "Step 7: Verify update works",
+      "Step 8: DELETE /api/messages/:id",
+      "Step 9: Verify deletion works"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Agent streaming endpoint returns SSE events correctly",
+    "steps": [
+      "Step 1: POST to /api/agent/stream with message",
+      "Step 2: Verify SSE connection established",
+      "Step 3: Receive 'message' events with content",
+      "Step 4: Receive 'tool_start' events for tool calls",
+      "Step 5: Receive 'tool_end' events with results",
+      "Step 6: Receive 'done' event at completion",
+      "Step 7: Verify all events are properly formatted JSON"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Agent interrupt endpoint handles HITL decisions",
+    "steps": [
+      "Step 1: Trigger an agent call that requires approval",
+      "Step 2: Agent execution pauses",
+      "Step 3: POST to /api/agent/interrupt with 'approve'",
+      "Step 4: Verify agent continues execution",
+      "Step 5: Trigger another approval requirement",
+      "Step 6: POST with 'reject' decision",
+      "Step 7: Verify agent handles rejection appropriately"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Projects API manages projects correctly",
+    "steps": [
+      "Step 1: POST to /api/projects to create",
+      "Step 2: Verify project created with ID",
+      "Step 3: GET /api/projects to list all",
+      "Step 4: GET /api/projects/:id for details",
+      "Step 5: PUT /api/projects/:id to update",
+      "Step 6: Verify update succeeds",
+      "Step 7: DELETE /api/projects/:id",
+      "Step 8: Verify deletion succeeds"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Checkpoints API handles checkpoint operations",
+    "steps": [
+      "Step 1: Create a conversation with messages",
+      "Step 2: POST to /api/conversations/:id/checkpoints",
+      "Step 3: Verify checkpoint created",
+      "Step 4: GET /api/conversations/:id/checkpoints",
+      "Step 5: Verify checkpoint list returned",
+      "Step 6: POST /api/checkpoints/:id/restore",
+      "Step 7: Verify conversation restored",
+      "Step 8: DELETE /api/checkpoints/:id",
+      "Step 9: Verify deletion works"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Memory API stores and retrieves user memories",
+    "steps": [
+      "Step 1: POST to /api/memory with content",
+      "Step 2: Verify memory created",
+      "Step 3: GET /api/memory to list all",
+      "Step 4: Verify memories returned",
+      "Step 5: GET /api/memory/search?q=query",
+      "Step 6: Verify search returns matches",
+      "Step 7: PUT /api/memory/:id to update",
+      "Step 8: DELETE /api/memory/:id",
+      "Step 9: Verify deletion works"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Artifacts API manages artifact CRUD operations",
+    "steps": [
+      "Step 1: Create a conversation with artifacts",
+      "Step 2: GET /api/conversations/:id/artifacts",
+      "Step 3: Verify artifacts list returned",
+      "Step 4: GET /api/artifacts/:id for specific artifact",
+      "Step 5: PUT /api/artifacts/:id to update content",
+      "Step 6: POST /api/artifacts/:id/fork to create version",
+      "Step 7: GET /api/artifacts/:id/versions",
+      "Step 8: Verify version history returned"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Search API returns relevant results across conversations",
+    "steps": [
+      "Step 1: Create several conversations with varied content",
+      "Step 2: GET /api/search/conversations?q=unique_term",
+      "Step 3: Verify matching conversations returned",
+      "Step 4: GET /api/search/messages?q=term",
+      "Step 5: Verify matching messages returned",
+      "Step 6: GET /api/search/global?q=term",
+      "Step 7: Verify combined results returned"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Settings API persists user preferences",
+    "steps": [
+      "Step 1: GET /api/settings for current settings",
+      "Step 2: Verify default settings returned",
+      "Step 3: PUT /api/settings with new theme",
+      "Step 4: Verify update succeeds",
+      "Step 5: GET /api/settings",
+      "Step 6: Verify new theme persisted",
+      "Step 7: PUT /api/settings/custom-instructions",
+      "Step 8: Verify instructions persisted"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Usage API returns accurate usage statistics",
+    "steps": [
+      "Step 1: Send several messages to generate usage",
+      "Step 2: GET /api/usage/daily",
+      "Step 3: Verify daily usage includes recent activity",
+      "Step 4: GET /api/usage/by-model",
+      "Step 5: Verify model breakdown is accurate",
+      "Step 6: GET /api/usage/cache-stats",
+      "Step 7: Verify cache statistics returned",
+      "Step 8: GET /api/usage/export",
+      "Step 9: Verify export file generated"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Folders API organizes conversations hierarchically",
+    "steps": [
+      "Step 1: POST to /api/folders to create folder",
+      "Step 2: Verify folder created",
+      "Step 3: POST to /api/folders/:id/items to add conversation",
+      "Step 4: Verify conversation associated with folder",
+      "Step 5: GET /api/folders to list all folders",
+      "Step 6: DELETE /api/folders/:id/items/:conversationId",
+      "Step 7: Verify conversation removed from folder",
+      "Step 8: DELETE /api/folders/:id",
+      "Step 9: Verify folder deleted"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Subagents API manages custom subagent configurations",
+    "steps": [
+      "Step 1: GET /api/subagents/builtin",
+      "Step 2: Verify built-in subagents listed",
+      "Step 3: POST /api/subagents to create custom",
+      "Step 4: Verify subagent created",
+      "Step 5: GET /api/subagents/:id",
+      "Step 6: Verify subagent details returned",
+      "Step 7: PUT /api/subagents/:id to update",
+      "Step 8: DELETE /api/subagents/:id",
+      "Step 9: Verify deletion works"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Background tasks API tracks long-running operations",
+    "steps": [
+      "Step 1: Trigger a long-running agent task",
+      "Step 2: GET /api/tasks to list tasks",
+      "Step 3: Verify new task in 'running' status",
+      "Step 4: GET /api/tasks/:id for details",
+      "Step 5: Verify progress percentage updates",
+      "Step 6: GET /api/tasks/:id/stream for SSE updates",
+      "Step 7: PUT /api/tasks/:id/cancel",
+      "Step 8: Verify task cancellation works"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Rate limiting prevents API abuse",
+    "steps": [
+      "Step 1: Send many requests in quick succession",
+      "Step 2: Verify rate limit headers are present",
+      "Step 3: Exceed rate limit",
+      "Step 4: Verify 429 Too Many Requests response",
+      "Step 5: Wait for rate limit reset",
+      "Step 6: Verify requests succeed again"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Error handling returns proper error responses",
+    "steps": [
+      "Step 1: Request non-existent resource",
+      "Step 2: Verify 404 response with error message",
+      "Step 3: Send malformed request body",
+      "Step 4: Verify 400 response with validation errors",
+      "Step 5: Send request without required fields",
+      "Step 6: Verify descriptive error message",
+      "Step 7: Trigger internal error",
+      "Step 8: Verify 500 response doesn't leak internals"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Database migrations run successfully",
+    "steps": [
+      "Step 1: Check current database schema",
+      "Step 2: Run database migrations",
+      "Step 3: Verify all tables are created",
+      "Step 4: Verify foreign key relationships",
+      "Step 5: Verify indexes are created",
+      "Step 6: Test rollback functionality"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Audit logging captures important user actions",
+    "steps": [
+      "Step 1: Perform various actions (create, edit, delete)",
+      "Step 2: Query audit_logs table",
+      "Step 3: Verify actions are logged with timestamps",
+      "Step 4: Verify user ID is captured",
+      "Step 5: Verify resource type and ID logged",
+      "Step 6: Verify tool decisions are logged for HITL"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Application uses correct primary orange/amber color (#CC785C)",
+    "steps": [
+      "Step 1: Open the application",
+      "Step 2: Locate primary action buttons (Send, New Chat)",
+      "Step 3: Inspect button background color",
+      "Step 4: Verify color is #CC785C or close to it",
+      "Step 5: Verify hover state changes to #B86A4E",
+      "Step 6: Verify active state uses #A35D42"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Light theme uses correct background colors",
+    "steps": [
+      "Step 1: Set theme to Light",
+      "Step 2: Verify main background is white (#FFFFFF)",
+      "Step 3: Verify sidebar uses light gray (#F5F5F5)",
+      "Step 4: Verify elevated surfaces use (#FAFAFA)",
+      "Step 5: Verify text is near-black (#1A1A1A)",
+      "Step 6: Verify borders are light gray (#E5E5E5)"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Dark theme uses correct colors",
+    "steps": [
+      "Step 1: Set theme to Dark",
+      "Step 2: Verify main background is dark gray (#1A1A1A)",
+      "Step 3: Verify sidebar uses (#2A2A2A)",
+      "Step 4: Verify elevated surfaces use (#333333)",
+      "Step 5: Verify text is off-white (#E5E5E5)",
+      "Step 6: Verify borders are (#404040)"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Typography uses correct font family and sizes",
+    "steps": [
+      "Step 1: Inspect body text font family",
+      "Step 2: Verify sans-serif stack (Inter, SF Pro, system-ui)",
+      "Step 3: Verify message text is 16px",
+      "Step 4: Verify small text is 14px",
+      "Step 5: Verify code uses monospace (JetBrains Mono, Fira Code)",
+      "Step 6: Verify headings use semibold weight"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Message bubbles have correct styling",
+    "steps": [
+      "Step 1: Send a message to create message bubbles",
+      "Step 2: Verify user message has distinct styling",
+      "Step 3: Verify assistant message has different style",
+      "Step 4: Verify proper padding and margins",
+      "Step 5: Verify rounded corners on bubbles",
+      "Step 6: Verify line-height is 1.75 for readability"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Input field has correct styling and auto-resize behavior",
+    "steps": [
+      "Step 1: Click in the input textarea",
+      "Step 2: Verify placeholder text styling",
+      "Step 3: Verify border styling matches design",
+      "Step 4: Verify focus state has visible ring",
+      "Step 5: Verify send button position",
+      "Step 6: Verify attachment buttons are visible"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Sidebar has correct layout and spacing",
+    "steps": [
+      "Step 1: Examine sidebar structure",
+      "Step 2: Verify New Chat button is prominent",
+      "Step 3: Verify conversation list uses correct padding",
+      "Step 4: Verify date group headers are styled correctly",
+      "Step 5: Verify settings and profile at bottom",
+      "Step 6: Verify resize handle is visible"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Buttons follow consistent design patterns",
+    "steps": [
+      "Step 1: Examine primary buttons (Send, Create)",
+      "Step 2: Verify consistent height and padding",
+      "Step 3: Examine secondary buttons",
+      "Step 4: Verify distinct but consistent styling",
+      "Step 5: Examine icon buttons",
+      "Step 6: Verify proper sizing and hit areas",
+      "Step 7: Verify all buttons have hover states"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Code blocks use appropriate styling with One Dark/Light theme",
+    "steps": [
+      "Step 1: Generate a code block response",
+      "Step 2: Verify code block has distinct background",
+      "Step 3: Verify syntax highlighting colors",
+      "Step 4: Verify language label badge",
+      "Step 5: Verify copy button positioning",
+      "Step 6: Switch themes and verify code styling updates"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Modal dialogs have consistent styling",
+    "steps": [
+      "Step 1: Open settings modal",
+      "Step 2: Verify modal overlay is semi-transparent",
+      "Step 3: Verify modal has appropriate width",
+      "Step 4: Verify close button positioning",
+      "Step 5: Verify header styling",
+      "Step 6: Verify content padding",
+      "Step 7: Open other modals and verify consistency"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Dropdowns and select menus are styled consistently",
+    "steps": [
+      "Step 1: Open model selector dropdown",
+      "Step 2: Verify dropdown styling matches design",
+      "Step 3: Verify option hover states",
+      "Step 4: Verify selected option styling",
+      "Step 5: Check other dropdowns for consistency",
+      "Step 6: Verify proper spacing and padding"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Loading states and spinners are visually consistent",
+    "steps": [
+      "Step 1: Trigger loading state (send message)",
+      "Step 2: Verify loading spinner animation",
+      "Step 3: Verify typing indicator animation",
+      "Step 4: Verify skeleton loaders for content",
+      "Step 5: Verify all animations are smooth (150-300ms)"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Transitions and animations are smooth",
+    "steps": [
+      "Step 1: Toggle sidebar collapse",
+      "Step 2: Verify smooth slide animation",
+      "Step 3: Open/close modals",
+      "Step 4: Verify fade in/out animations",
+      "Step 5: Expand/collapse sections",
+      "Step 6: Verify animations use ease-out timing",
+      "Step 7: Verify no janky or stuttering animations"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Success, warning, error states use correct colors",
+    "steps": [
+      "Step 1: Trigger a success state",
+      "Step 2: Verify green (#10B981) is used",
+      "Step 3: Trigger a warning state",
+      "Step 4: Verify amber (#F59E0B) is used",
+      "Step 5: Trigger an error state",
+      "Step 6: Verify red (#EF4444) is used",
+      "Step 7: Verify info states use blue (#3B82F6)"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Artifacts panel has correct layout and styling",
+    "steps": [
+      "Step 1: Create an artifact",
+      "Step 2: Verify panel opens on the right",
+      "Step 3: Verify header with title and type badge",
+      "Step 4: Verify tab styling for multiple artifacts",
+      "Step 5: Verify action buttons (download, fullscreen)",
+      "Step 6: Verify code editor styling (Monaco)"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Todo panel has clear task status visualization",
+    "steps": [
+      "Step 1: Trigger agent to create todos",
+      "Step 2: Verify todo panel styling",
+      "Step 3: Verify pending tasks have gray badge",
+      "Step 4: Verify in-progress tasks have yellow badge",
+      "Step 5: Verify completed tasks have green checkmark",
+      "Step 6: Verify progress bar styling"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Tool call blocks have distinct visual treatment",
+    "steps": [
+      "Step 1: Trigger a tool call in conversation",
+      "Step 2: Verify tool block has distinct background",
+      "Step 3: Verify tool name is prominently shown",
+      "Step 4: Verify input/output sections are clear",
+      "Step 5: Verify collapse/expand styling",
+      "Step 6: Verify icon treatment for tool types"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "HITL approval dialog is clearly visible and styled",
+    "steps": [
+      "Step 1: Trigger HITL approval requirement",
+      "Step 2: Verify dialog has attention-grabbing styling",
+      "Step 3: Verify tool name and details are clear",
+      "Step 4: Verify approve button is primary styled",
+      "Step 5: Verify reject button is danger styled",
+      "Step 6: Verify edit option is clearly accessible"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Responsive design works at tablet breakpoint (768px)",
+    "steps": [
+      "Step 1: Resize browser to 768px width",
+      "Step 2: Verify layout adapts to two columns",
+      "Step 3: Verify sidebar becomes collapsible",
+      "Step 4: Verify artifacts panel becomes overlay",
+      "Step 5: Verify text remains readable",
+      "Step 6: Verify touch targets are adequate size"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Responsive design works at mobile breakpoint (375px)",
+    "steps": [
+      "Step 1: Resize browser to 375px width",
+      "Step 2: Verify single column layout",
+      "Step 3: Verify sidebar is hidden by default",
+      "Step 4: Verify header adapts properly",
+      "Step 5: Verify input field is full width",
+      "Step 6: Verify modals are full-screen",
+      "Step 7: Verify buttons are touch-friendly"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Swipe gestures work on mobile for navigation",
+    "steps": [
+      "Step 1: Open application on mobile or emulator",
+      "Step 2: Swipe right from left edge",
+      "Step 3: Verify sidebar opens with animation",
+      "Step 4: Swipe left to close sidebar",
+      "Step 5: Verify sidebar closes smoothly",
+      "Step 6: Test swipe on artifacts panel"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Three-column desktop layout is properly proportioned",
+    "steps": [
+      "Step 1: Open application at 1920px width",
+      "Step 2: Verify sidebar is approximately 260-320px",
+      "Step 3: Verify main chat area is flexible/centered",
+      "Step 4: Verify artifacts panel is approximately 400-500px",
+      "Step 5: Verify proportions feel balanced",
+      "Step 6: Verify resize handles work"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Scrollbar styling matches the application theme",
+    "steps": [
+      "Step 1: Generate enough messages to cause scroll",
+      "Step 2: Examine scrollbar styling",
+      "Step 3: Verify scrollbar color matches theme",
+      "Step 4: Switch to dark theme",
+      "Step 5: Verify scrollbar updates appropriately",
+      "Step 6: Test smooth scrolling behavior"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Command palette has proper overlay and styling",
+    "steps": [
+      "Step 1: Open command palette (Cmd+K)",
+      "Step 2: Verify overlay darkens background",
+      "Step 3: Verify palette is centered",
+      "Step 4: Verify search input styling",
+      "Step 5: Verify command list styling",
+      "Step 6: Verify keyboard navigation highlighting"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Empty states have appropriate illustrations and text",
+    "steps": [
+      "Step 1: View conversation list with no conversations",
+      "Step 2: Verify empty state illustration or icon",
+      "Step 3: Verify helpful text explains the state",
+      "Step 4: Verify call-to-action button is present",
+      "Step 5: Check other empty states (no projects, no memories)"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Focus states are visible for keyboard navigation",
+    "steps": [
+      "Step 1: Tab through the interface",
+      "Step 2: Verify each focusable element has visible focus ring",
+      "Step 3: Verify focus ring color contrasts well",
+      "Step 4: Verify buttons show focus state",
+      "Step 5: Verify input fields show focus state",
+      "Step 6: Verify links show focus state"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "High contrast mode maintains readability",
+    "steps": [
+      "Step 1: Enable high contrast mode in settings",
+      "Step 2: Verify text contrast increases",
+      "Step 3: Verify borders become more defined",
+      "Step 4: Verify buttons are clearly distinguishable",
+      "Step 5: Verify icons are visible",
+      "Step 6: Verify all content remains readable"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Full keyboard navigation without mouse",
+    "steps": [
+      "Step 1: Start at page load with keyboard only",
+      "Step 2: Tab to New Chat button and press Enter",
+      "Step 3: Tab to input field and type message",
+      "Step 4: Press Enter to send",
+      "Step 5: Tab to sidebar conversations",
+      "Step 6: Use arrow keys to navigate list",
+      "Step 7: Press Enter to select conversation",
+      "Step 8: Tab to settings and open with Enter",
+      "Step 9: Navigate settings with Tab and Enter",
+      "Step 10: Press Escape to close modal"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Screen reader announces content correctly (ARIA)",
+    "steps": [
+      "Step 1: Enable screen reader (VoiceOver/NVDA)",
+      "Step 2: Navigate to main content",
+      "Step 3: Verify conversation messages are announced",
+      "Step 4: Verify buttons announce their purpose",
+      "Step 5: Verify form fields have labels",
+      "Step 6: Verify dynamic content updates are announced",
+      "Step 7: Verify modal dialogs announce correctly"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Skip navigation links work correctly",
+    "steps": [
+      "Step 1: Press Tab immediately on page load",
+      "Step 2: Verify 'Skip to main content' link appears",
+      "Step 3: Press Enter to activate skip link",
+      "Step 4: Verify focus moves to main chat area",
+      "Step 5: Verify skip link for sidebar exists",
+      "Step 6: Verify skip link for artifacts panel exists"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Reduced motion preference is respected",
+    "steps": [
+      "Step 1: Enable 'prefer reduced motion' in OS settings",
+      "Step 2: Refresh the application",
+      "Step 3: Verify animations are disabled or minimal",
+      "Step 4: Toggle sidebar - verify no slide animation",
+      "Step 5: Open modal - verify no fade animation",
+      "Step 6: Verify transitions are instant"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Color blind modes provide distinguishable UI elements",
+    "steps": [
+      "Step 1: Enable deuteranopia simulation",
+      "Step 2: Verify success/error states are distinguishable",
+      "Step 3: Verify status badges are readable",
+      "Step 4: Test protanopia mode",
+      "Step 5: Test tritanopia mode",
+      "Step 6: Verify all modes maintain usability"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "WebSocket connection handles reconnection gracefully",
+    "steps": [
+      "Step 1: Establish a conversation session",
+      "Step 2: Simulate network disconnection",
+      "Step 3: Verify reconnection indicator shows",
+      "Step 4: Restore network connection",
+      "Step 5: Verify automatic reconnection",
+      "Step 6: Verify no data loss on reconnection",
+      "Step 7: Verify conversation continues normally"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Offline mode shows appropriate messaging",
+    "steps": [
+      "Step 1: Disable network connection",
+      "Step 2: Attempt to use the application",
+      "Step 3: Verify offline indicator appears",
+      "Step 4: Verify local data is still accessible",
+      "Step 5: Verify send is disabled with explanation",
+      "Step 6: Restore connection",
+      "Step 7: Verify queued actions sync"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "PWA installation works correctly",
+    "steps": [
+      "Step 1: Open application in Chrome",
+      "Step 2: Verify 'Install' option appears",
+      "Step 3: Click to install as PWA",
+      "Step 4: Verify installation completes",
+      "Step 5: Open installed PWA",
+      "Step 6: Verify standalone window opens",
+      "Step 7: Verify all features work in PWA mode"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Local storage persists user preferences between sessions",
+    "steps": [
+      "Step 1: Set custom theme and font size",
+      "Step 2: Close the browser completely",
+      "Step 3: Reopen the application",
+      "Step 4: Verify theme setting persisted",
+      "Step 5: Verify font size persisted",
+      "Step 6: Verify other preferences persisted"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Session management handles timeout correctly",
+    "steps": [
+      "Step 1: Leave application idle for timeout period",
+      "Step 2: Attempt an action after timeout",
+      "Step 3: Verify session refresh or re-auth prompt",
+      "Step 4: Complete re-authentication",
+      "Step 5: Verify session restored",
+      "Step 6: Verify data is not lost"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Content filtering options can be configured",
+    "steps": [
+      "Step 1: Open privacy/safety settings",
+      "Step 2: Locate content filtering options",
+      "Step 3: Enable stricter content filtering",
+      "Step 4: Test with potentially sensitive prompt",
+      "Step 5: Verify appropriate handling",
+      "Step 6: Disable filtering and verify change"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Data export includes all user content",
+    "steps": [
+      "Step 1: Create several conversations with artifacts",
+      "Step 2: Open data export options",
+      "Step 3: Request full data export",
+      "Step 4: Verify export includes conversations",
+      "Step 5: Verify export includes artifacts",
+      "Step 6: Verify export includes settings",
+      "Step 7: Verify export includes memories"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Account deletion removes all user data",
+    "steps": [
+      "Step 1: Open account settings",
+      "Step 2: Find delete account option",
+      "Step 3: Initiate deletion process",
+      "Step 4: Complete confirmation steps",
+      "Step 5: Verify account is deleted",
+      "Step 6: Verify data cannot be recovered",
+      "Step 7: Verify login is not possible"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Virtualized message list handles large conversations",
+    "steps": [
+      "Step 1: Create a conversation with 100+ messages",
+      "Step 2: Verify initial render is fast",
+      "Step 3: Scroll through messages",
+      "Step 4: Verify smooth scrolling performance",
+      "Step 5: Jump to top of conversation",
+      "Step 6: Jump to bottom",
+      "Step 7: Verify no memory issues"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Lazy loading optimizes initial page load",
+    "steps": [
+      "Step 1: Clear browser cache",
+      "Step 2: Open Network DevTools tab",
+      "Step 3: Load the application",
+      "Step 4: Verify critical resources load first",
+      "Step 5: Verify non-critical resources are deferred",
+      "Step 6: Verify initial load under 3 seconds",
+      "Step 7: Navigate to other sections",
+      "Step 8: Verify chunk loading on demand"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Image optimization loads appropriate sizes",
+    "steps": [
+      "Step 1: Upload a large image attachment",
+      "Step 2: Inspect network request for image",
+      "Step 3: Verify thumbnail is loaded for preview",
+      "Step 4: Click to expand image",
+      "Step 5: Verify full-size loads on demand",
+      "Step 6: Verify srcset for responsive images"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "JSON viewer displays data with tree structure",
+    "steps": [
+      "Step 1: Create an artifact with JSON content",
+      "Step 2: Verify JSON tree viewer displays",
+      "Step 3: Expand collapsed nodes",
+      "Step 4: Verify values are syntax highlighted",
+      "Step 5: Copy path to a value",
+      "Step 6: Search within JSON content"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "CSV preview shows data in table format",
+    "steps": [
+      "Step 1: Create or upload CSV data",
+      "Step 2: Verify table preview renders",
+      "Step 3: Verify headers are distinguished",
+      "Step 4: Verify columns align properly",
+      "Step 5: Test with large CSV",
+      "Step 6: Verify pagination or virtualization"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Monaco Editor provides code editing capabilities",
+    "steps": [
+      "Step 1: Open a code artifact in edit mode",
+      "Step 2: Verify Monaco Editor loads",
+      "Step 3: Verify syntax highlighting",
+      "Step 4: Verify line numbers",
+      "Step 5: Test code folding",
+      "Step 6: Test auto-completion",
+      "Step 7: Test find and replace",
+      "Step 8: Test multi-cursor editing"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "React component preview with hot reload",
+    "steps": [
+      "Step 1: Ask AI to create a React component",
+      "Step 2: Verify component preview renders",
+      "Step 3: Edit the component code",
+      "Step 4: Verify preview updates automatically",
+      "Step 5: Test interactive component elements",
+      "Step 6: Verify state changes work in preview"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Code execution in sandbox environment",
+    "steps": [
+      "Step 1: Create a code artifact",
+      "Step 2: Click execute button",
+      "Step 3: Approve execution in HITL dialog",
+      "Step 4: Verify code runs in sandbox",
+      "Step 5: Verify output is displayed",
+      "Step 6: Verify errors are caught and shown",
+      "Step 7: Verify timeout prevents infinite loops"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "File type detection works for uploads",
+    "steps": [
+      "Step 1: Upload a .py file",
+      "Step 2: Verify Python syntax highlighting",
+      "Step 3: Upload a .js file",
+      "Step 4: Verify JavaScript highlighting",
+      "Step 5: Upload a .txt file",
+      "Step 6: Verify plain text treatment",
+      "Step 7: Upload an image file",
+      "Step 8: Verify image preview"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Timestamp formatting follows locale preferences",
+    "steps": [
+      "Step 1: Check current locale settings",
+      "Step 2: View message timestamps",
+      "Step 3: Verify format matches locale",
+      "Step 4: Change locale settings",
+      "Step 5: Verify timestamps update",
+      "Step 6: Verify relative time (5m ago) works"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Character count updates live in input field",
+    "steps": [
+      "Step 1: Focus on input field",
+      "Step 2: Type characters and watch counter",
+      "Step 3: Verify count updates per keystroke",
+      "Step 4: Verify token estimate updates",
+      "Step 5: Approach character limit",
+      "Step 6: Verify warning appears near limit"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Model capabilities display shows strengths and limits",
+    "steps": [
+      "Step 1: Open model selector",
+      "Step 2: Hover over Claude Sonnet 4.5",
+      "Step 3: Verify capabilities tooltip shows",
+      "Step 4: Verify context window (200K) displayed",
+      "Step 5: Verify strengths are listed",
+      "Step 6: Check other models show their capabilities"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Suggested follow-ups appear after responses",
+    "steps": [
+      "Step 1: Send a message and receive response",
+      "Step 2: Look for suggested follow-up questions",
+      "Step 3: Click a suggested question",
+      "Step 4: Verify it populates input and sends",
+      "Step 5: Verify suggestions are contextually relevant"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Unread message indicators show on conversations",
+    "steps": [
+      "Step 1: Have multiple conversations",
+      "Step 2: Receive a new message in non-active conversation",
+      "Step 3: Verify unread indicator appears",
+      "Step 4: Switch to that conversation",
+      "Step 5: Verify indicator clears",
+      "Step 6: Test with multiple unread conversations"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Conversation tags/labels can be added and filtered",
+    "steps": [
+      "Step 1: Open conversation menu",
+      "Step 2: Select 'Add Tag'",
+      "Step 3: Create tag 'Important'",
+      "Step 4: Verify tag appears on conversation",
+      "Step 5: Filter conversations by tag",
+      "Step 6: Verify only tagged conversations show",
+      "Step 7: Remove tag from conversation"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Model comparison view shows side-by-side responses",
+    "steps": [
+      "Step 1: Enable model comparison mode",
+      "Step 2: Select two models to compare",
+      "Step 3: Send a message",
+      "Step 4: Verify split view shows both responses",
+      "Step 5: Verify responses stream simultaneously",
+      "Step 6: Verify model labels are clear",
+      "Step 7: Select preferred response"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Batch API operations handle multiple requests",
+    "steps": [
+      "Step 1: Select multiple conversations",
+      "Step 2: Choose batch operation (export)",
+      "Step 3: Verify progress indicator shows",
+      "Step 4: Verify all items are processed",
+      "Step 5: Verify results are bundled appropriately",
+      "Step 6: Test batch delete with confirmation"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Comments and annotations on shared conversations",
+    "steps": [
+      "Step 1: Share a conversation with comment permission",
+      "Step 2: Open shared link as viewer",
+      "Step 3: Add a comment on a message",
+      "Step 4: Verify comment appears",
+      "Step 5: Reply to the comment",
+      "Step 6: Delete comment",
+      "Step 7: Verify owner sees notifications"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Real-time collaboration shows other user's cursor",
+    "steps": [
+      "Step 1: Share conversation with edit permission",
+      "Step 2: Open in two browser windows",
+      "Step 3: Edit conversation in window 1",
+      "Step 4: Verify changes appear in window 2",
+      "Step 5: Verify cursor/presence indicator",
+      "Step 6: Type simultaneously",
+      "Step 7: Verify conflict resolution works"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Conversation templates allow quick starting points",
+    "steps": [
+      "Step 1: Open template gallery",
+      "Step 2: Browse available templates",
+      "Step 3: Select a coding assistant template",
+      "Step 4: Verify new conversation with template context",
+      "Step 5: Create custom template from conversation",
+      "Step 6: Verify template is saved",
+      "Step 7: Use custom template"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Activity feed shows recent actions across workspace",
+    "steps": [
+      "Step 1: Navigate to activity feed",
+      "Step 2: Verify recent conversations show",
+      "Step 3: Verify recent file operations show",
+      "Step 4: Verify recent shares/collaborations show",
+      "Step 5: Click activity item to navigate",
+      "Step 6: Filter activity by type"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Role-based access control enforces permissions",
+    "steps": [
+      "Step 1: Create a workspace with different roles",
+      "Step 2: Assign 'viewer' role to a user",
+      "Step 3: Login as viewer",
+      "Step 4: Verify viewer can only read",
+      "Step 5: Assign 'editor' role",
+      "Step 6: Verify editor can modify",
+      "Step 7: Assign 'admin' role",
+      "Step 8: Verify admin can manage members"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Project analytics show usage statistics",
+    "steps": [
+      "Step 1: Open project with history",
+      "Step 2: Navigate to analytics section",
+      "Step 3: Verify conversation count chart",
+      "Step 4: Verify token usage over time",
+      "Step 5: Verify model usage breakdown",
+      "Step 6: Export analytics report"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Knowledge base search returns relevant documents",
+    "steps": [
+      "Step 1: Upload multiple documents to project",
+      "Step 2: Open knowledge base search",
+      "Step 3: Search for specific term",
+      "Step 4: Verify relevant documents returned",
+      "Step 5: Verify relevance ranking",
+      "Step 6: Click result to view context"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Glob search finds files by pattern",
+    "steps": [
+      "Step 1: Have agent with workspace files",
+      "Step 2: Use glob pattern '**/*.py'",
+      "Step 3: Verify all Python files found",
+      "Step 4: Use pattern 'src/**/*.ts'",
+      "Step 5: Verify only src TypeScript files",
+      "Step 6: Test complex patterns"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Grep search finds patterns within files",
+    "steps": [
+      "Step 1: Have agent workspace with code files",
+      "Step 2: Search for function name pattern",
+      "Step 3: Verify matching lines returned",
+      "Step 4: Verify file names and line numbers",
+      "Step 5: Click result to view in context",
+      "Step 6: Test regex patterns"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Recent items provides quick navigation history",
+    "steps": [
+      "Step 1: Navigate to several conversations",
+      "Step 2: Open recent items menu",
+      "Step 3: Verify recent conversations listed",
+      "Step 4: Verify order is most recent first",
+      "Step 5: Click item to navigate",
+      "Step 6: Clear recent history",
+      "Step 7: Verify list is cleared"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Saved searches allow reusing complex queries",
+    "steps": [
+      "Step 1: Perform a complex search with filters",
+      "Step 2: Save the search with a name",
+      "Step 3: Verify saved search appears in list",
+      "Step 4: Run the saved search",
+      "Step 5: Verify same results returned",
+      "Step 6: Edit saved search",
+      "Step 7: Delete saved search"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Background task notifications alert on completion",
+    "steps": [
+      "Step 1: Start a long-running task",
+      "Step 2: Switch to different conversation",
+      "Step 3: Wait for task completion",
+      "Step 4: Verify notification appears",
+      "Step 5: Click notification to view result",
+      "Step 6: Test notification for failed tasks"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Task retry on failure attempts recovery",
+    "steps": [
+      "Step 1: Trigger a task that may fail",
+      "Step 2: Simulate failure condition",
+      "Step 3: Verify retry attempt occurs",
+      "Step 4: Verify retry count displayed",
+      "Step 5: Allow retry to succeed",
+      "Step 6: Verify success after retry",
+      "Step 7: Test max retry limit"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Thinking block animation shows progress",
+    "steps": [
+      "Step 1: Enable extended thinking",
+      "Step 2: Send a complex question",
+      "Step 3: Verify thinking indicator animates",
+      "Step 4: Verify progress shows incrementally",
+      "Step 5: Verify animation is smooth",
+      "Step 6: Verify completion state is clear"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Tooltip styling is consistent throughout app",
+    "steps": [
+      "Step 1: Hover over icon button",
+      "Step 2: Verify tooltip appears with delay",
+      "Step 3: Verify tooltip has consistent styling",
+      "Step 4: Test tooltips on different elements",
+      "Step 5: Verify positioning is consistent",
+      "Step 6: Verify keyboard shortcut hints in tooltips"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Context menu (right-click) styling is consistent",
+    "steps": [
+      "Step 1: Right-click on conversation",
+      "Step 2: Verify context menu appears",
+      "Step 3: Verify menu styling matches app theme",
+      "Step 4: Verify icons are present and aligned",
+      "Step 5: Verify hover states on items",
+      "Step 6: Right-click elsewhere for consistency"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Badge styling (model, status) is consistent",
+    "steps": [
+      "Step 1: Locate model badges",
+      "Step 2: Verify badge uses proper colors",
+      "Step 3: Locate status badges (pending, complete)",
+      "Step 4: Verify status colors are correct",
+      "Step 5: Verify badge sizing is consistent",
+      "Step 6: Verify badge text is readable"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Notification toasts appear correctly positioned",
+    "steps": [
+      "Step 1: Trigger a notification (copy to clipboard)",
+      "Step 2: Verify toast appears in expected position",
+      "Step 3: Verify toast styling matches theme",
+      "Step 4: Verify auto-dismiss works",
+      "Step 5: Trigger error notification",
+      "Step 6: Verify error styling is distinct"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Icons are consistent size and style throughout",
+    "steps": [
+      "Step 1: Survey icons in sidebar",
+      "Step 2: Survey icons in toolbar",
+      "Step 3: Survey icons in modals",
+      "Step 4: Verify size consistency (16px, 20px, 24px)",
+      "Step 5: Verify icon set is consistent (same library)",
+      "Step 6: Verify icons align properly with text"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  }
+]
