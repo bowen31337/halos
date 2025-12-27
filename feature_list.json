@@ -2294,17 +2294,19 @@
     "steps": [
       "Step 1: Disable network connection",
       "Step 2: Attempt to use the application",
-      "Step 3: Verify offline indicator appears",
-      "Step 4: Verify local data is still accessible",
-      "Step 5: Verify send is disabled with explanation",
-      "Step 6: Restore connection",
-      "Step 7: Verify queued actions sync"
+      "Step 3: Verify offline indicator appears at top of screen",
+      "Step 4: Verify local data is still accessible (conversations, settings)",
+      "Step 5: Type a message and verify it queues with explanation",
+      "Step 6: Verify ChatInput shows offline mode banner and 'Queue' button",
+      "Step 7: Restore connection",
+      "Step 8: Verify queued actions sync automatically",
+      "Step 9: Verify success banner shows after sync"
     ],
     "passes": true,
     "is_dev_done": true,
     "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "Implemented network status monitoring with store, UI indicator, retry functionality, and offline banner. Includes network event listeners and reconnection attempts."
+    "notes": "Enhanced implementation: Messages are queued locally with localStorage persistence, displayed in chat with system message, and automatically synced when connection is restored. Includes offline banner, queue counter, and action queue processing."
   },
   {
     "category": "functional",
