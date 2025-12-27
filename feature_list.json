@@ -2582,9 +2582,10 @@
       "Step 5: Verify timestamps update",
       "Step 6: Verify relative time (5m ago) works"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": false,
+    "notes": "Already implemented in client/src/utils/dateUtils.ts with Intl.DateTimeFormat"
   },
   {
     "category": "functional",
