@@ -655,8 +655,9 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
-    "notes": "Implemented and tested"
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Implemented and verified with test_artifact_ui.py - HTML preview uses iframe with srcDoc"
   },
   {
     "category": "functional",
@@ -671,8 +672,9 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
-    "notes": "Implemented and tested"
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Implemented and verified with test_artifact_ui.py - SVG uses dangerouslySetInnerHTML"
   },
   {
     "category": "functional",
@@ -687,8 +689,9 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
-    "notes": "Implemented and tested"
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Implemented and verified with test_artifact_ui.py - Mermaid uses CDN script with ref rendering"
   },
   {
     "category": "functional",

@@ -150,6 +150,9 @@ def test_backend_artifact_detection():
     print("\n5. Checking backend artifact detection...")
 
     try:
+        import sys
+        import os
+        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         from src.api.routes.artifacts import extract_code_blocks
 
         # Test HTML detection
@@ -194,6 +197,9 @@ def test_backend_create_artifact():
     print("\n6. Checking backend create_artifact endpoint...")
 
     try:
+        import sys
+        import os
+        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         from src.api.routes.artifacts import ArtifactCreate
         from pydantic import ValidationError
 
@@ -242,6 +248,9 @@ def test_feature_steps():
 
     # Step 1-2: Code block detection
     try:
+        import sys
+        import os
+        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         from src.api.routes.artifacts import extract_code_blocks
         result = extract_code_blocks("```python\nprint('hello')\n```")
         if len(result) > 0:
@@ -285,6 +294,9 @@ def test_feature_steps():
 
     # Step 4-7: Preview rendering and interaction
     try:
+        import sys
+        import os
+        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         from src.api.routes.artifacts import extract_code_blocks
         result = extract_code_blocks("```html\n<div>test</div>\n```")
         if result[0]['artifact_type'] == 'html':
@@ -308,6 +320,9 @@ def test_feature_steps():
 
     # Step 4-6: Code view and download
     try:
+        import sys
+        import os
+        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         from src.api.routes.artifacts import extract_code_blocks
         result = extract_code_blocks("```svg\n<svg></svg>\n```")
         if result[0]['artifact_type'] == 'svg':
@@ -331,6 +346,9 @@ def test_feature_steps():
 
     # Step 4-6: Flowchart and syntax
     try:
+        import sys
+        import os
+        sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         from src.api.routes.artifacts import extract_code_blocks
         result = extract_code_blocks("```mermaid\ngraph TD\nA-->B\n```")
         if result[0]['artifact_type'] == 'mermaid':
