@@ -1741,7 +1741,7 @@
     "is_dev_done": true,
     "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "CSS variables correctly defined: --primary: #CC785C, --primary-hover: #B86A4E, --primary-active: #A35D42. Verified in client/src/index.css and used throughout components."
+    "notes": "Verified via test_styling_features.py"
   },
   {
     "category": "style",
@@ -1758,7 +1758,7 @@
     "is_dev_done": true,
     "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "Light theme CSS variables correctly defined: --bg-primary: #FFFFFF, --bg-secondary: #F5F5F5, --bg-elevated: #FAFAFA, --text-primary: #1A1A1A, --border: #E5E5E5."
+    "notes": "Verified via test_styling_features.py"
   },
   {
     "category": "style",
@@ -1775,7 +1775,7 @@
     "is_dev_done": true,
     "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "Dark theme CSS variables correctly defined: --bg-primary: #1A1A1A, --bg-secondary: #2A2A2A, --bg-elevated: #333333, --text-primary: #E5E5E5, --border: #404040."
+    "notes": "Verified via test_styling_features.py"
   },
   {
     "category": "style",
@@ -1792,7 +1792,7 @@
     "is_dev_done": true,
     "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "Verified: CSS variables and component styling already implemented correctly"
+    "notes": "Verified via test_styling_features.py"
   },
   {
     "category": "style",
@@ -1809,7 +1809,7 @@
     "is_dev_done": true,
     "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "Verified: CSS variables and component styling correctly implemented"
+    "notes": "Verified via test_styling_features.py"
   },
   {
     "category": "style",
