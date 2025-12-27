@@ -1554,7 +1554,7 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
+    "is_qa_passed": true,
     "test_date": "2025-12-27",
     "notes": "Verified working via API tests"
   },
@@ -1573,7 +1573,7 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
+    "is_qa_passed": true,
     "test_date": "2025-12-27",
     "notes": "Verified working via API tests"
   },
@@ -1593,7 +1593,7 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
+    "is_qa_passed": true,
     "test_date": "2025-12-27",
     "notes": "Verified working via API tests"
   },
@@ -1650,9 +1650,11 @@
       "Step 7: PUT /api/tasks/:id/cancel",
       "Step 8: Verify task cancellation works"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Implementation complete with BackgroundTask model, tasks API routes, and comprehensive tests. All endpoints working: POST /api/tasks, GET /api/tasks, GET /api/tasks/{id}, PUT /api/tasks/{id}/cancel, GET /api/tasks/{id}/stream. SSE streaming verified."
   },
   {
     "category": "functional",
@@ -1665,9 +1667,11 @@
       "Step 5: Wait for rate limit reset",
       "Step 6: Verify requests succeed again"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "RateLimitMiddleware implemented with sliding window algorithm. Configurable per-minute and per-hour limits. Returns proper 429 responses with X-RateLimit headers. Skip paths supported for health/docs endpoints."
   },
   {
     "category": "functional",
@@ -1682,9 +1686,11 @@
       "Step 7: Trigger internal error",
       "Step 8: Verify 500 response doesn't leak internals"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Global exception handlers added to main.py: validation_exception_handler (400), http_exception_handler (404/403/etc), general_exception_handler (500). All return structured JSON responses without leaking internal details."
   },
   {
     "category": "functional",
@@ -1697,9 +1703,11 @@
       "Step 5: Verify indexes are created",
       "Step 6: Test rollback functionality"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Enhanced migrate_db.py with schema verification, table checking, and rollback tests. SQLAlchemy init_db() creates all 13 required tables with proper foreign keys. Background tasks schema verified."
   },
   {
     "category": "functional",

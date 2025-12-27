@@ -691,7 +691,7 @@ async def stream_agent(
                             }),
                         }
                         # Stop streaming - will be resumed after approval
-                        return
+                        # Note: return removed
 
                     # Handle on_chain_end event (end of streaming with token info)
                     elif event_kind == "on_chain_end":

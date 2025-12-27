@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
 
+    # Rate Limiting
+    rate_limit_per_minute: int = 60
+    rate_limit_per_hour: int = 1000
+    rate_limit_block_duration: int = 60
+
     # Anthropic API
     anthropic_api_key: Optional[str] = None
 

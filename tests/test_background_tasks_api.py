@@ -12,6 +12,8 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 
 from src.core.database import Base, get_db
 from src.main import app
+# Import models to register them with Base metadata
+from src.models import Conversation, Message, BackgroundTask
 
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_background_tasks.db"
