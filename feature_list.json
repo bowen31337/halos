@@ -62,8 +62,8 @@
       "Step 4: Confirm the chat area is cleared and shows welcome screen",
       "Step 5: Verify the new conversation appears in the sidebar list"
     ],
-    "passes": false,
-    "is_dev_done": false,
+    "passes": true,
+    "is_dev_done": true,
     "is_qa_passed": false
   },
   {
@@ -77,8 +77,8 @@
       "Step 5: Switch back to the original conversation",
       "Step 6: Verify the original messages are restored"
     ],
-    "passes": false,
-    "is_dev_done": false,
+    "passes": true,
+    "is_dev_done": true,
     "is_qa_passed": false
   },
   {
