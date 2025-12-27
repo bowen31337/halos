@@ -2735,9 +2735,11 @@
       "Step 6: Type simultaneously",
       "Step 7: Verify conflict resolution works"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "notes": "Real-time collaboration with WebSocket-based cursor sharing and presence indicators fully implemented. Includes session management, conflict detection, and live editing support.",
+    "test_date": "2025-12-28"
   },
   {
     "category": "functional",
@@ -3481,9 +3483,11 @@
       "Step 9: Check for sensitive data in responses",
       "Step 10: Test logout clears all session data"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-28",
+    "notes": "Verified: rate limiting active (429), auth endpoints, token security, session management"
   },
   {
     "category": "functional",
@@ -3500,9 +3504,11 @@
       "Step 9: Verify retry logic works",
       "Step 10: Test recovery from server error"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-28",
+    "notes": "Verified: 404 errors, 401 auth errors, 405 method errors, 400 validation errors, graceful recovery"
   },
   {
     "category": "functional",
