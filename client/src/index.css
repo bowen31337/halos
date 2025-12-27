@@ -1433,6 +1433,60 @@ textarea:focus-visible {
   }
 }
 
+/* Color Blind Mode - Deuteranopia (Red-Green, most common) */
+.colorblind-deuteranopia {
+  /* Adjust colors to be distinguishable for deuteranopia */
+  --primary: #0077B6; /* Blue instead of green */
+  --primary-hover: #005F8C;
+  --primary-active: #004B6F;
+  --success: #0077B6; /* Blue for success */
+  --error: #D62828; /* Strong red */
+  --warning: #F4A261; /* Orange */
+  --info: #0077B6; /* Blue */
+
+  /* Adjust status colors */
+  --status-success: #0077B6;
+  --status-error: #D62828;
+  --status-warning: #F4A261;
+  --status-info: #0077B6;
+}
+
+/* Color Blind Mode - Protanopia (Red-Green, less common) */
+.colorblind-protanopia {
+  /* Adjust colors for protanopia */
+  --primary: #0077B6; /* Blue */
+  --primary-hover: #005F8C;
+  --primary-active: #004B6F;
+  --success: #0077B6; /* Blue */
+  --error: #8B0000; /* Dark red */
+  --warning: #DAA520; /* Goldenrod */
+  --info: #0077B6; /* Blue */
+
+  /* Adjust status colors */
+  --status-success: #0077B6;
+  --status-error: #8B0000;
+  --status-warning: #DAA520;
+  --status-info: #0077B6;
+}
+
+/* Color Blind Mode - Tritanopia (Blue-Yellow, rare) */
+.colorblind-tritanopia {
+  /* Adjust colors for tritanopia */
+  --primary: #C41E3A; /* Red instead of blue */
+  --primary-hover: #9B1730;
+  --primary-active: #740F24;
+  --success: #2E8B57; /* Sea green */
+  --error: #C41E3A; /* Red */
+  --warning: #FF6B35; /* Orange-red */
+  --info: #C41E3A; /* Red */
+
+  /* Adjust status colors */
+  --status-success: #2E8B57;
+  --status-error: #C41E3A;
+  --status-warning: #FF6B35;
+  --status-info: #C41E3A;
+}
+
 /* Print Styles */
 @media print {
   /* Hide UI elements */

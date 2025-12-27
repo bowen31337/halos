@@ -5,6 +5,7 @@ interface UIState {
   // Theme
   theme: 'light' | 'dark' | 'system'
   highContrast: boolean
+  colorBlindMode: 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia'
 
   // Sidebar
   sidebarOpen: boolean
@@ -41,6 +42,7 @@ interface UIState {
   setTheme: (theme: 'light' | 'dark' | 'system') => void
   setHighContrast: (enabled: boolean) => void
   toggleHighContrast: () => void
+  setColorBlindMode: (mode: 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia') => void
   toggleSidebar: () => void
   setSidebarOpen: (open: boolean) => void
   setSidebarWidth: (width: number) => void
@@ -65,6 +67,7 @@ export const useUIStore = create<UIState>()(
       // Initial state
       theme: 'light',
       highContrast: false,
+      colorBlindMode: 'none',
       sidebarOpen: true,
       sidebarWidth: 260,
       panelOpen: false,
@@ -115,6 +118,20 @@ export const useUIStore = create<UIState>()(
         return { highContrast: newState }
       }),
 
+      setColorBlindMode: (mode) => {
+        set({ colorBlindMode: mode })
+        // Remove all color blind classes first
+        document.documentElement.classList.remove('colorblind-deuteranopia', 'colorblind-protanopia', 'colorblind-tritanopia')
+        // Apply the new class if not 'none'
+        if (mode === 'deuteranopia') {
+          document.documentElement.classList.add('colorblind-deuteranopia')
+        } else if (mode === 'protanopia') {
+          document.documentElement.classList.add('colorblind-protanopia')
+        } else if (mode === 'tritanopia') {
+          document.documentElement.classList.add('colorblind-tritanopia')
+        }
+      },
+
       toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
       setSidebarWidth: (width) => set({ sidebarWidth: width }),
@@ -147,6 +164,7 @@ export const useUIStore = create<UIState>()(
       partialize: (state) => ({
         theme: state.theme,
         highContrast: state.highContrast,
+        colorBlindMode: state.colorBlindMode,
         sidebarWidth: state.sidebarWidth,
         panelWidth: state.panelWidth,
         selectedModel: state.selectedModel,
