@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Copy, Link, Clock, Globe, Lock, MessageSquare } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Copy, Link, Clock, Globe, Lock, MessageSquare, Trash2 } from 'lucide-react';
 
 interface ShareModalProps {
   conversationId: string;
@@ -15,7 +15,8 @@ interface ShareSettings {
 
 interface ShareLink {
   id: string;
-  share_token: string;
+  share_token: string;  // Full URL for display
+  token: string;        // Just the token for API calls
   access_level: string;
   allow_comments: boolean;
   expires_at: string | null;
@@ -30,9 +31,37 @@ export const ShareModal: React.FC<ShareModalProps> = ({ conversationId, conversa
     expires_in_days: null,
   });
   const [shareLink, setShareLink] = useState<ShareLink | null>(null);
+  const [existingShares, setExistingShares] = useState<ShareLink[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingShares, setIsLoadingShares] = useState(true);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Load existing shares on mount
+  useEffect(() => {
+    loadExistingShares();
+  }, [conversationId]);
+
+  const loadExistingShares = async () => {
+    setIsLoadingShares(true);
+    try {
+      const response = await fetch(`/api/conversations/${conversationId}/shares`);
+      if (response.ok) {
+        const data = await response.json();
+        // Transform data to include both full URL and token
+        const transformed = data.map((item: any) => ({
+          ...item,
+          share_token: `${window.location.origin}/share/${item.share_token}`,
+          token: item.share_token,
+        }));
+        setExistingShares(transformed);
+      }
+    } catch (err) {
+      console.error('Failed to load shares:', err);
+    } finally {
+      setIsLoadingShares(false);
+    }
+  };
 
   const generateShareLink = async () => {
     setIsLoading(true);
@@ -51,7 +80,11 @@ export const ShareModal: React.FC<ShareModalProps> = ({ conversationId, conversa
 
       const data = await response.json();
       const fullLink = `${window.location.origin}/share/${data.share_token}`;
-      setShareLink({ ...data, share_token: fullLink });
+      const newShare = { ...data, share_token: fullLink, token: data.share_token };
+
+      // Store the new share and refresh the list
+      setShareLink(newShare);
+      setExistingShares(prev => [newShare, ...prev]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
@@ -83,10 +116,24 @@ export const ShareModal: React.FC<ShareModalProps> = ({ conversationId, conversa
     if (!shareLink) return;
 
     try {
-      await fetch(`/api/conversations/share/${shareLink.share_token}`, {
+      await fetch(`/api/conversations/share/${shareLink.token}`, {
         method: 'DELETE',
       });
       setShareLink(null);
+      // Remove from existing shares
+      setExistingShares(prev => prev.filter(s => s.token !== shareLink.token));
+    } catch (err) {
+      setError('Failed to revoke link');
+    }
+  };
+
+  const revokeExistingShare = async (token: string) => {
+    try {
+      await fetch(`/api/conversations/share/${token}`, {
+        method: 'DELETE',
+      });
+      // Remove from existing shares
+      setExistingShares(prev => prev.filter(s => s.token !== token));
     } catch (err) {
       setError('Failed to revoke link');
     }
@@ -113,9 +160,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({ conversationId, conversa
           </div>
         )}
 
-        {/* Settings Form (only shown before generating link) */}
-        {!shareLink && (
-          <div className="space-y-4">
+        {/* Settings Form */}
+        <div className="space-y-4">
             {/* Access Level */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -186,17 +232,52 @@ export const ShareModal: React.FC<ShareModalProps> = ({ conversationId, conversa
               <Link size={18} />
               {isLoading ? 'Generating...' : 'Generate Share Link'}
             </button>
+
+            {/* Existing Shares */}
+            {!isLoadingShares && existingShares.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Existing Shares ({existingShares.length})</p>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {existingShares.map((share) => (
+                    <div key={share.id} className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded border border-gray-200 dark:border-gray-600 text-xs">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-medium capitalize">{share.access_level}</span>
+                        <span className="text-gray-500">{share.view_count} views</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <code className="flex-1 truncate bg-white dark:bg-gray-800 px-1 py-0.5 rounded border border-gray-200 dark:border-gray-600">
+                          {share.share_token}
+                        </code>
+                        <button
+                          onClick={() => navigator.clipboard.writeText(share.share_token)}
+                          className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
+                          title="Copy"
+                        >
+                          <Copy size={12} />
+                        </button>
+                        <button
+                          onClick={() => revokeExistingShare(share.token)}
+                          className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 rounded"
+                          title="Revoke"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        )}
 
         {/* Share Link Display */}
         {shareLink && (
-          <div className="space-y-4">
+          <div className="space-y-4 mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
             <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
               <div className="flex items-start gap-2">
                 <Link size={18} className="mt-1 text-blue-600" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Share Link</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">New Share Link</p>
                   <div className="flex items-center gap-2">
                     <code className="text-xs bg-white dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-600 truncate flex-1">
                       {shareLink.share_token}
