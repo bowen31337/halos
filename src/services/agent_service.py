@@ -175,6 +175,15 @@ You are helping build a Claude.ai clone application. Be professional, friendly, 
                 print("No API key available, using MockAgent for testing")
                 return MockAgent(system_prompt=system_prompt)
 
+            # Check if we should use mock agent (for testing environments)
+            # If ANTHROPIC_BASE_URL is set to a non-standard endpoint, use mock
+            import os
+            base_url = os.environ.get("ANTHROPIC_BASE_URL", "")
+            if base_url and "anthropic.com" not in base_url:
+                print(f"Non-standard Anthropic base URL detected: {base_url}")
+                print("Using MockAgent for testing")
+                return MockAgent(system_prompt=system_prompt)
+
             # Step 5: Create the LLM with API key
             llm = ChatAnthropic(
                 model_name=model,
