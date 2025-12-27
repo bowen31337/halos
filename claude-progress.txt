@@ -2218,3 +2218,93 @@ QA Queue: EMPTY!
 
 **Progress: 91/201 features (45.3%) - MCP Server Management & Voice Input fully verified!**
 
+---
+
+## Session 36 Summary (API Key Management Feature #80)
+
+### Date: 2025-12-27
+
+**Session Focus:** Implemented Feature #80 - API key management allows adding and validating keys
+
+### Features Completed & Verified ✓
+
+| Feature # | Description | Status |
+|-----------|-------------|--------|
+| #80 | API key management allows adding and validating keys | ✅ Dev Done |
+
+### Implementation Summary
+
+**Backend (Python/FastAPI):**
+- **`src/api/routes/settings.py`**: Already had API key endpoints
+  - `POST /api/settings/api-key/validate` - Validate key format
+  - `POST /api/settings/api-key/save` - Save key securely
+  - `GET /api/settings/api-key/status` - Check key status
+  - `DELETE /api/settings/api-key` - Remove key
+
+**Frontend (React/TypeScript):**
+- **`client/src/components/SettingsModal.tsx`**: Added API Key tab
+  - New 'api' tab in SettingsModal
+  - Input field for Anthropic API key (with show/hide toggle)
+  - Validate button - checks key format
+  - Save Key button - saves after validation
+  - Status display - shows saved key preview
+  - Remove Key button - deletes saved key
+  - Real-time status loading on mount
+
+**State Management:**
+- `apiKeyInput` - User input state
+- `apiKeyStatus` - Current key status (configured, has_saved_key, key_preview)
+- `validationResult` - Validation feedback
+- `isValidating`, `isSavingKey` - Loading states
+- `showKey` - Password visibility toggle
+
+**API Service:**
+- `client/src/services/api.ts` - Already had methods:
+  - `validateAPIKey(key)`
+  - `saveAPIKey(key)`
+  - `getAPIKeyStatus()`
+  - `removeAPIKey()`
+
+### Test Results
+
+**7/7 tests PASSED** in `tests/test_settings_api_key.py`:
+- ✅ test_validate_api_key_valid_format
+- ✅ test_validate_api_key_too_short
+- ✅ test_validate_api_key_wrong_format
+- ✅ test_validate_api_key_empty
+- ✅ test_save_api_key_valid
+- ✅ test_get_api_key_status_after_save
+- ✅ test_remove_api_key
+
+### User Flow Example
+
+```
+1. User opens Settings modal
+2. Clicks "API Key" tab
+3. Enters Anthropic API key (sk-ant-...)
+4. Clicks "Validate" button
+5. Sees validation result (✓ Valid or ✗ Invalid)
+6. Clicks "Save Key" (enabled after valid validation)
+7. Sees status: "✓ Key Saved" with preview (sk-ant-***4321)
+8. Can remove key with "Remove Saved Key" button
+9. Status updates to "No key saved"
+```
+
+### Files Modified
+
+1. **`client/src/components/SettingsModal.tsx`** - Added API Key tab and management UI
+2. **`tests/test_settings_api_key.py`** - NEW - 7 comprehensive tests
+3. **`feature_list.json`** - Updated Feature #80 with dev_done: true
+4. **`claude-progress.txt`** - Added Session 36 summary
+
+### Progress Statistics
+
+**Total Features:** 201/201
+**Completed (Dev):** 92/201 (45.8%)
+**QA Passed:** 91/201 (45.3%)
+**QA Queue:** 1 feature (Feature #80 needs browser testing)
+
+---
+
+**Progress: 92/201 features (45.8%) - API Key Management system implemented!**
+

@@ -3,7 +3,7 @@ import { useUIStore } from '../stores/uiStore'
 import { MemoryModal } from './MemoryModal'
 import { api } from '../services/api'
 
-type SettingsTab = 'general' | 'appearance' | 'advanced'
+type SettingsTab = 'general' | 'appearance' | 'advanced' | 'api'
 
 interface SettingsModalProps {
   onClose: () => void
@@ -37,6 +37,14 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const [isSaving, setIsSaving] = useState(false)
   const [showMemoryModal, setShowMemoryModal] = useState(false)
 
+  // API Key Management State
+  const [apiKeyInput, setApiKeyInput] = useState('')
+  const [apiKeyStatus, setApiKeyStatus] = useState<{ configured: boolean; has_saved_key: boolean; key_preview: string; message: string } | null>(null)
+  const [validationResult, setValidationResult] = useState<{ valid: boolean; message: string; key_preview: string } | null>(null)
+  const [isValidating, setIsValidating] = useState(false)
+  const [isSavingKey, setIsSavingKey] = useState(false)
+  const [showKey, setShowKey] = useState(false)
+
   // Load settings from backend on mount
   useEffect(() => {
     const loadSettings = async () => {
@@ -65,6 +73,20 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     loadSettings()
   }, [setTheme, setFontSize, setCustomInstructions, setSystemPromptOverride, setTemperature, setMaxTokens, toggleExtendedThinking, extendedThinkingEnabled, memoryEnabled, toggleMemoryEnabled])
 
+  // Load API key status on mount
+  useEffect(() => {
+    const loadAPIKeyStatus = async () => {
+      try {
+        const status = await api.getAPIKeyStatus()
+        setApiKeyStatus(status)
+      } catch (error) {
+        console.error('Failed to load API key status:', error)
+      }
+    }
+
+    loadAPIKeyStatus()
+  }, [])
+
   const saveSettings = async (updates: any) => {
     try {
       setIsSaving(true)
@@ -73,6 +95,65 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     } catch (error) {
       console.error('Failed to save settings:', error)
       setIsSaving(false)
+    }
+  }
+
+  // API Key Management Functions
+  const validateAPIKey = async () => {
+    if (!apiKeyInput) {
+      setValidationResult({ valid: false, message: 'API key is required', key_preview: '' })
+      return
+    }
+
+    setIsValidating(true)
+    try {
+      const result = await api.validateAPIKey(apiKeyInput)
+      setValidationResult(result)
+    } catch (error: any) {
+      setValidationResult({
+        valid: false,
+        message: error.message || 'Validation failed',
+        key_preview: ''
+      })
+    } finally {
+      setIsValidating(false)
+    }
+  }
+
+  const saveAPIKey = async () => {
+    if (!validationResult?.valid) {
+      return
+    }
+
+    setIsSavingKey(true)
+    try {
+      const result = await api.saveAPIKey(apiKeyInput)
+      setApiKeyStatus({
+        configured: true,
+        has_saved_key: true,
+        key_preview: result.key_preview,
+        message: 'API key saved successfully'
+      })
+      setApiKeyInput('')
+      setValidationResult(null)
+    } catch (error: any) {
+      console.error('Failed to save API key:', error)
+    } finally {
+      setIsSavingKey(false)
+    }
+  }
+
+  const removeAPIKey = async () => {
+    try {
+      await api.removeAPIKey()
+      setApiKeyStatus({
+        configured: false,
+        has_saved_key: false,
+        key_preview: 'No key saved',
+        message: 'API key removed'
+      })
+    } catch (error: any) {
+      console.error('Failed to remove API key:', error)
     }
   }
 
@@ -394,6 +475,104 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     </div>
   )
 
+  // API Key Tab
+  const renderAPITab = () => (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">API Key Management</h3>
+        <p className="text-xs text-[var(--text-secondary)] mb-4">
+          Add your Anthropic API key to enable AI conversations. Your key is stored securely and never exposed.
+        </p>
+
+        {/* Current Status */}
+        {apiKeyStatus && (
+          <div className="mb-4 p-3 rounded-lg border border-[var(--border-primary)] bg-[var(--surface-elevated)]">
+            <div className="text-sm text-[var(--text-primary)] mb-1">
+              <span className="font-medium">Status: </span>
+              {apiKeyStatus.has_saved_key ? (
+                <span className="text-[var(--success)]">✓ Key Saved</span>
+              ) : (
+                <span className="text-[var(--text-secondary)]">No key saved</span>
+              )}
+            </div>
+            <div className="text-xs text-[var(--text-secondary)]">
+              {apiKeyStatus.key_preview}
+            </div>
+            {apiKeyStatus.configured && (
+              <div className="text-xs text-[var(--success)] mt-1">
+                Environment variable configured
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Input Section */}
+        <div className="space-y-3">
+          <div className="flex gap-2">
+            <input
+              type={showKey ? 'text' : 'password'}
+              placeholder="Enter Anthropic API key (sk-ant-...)"
+              value={apiKeyInput}
+              onChange={(e) => setApiKeyInput(e.target.value)}
+              className="flex-1 p-2 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+            />
+            <button
+              onClick={() => setShowKey(!showKey)}
+              className="px-3 py-2 rounded-lg border border-[var(--border-primary)] hover:bg-[var(--surface-elevated)] transition-colors"
+              title={showKey ? 'Hide key' : 'Show key'}
+            >
+              {showKey ? '👁️' : '🙈'}
+            </button>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={validateAPIKey}
+              disabled={!apiKeyInput || isValidating}
+              className="flex-1 px-4 py-2 bg-[var(--border-primary)] hover:bg-[var(--surface-elevated)] text-[var(--text-primary)] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isValidating ? 'Validating...' : 'Validate'}
+            </button>
+            <button
+              onClick={saveAPIKey}
+              disabled={!validationResult?.valid || isSavingKey}
+              className="flex-1 px-4 py-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSavingKey ? 'Saving...' : 'Save Key'}
+            </button>
+          </div>
+
+          {validationResult && (
+            <div className={`p-3 rounded-lg border ${
+              validationResult.valid
+                ? 'border-[var(--success)] bg-[var(--success)]/10 text-[var(--success)]'
+                : 'border-[var(--error)] bg-[var(--error)]/10 text-[var(--error)]'
+            }`}>
+              <div className="text-sm font-medium">{validationResult.valid ? '✓ Valid' : '✗ Invalid'}</div>
+              <div className="text-xs mt-1">{validationResult.message}</div>
+              {validationResult.key_preview && (
+                <div className="text-xs mt-1 opacity-75">{validationResult.key_preview}</div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Remove Key Section */}
+        {apiKeyStatus?.has_saved_key && (
+          <div className="mt-6 pt-6 border-t border-[var(--border-primary)]">
+            <div className="text-sm font-medium text-[var(--text-primary)] mb-2">Remove API Key</div>
+            <button
+              onClick={removeAPIKey}
+              className="px-4 py-2 border border-[var(--error)] text-[var(--error)] hover:bg-[var(--error)]/10 rounded-lg transition-colors"
+            >
+              Remove Saved Key
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
@@ -420,10 +599,11 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             { id: 'general', label: 'General' },
             { id: 'appearance', label: 'Appearance' },
             { id: 'advanced', label: 'Advanced' },
+            { id: 'api', label: 'API Key' },
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => setActiveTab(tab.id as SettingsTab)}
               className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
                 activeTab === tab.id
                   ? 'text-[var(--primary)] border-b-2 border-[var(--primary)]'
@@ -440,6 +620,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           {activeTab === 'general' && renderGeneralTab()}
           {activeTab === 'appearance' && renderAppearanceTab()}
           {activeTab === 'advanced' && renderAdvancedTab()}
+          {activeTab === 'api' && renderAPITab()}
         </div>
 
         {/* Footer */}

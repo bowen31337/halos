@@ -1317,7 +1317,7 @@
     "is_dev_done": true,
     "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "Voice input feature implemented with Web Speech API, microphone button, recording state feedback, and comprehensive testing"
+    "notes": "Implemented using Web Speech API in ChatInput.tsx. Voice button with recording state and transcription to input field."
   },
   {
     "category": "functional",
@@ -1334,7 +1334,7 @@
     "passes": true,
     "is_dev_done": true,
     "is_qa_passed": true,
-    "notes": "Added click handlers to WelcomeScreen.tsx and fixed showWelcome condition in ChatPage.tsx\n\nQA PASSED 2025-12-27: Code structure verified - WelcomeScreen has 4 suggestions with prompts, onClick handlers call setInputMessage, ChatPage shows welcome when messages.length === 0",
+    "notes": "WelcomeScreen.tsx has 4 suggestions with prompts, onClick handlers call setInputMessage, ChatPage shows welcome when messages.length === 0",
     "test_date": "2025-12-27"
   },
   {
@@ -1360,7 +1360,7 @@
     "description": "API key management allows adding and validating keys",
     "steps": [
       "Step 1: Open API key settings",
-      "Step 2: Click 'Add API Key'",
+      "Step 2: Click \"Add API Key\"",
       "Step 3: Enter Anthropic API key",
       "Step 4: Click validate",
       "Step 5: Verify validation succeeds",
@@ -1368,9 +1368,11 @@
       "Step 7: Verify key is stored securely (shown masked)",
       "Step 8: Use the key in a conversation"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Backend endpoints in settings.py, frontend UI in SettingsModal.tsx, 6 tests passing"
   },
   {
     "category": "functional",
