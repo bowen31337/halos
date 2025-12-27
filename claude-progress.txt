@@ -148,7 +148,7 @@ Verified user preference persistence across sessions:
 ✅ Focus indicators
 ✅ High contrast combinations
 
-**Offline Mode (8 tests):**
+**Offline Mode (12 tests):**
 ✅ Network store with state management
 ✅ Network status indicator component
 ✅ Layout network monitoring
@@ -157,6 +157,10 @@ Verified user preference persistence across sessions:
 ✅ Retry functionality
 ✅ State persistence
 ✅ Full integration
+✅ ChatInput offline behavior
+✅ ChatInput action queue usage
+✅ ChatInput UI indicators
+✅ ChatInput offline mode complete
 
 **PWA Installation (10 tests):**
 ✅ Manifest exists and valid
@@ -170,7 +174,7 @@ Verified user preference persistence across sessions:
 ✅ Caching strategy
 ✅ Full integration
 
-**Total: 29 new tests, all passing**
+**Total: 33 new tests, all passing**
 
 ### Progress Update
 
