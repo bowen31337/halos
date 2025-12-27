@@ -7,7 +7,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel
-from sqlalchemy import select, func
+from sqlalchemy import select, func, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_db
@@ -659,22 +659,22 @@ async def delete_account(
         conv.is_deleted = True
 
     # Delete all messages
-    await db.execute(select(Message).delete())
+    await db.execute(Message.__table__.delete())
 
     # Delete all memories
-    await db.execute(select(Memory).delete())
+    await db.execute(Memory.__table__.delete())
 
     # Delete all prompts
-    await db.execute(select(Prompt).delete())
+    await db.execute(Prompt.__table__.delete())
 
     # Delete all artifacts
-    await db.execute(select(Artifact).delete())
+    await db.execute(Artifact.__table__.delete())
 
     # Delete all checkpoints
-    await db.execute(select(Checkpoint).delete())
+    await db.execute(Checkpoint.__table__.delete())
 
     # Delete all projects
-    await db.execute(select(Project).delete())
+    await db.execute(Project.__table__.delete())
 
     # Note: In a real multi-user system, we would also:
     # - Delete user sessions

@@ -23,7 +23,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy import select
+from sqlalchemy import select, func
 from src.core.config import settings
 from src.core.database import Base
 from src.models import Conversation, Message, Memory, Prompt, Artifact, Checkpoint, Project, AuditLog
@@ -108,13 +108,13 @@ async def test_account_deletion_removes_all_data():
         await db.commit()
 
         # Verify initial state
-        initial_conv_count = (await db.execute(select(Conversation).where(Conversation.is_deleted == False))).scalar_count()
-        initial_msg_count = (await db.execute(select(Message))).scalar_count()
-        initial_memory_count = (await db.execute(select(Memory).where(Memory.is_active == True))).scalar_count()
-        initial_prompt_count = (await db.execute(select(Prompt).where(Prompt.is_active == True))).scalar_count()
-        initial_artifact_count = (await db.execute(select(Artifact))).scalar_count()
-        initial_checkpoint_count = (await db.execute(select(Checkpoint))).scalar_count()
-        initial_project_count = (await db.execute(select(Project))).scalar_count()
+        initial_conv_count = (await db.execute(select(func.count(Conversation.id)).where(Conversation.is_deleted == False))).scalar_one()
+        initial_msg_count = (await db.execute(select(func.count(Message.id)))).scalar_one()
+        initial_memory_count = (await db.execute(select(func.count(Memory.id)).where(Memory.is_active == True))).scalar_one()
+        initial_prompt_count = (await db.execute(select(func.count(Prompt.id)).where(Prompt.is_active == True))).scalar_one()
+        initial_artifact_count = (await db.execute(select(func.count(Artifact.id)))).scalar_one()
+        initial_checkpoint_count = (await db.execute(select(func.count(Checkpoint.id)))).scalar_one()
+        initial_project_count = (await db.execute(select(func.count(Project.id)))).scalar_one()
 
         print(f"    ✓ Created {initial_conv_count} conversations")
         print(f"    ✓ Created {initial_msg_count} messages")
