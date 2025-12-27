@@ -644,6 +644,21 @@ class APIService {
       throw new Error(`Failed to delete memory: ${response.status}`)
     }
   }
+
+  // Cache stats APIs
+  async getCacheStats(): Promise<{
+    cache_hits: number
+    cache_misses: number
+    hit_rate: number
+    tokens_saved: number
+    cost_saved: number
+  }> {
+    const response = await fetch(`${API_BASE}/usage/cache-stats`)
+    if (!response.ok) {
+      throw new Error(`Failed to get cache stats: ${response.status}`)
+    }
+    return response.json()
+  }
 }
 
 export const api = new APIService()

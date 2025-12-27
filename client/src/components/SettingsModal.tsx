@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useUIStore } from '../stores/uiStore'
+import { MemoryModal } from './MemoryModal'
 import { api } from '../services/api'
 
 type SettingsTab = 'general' | 'appearance' | 'advanced'
@@ -34,6 +35,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const [tempValue, setTempValue] = useState(temperature)
   const [tokensValue, setTokensValue] = useState(maxTokens)
   const [isSaving, setIsSaving] = useState(false)
+  const [showMemoryModal, setShowMemoryModal] = useState(false)
 
   // Load settings from backend on mount
   useEffect(() => {
@@ -171,6 +173,15 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         <p className="text-xs text-[var(--text-secondary)] mt-2">
           When enabled, the AI can store and retrieve information about your preferences across all conversations.
         </p>
+      </div>
+
+      <div className="flex justify-end pt-6 border-t border-[var(--border-primary)]">
+        <button
+          onClick={() => setShowMemoryModal(true)}
+          className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:opacity-90 transition-opacity"
+        >
+          Manage Memories
+        </button>
       </div>
     </div>
   )

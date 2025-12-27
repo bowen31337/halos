@@ -12,6 +12,8 @@ import { FilesPanel } from '../components/FilesPanel'
 import { DiffPanel } from '../components/DiffPanel'
 import { SubAgentIndicator } from '../components/SubAgentIndicator'
 import { MemoryPanel } from '../components/MemoryPanel'
+import { PromptCacheIndicator } from '../components/PromptCacheIndicator'
+import { TokenUsageDisplay } from '../components/TokenUsageDisplay'
 
 export function ChatPage() {
   const { conversationId } = useParams()
@@ -41,6 +43,7 @@ export function ChatPage() {
   // Determine panel width based on type
   const getPanelWidth = () => {
     if (panelType === 'diffs') return 'mr-[600px]'
+    if (panelType === 'memory') return 'mr-[500px]'
     return 'mr-[450px]'
   }
 
@@ -60,6 +63,12 @@ export function ChatPage() {
 
       {/* SubAgent Indicator - handles its own visibility */}
       <SubAgentIndicator />
+
+      {/* Prompt Cache Indicator */}
+      <PromptCacheIndicator />
+
+      {/* Token Usage Display */}
+      <TokenUsageDisplay />
 
       {/* Input area */}
       <div className={`flex-shrink-0 border-t border-[var(--border-primary)] transition-all duration-300 ${panelOpen ? getPanelWidth() : ''}`}>

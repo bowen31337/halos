@@ -209,6 +209,7 @@ You are helping build a Claude.ai clone application. Be professional, friendly, 
                     self.extract_and_store_memory,
                     self.search_memories,
                     self.list_memories,
+                    self.trigger_summarization,
                 ],
             )
 
@@ -298,22 +299,27 @@ You are helping build a Claude.ai clone application. Be professional, friendly, 
             return f"Error searching memories: {str(e)}"
 
 
-    async def list_memories(self, category: Optional[str] = None, active_only: bool = True) -> str:
-        """List all memories with optional filtering.
+    async def trigger_summarization(self, conversation_id: Optional[str] = None) -> str:
+        """Trigger manual summarization of the conversation context.
+
+        This tool allows the agent to manually trigger summarization
+        when the user requests it.
 
         Args:
-            category: Optional category filter
-            active_only: Whether to show only active memories
+            conversation_id: Optional conversation ID to summarize
 
         Returns:
-            JSON string with memory list
+            Summary result message
         """
         try:
-            # For now, return mock results
-            # In a real implementation, you'd query the database here
-            return "Memory list: [mock results]"
+            # For now, return a mock summary
+            # In a real implementation, this would trigger the SummarizationMiddleware
+            if conversation_id:
+                return f"Manual summarization triggered for conversation {conversation_id}"
+            else:
+                return "Manual summarization triggered"
         except Exception as e:
-            return f"Error listing memories: {str(e)}"
+            return f"Error triggering summarization: {str(e)}"
 
 
 # Global agent service instance

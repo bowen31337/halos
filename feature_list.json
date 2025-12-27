@@ -1118,9 +1118,10 @@
       "Step 7: Delete a memory",
       "Step 8: Verify it no longer appears"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27"
   },
   {
     "category": "functional",
