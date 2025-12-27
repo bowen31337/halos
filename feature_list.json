@@ -2762,5 +2762,508 @@
     "passes": false,
     "is_dev_done": false,
     "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Complete user registration and login flow works end-to-end",
+    "steps": [
+      "Step 1: Navigate to registration page",
+      "Step 2: Fill in email field with valid email",
+      "Step 3: Fill in password field with secure password",
+      "Step 4: Fill in password confirmation field",
+      "Step 5: Click register button",
+      "Step 6: Verify account created confirmation",
+      "Step 7: Navigate to login page",
+      "Step 8: Enter registered email",
+      "Step 9: Enter password",
+      "Step 10: Click login button",
+      "Step 11: Verify redirect to main application",
+      "Step 12: Verify user avatar/name appears in sidebar"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Complete conversation creation and messaging workflow",
+    "steps": [
+      "Step 1: Click New Chat button in sidebar",
+      "Step 2: Verify new conversation UI appears",
+      "Step 3: Verify welcome screen with suggestions displays",
+      "Step 4: Type a message in the input field",
+      "Step 5: Click send button or press Enter",
+      "Step 6: Verify user message appears in chat",
+      "Step 7: Verify loading indicator shows",
+      "Step 8: Wait for AI response to stream",
+      "Step 9: Verify response completes",
+      "Step 10: Verify conversation appears in sidebar with title",
+      "Step 11: Verify message count indicator updates"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Full project workflow from creation to conversation export",
+    "steps": [
+      "Step 1: Click Create Project button",
+      "Step 2: Enter project name",
+      "Step 3: Enter project description",
+      "Step 4: Select project color",
+      "Step 5: Add custom instructions for project",
+      "Step 6: Save the project",
+      "Step 7: Verify project appears in project selector",
+      "Step 8: Create a conversation within the project",
+      "Step 9: Upload a file to project knowledge base",
+      "Step 10: Reference the file in a conversation",
+      "Step 11: Export the conversation",
+      "Step 12: Verify export includes project context"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Complete artifact creation, editing, and versioning workflow",
+    "steps": [
+      "Step 1: Send message requesting code artifact",
+      "Step 2: Wait for artifact to be created",
+      "Step 3: Verify artifact appears in side panel",
+      "Step 4: Click edit button on artifact",
+      "Step 5: Modify the code content",
+      "Step 6: Enter re-prompt instruction",
+      "Step 7: Submit the changes",
+      "Step 8: Wait for new version to generate",
+      "Step 9: Verify version number incremented",
+      "Step 10: Open version history",
+      "Step 11: Compare versions",
+      "Step 12: Download latest version"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Complete HITL workflow with approve, edit, and reject scenarios",
+    "steps": [
+      "Step 1: Set permission mode to default",
+      "Step 2: Request agent to execute a command",
+      "Step 3: Verify approval dialog appears",
+      "Step 4: Click Approve and verify execution",
+      "Step 5: Request another command",
+      "Step 6: Click Edit in approval dialog",
+      "Step 7: Modify the command arguments",
+      "Step 8: Submit edited command",
+      "Step 9: Verify edited command executes",
+      "Step 10: Request a third command",
+      "Step 11: Click Reject in approval dialog",
+      "Step 12: Verify agent handles rejection gracefully"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Complete checkpoint creation, preview, and restore workflow",
+    "steps": [
+      "Step 1: Start a new conversation",
+      "Step 2: Exchange several messages with AI",
+      "Step 3: Create a manual checkpoint",
+      "Step 4: Add checkpoint notes/description",
+      "Step 5: Continue conversation with more messages",
+      "Step 6: Create a second checkpoint",
+      "Step 7: Open checkpoint manager",
+      "Step 8: Preview first checkpoint",
+      "Step 9: Compare both checkpoints",
+      "Step 10: Restore to first checkpoint",
+      "Step 11: Confirm restoration",
+      "Step 12: Verify conversation reverted correctly"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Complete memory creation, usage, and management workflow",
+    "steps": [
+      "Step 1: Enable memory feature in settings",
+      "Step 2: Start a conversation",
+      "Step 3: Tell AI a personal preference",
+      "Step 4: Verify AI acknowledges it will remember",
+      "Step 5: Start a new conversation",
+      "Step 6: Ask AI about the preference",
+      "Step 7: Verify AI recalls correctly",
+      "Step 8: Open memory management UI",
+      "Step 9: View the stored memory",
+      "Step 10: Edit the memory content",
+      "Step 11: Verify change persists",
+      "Step 12: Delete the memory and verify removal"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Complete todo list workflow with agent task planning",
+    "steps": [
+      "Step 1: Send a complex multi-step request to agent",
+      "Step 2: Verify todo panel opens automatically",
+      "Step 3: Verify task list is populated",
+      "Step 4: Verify first task shows as in_progress",
+      "Step 5: Watch tasks progress through states",
+      "Step 6: Verify completed tasks show checkmark",
+      "Step 7: Verify progress bar updates",
+      "Step 8: Click on a task for details",
+      "Step 9: Verify task completion timeline",
+      "Step 10: Collapse todo panel",
+      "Step 11: Verify minimized indicator shows progress"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Complete subagent delegation and result integration workflow",
+    "steps": [
+      "Step 1: Ask main agent to research a complex topic",
+      "Step 2: Verify delegation to research subagent",
+      "Step 3: Verify subagent indicator shows",
+      "Step 4: Watch subagent progress display",
+      "Step 5: Verify subagent uses web search tools",
+      "Step 6: Verify subagent results returned",
+      "Step 7: Verify main agent incorporates results",
+      "Step 8: Ask for code review",
+      "Step 9: Verify code-review subagent activates",
+      "Step 10: Verify review results integrated",
+      "Step 11: Check subagent execution history"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Complete file operations workflow with agent",
+    "steps": [
+      "Step 1: Ask agent to create a new file",
+      "Step 2: Verify write_file tool is called",
+      "Step 3: Approve file creation (if HITL enabled)",
+      "Step 4: Verify file appears in files panel",
+      "Step 5: Ask agent to read the file back",
+      "Step 6: Verify read_file tool is called",
+      "Step 7: Ask agent to modify the file",
+      "Step 8: Verify edit_file tool is called",
+      "Step 9: View diff of changes",
+      "Step 10: Ask agent to list directory",
+      "Step 11: Verify ls tool output displayed",
+      "Step 12: Download created files"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Complete extended thinking workflow with complex problem",
+    "steps": [
+      "Step 1: Enable extended thinking mode",
+      "Step 2: Set thinking budget/tokens",
+      "Step 3: Send a complex analytical question",
+      "Step 4: Verify thinking indicator appears",
+      "Step 5: Watch thinking progress",
+      "Step 6: Verify thinking content streams",
+      "Step 7: Click to expand thinking section",
+      "Step 8: Verify tool use within thinking",
+      "Step 9: Verify final response quality",
+      "Step 10: Collapse thinking section",
+      "Step 11: Toggle extended thinking off",
+      "Step 12: Compare response without thinking"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Complete conversation branching and merge workflow",
+    "steps": [
+      "Step 1: Create a conversation with 5+ exchanges",
+      "Step 2: Navigate to message 3",
+      "Step 3: Click branch from this message",
+      "Step 4: Send different message to create branch",
+      "Step 5: Continue in branch with more messages",
+      "Step 6: Create another branch from branch",
+      "Step 7: Open branch visualization",
+      "Step 8: Verify tree structure is correct",
+      "Step 9: Navigate between branches",
+      "Step 10: Compare branch contents",
+      "Step 11: Select best branch as main"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Complete sharing workflow with different permission levels",
+    "steps": [
+      "Step 1: Create a conversation with content",
+      "Step 2: Open share dialog",
+      "Step 3: Set to read-only access",
+      "Step 4: Generate share link",
+      "Step 5: Open link in incognito browser",
+      "Step 6: Verify view-only access",
+      "Step 7: Update to comment access",
+      "Step 8: Test commenting in shared view",
+      "Step 9: Update to edit access",
+      "Step 10: Test editing in shared view",
+      "Step 11: Revoke share access",
+      "Step 12: Verify link no longer works"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Complete settings customization and persistence workflow",
+    "steps": [
+      "Step 1: Open settings modal",
+      "Step 2: Change theme to dark",
+      "Step 3: Increase font size to 18px",
+      "Step 4: Change code theme",
+      "Step 5: Adjust message density",
+      "Step 6: Enable extended thinking by default",
+      "Step 7: Set custom instructions",
+      "Step 8: Save all settings",
+      "Step 9: Refresh the page",
+      "Step 10: Verify all settings persisted",
+      "Step 11: Test AI with custom instructions",
+      "Step 12: Reset settings to defaults"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Complete MCP server integration workflow",
+    "steps": [
+      "Step 1: Open MCP configuration",
+      "Step 2: Add new MCP server",
+      "Step 3: Configure server settings",
+      "Step 4: Test server connection",
+      "Step 5: Verify tools discovered",
+      "Step 6: Enable server",
+      "Step 7: Start conversation",
+      "Step 8: Use MCP tool in conversation",
+      "Step 9: Verify tool execution",
+      "Step 10: Check server health status",
+      "Step 11: Disable server",
+      "Step 12: Remove server configuration"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Verification of complete visual consistency across application",
+    "steps": [
+      "Step 1: Take screenshot of home page",
+      "Step 2: Take screenshot of chat interface",
+      "Step 3: Take screenshot of settings modal",
+      "Step 4: Take screenshot in dark mode",
+      "Step 5: Verify primary color (#CC785C) used consistently",
+      "Step 6: Verify typography is consistent",
+      "Step 7: Verify spacing follows 4px grid",
+      "Step 8: Verify button styles are consistent",
+      "Step 9: Verify input field styles are consistent",
+      "Step 10: Verify modal styles are consistent"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Full responsive design verification from mobile to desktop",
+    "steps": [
+      "Step 1: Test at 320px width (small mobile)",
+      "Step 2: Test at 375px width (standard mobile)",
+      "Step 3: Test at 414px width (large mobile)",
+      "Step 4: Test at 768px width (tablet)",
+      "Step 5: Test at 1024px width (small desktop)",
+      "Step 6: Test at 1440px width (standard desktop)",
+      "Step 7: Test at 1920px width (large desktop)",
+      "Step 8: Verify no horizontal scrolling at each size",
+      "Step 9: Verify touch targets adequate at mobile sizes",
+      "Step 10: Verify text readable at all sizes"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Full accessibility audit with automated and manual checks",
+    "steps": [
+      "Step 1: Run axe accessibility scanner",
+      "Step 2: Check color contrast ratios (WCAG AA)",
+      "Step 3: Verify all images have alt text",
+      "Step 4: Test complete keyboard navigation",
+      "Step 5: Test with screen reader (NVDA/VoiceOver)",
+      "Step 6: Verify focus indicators visible",
+      "Step 7: Test skip links functionality",
+      "Step 8: Test with 200% browser zoom",
+      "Step 9: Verify ARIA labels on interactive elements",
+      "Step 10: Check form labels and error messages",
+      "Step 11: Test in high contrast mode",
+      "Step 12: Verify reduced motion preference respected"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Database operations and data integrity verification",
+    "steps": [
+      "Step 1: Create multiple conversations",
+      "Step 2: Verify data persisted in database",
+      "Step 3: Check foreign key relationships",
+      "Step 4: Test cascade delete behavior",
+      "Step 5: Verify no orphaned records",
+      "Step 6: Test concurrent write operations",
+      "Step 7: Verify transaction rollback on error",
+      "Step 8: Check database indexes exist",
+      "Step 9: Verify data encryption at rest",
+      "Step 10: Test backup and restore"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Performance testing under load",
+    "steps": [
+      "Step 1: Measure initial page load time",
+      "Step 2: Verify under 3 second load",
+      "Step 3: Create 100 conversations",
+      "Step 4: Measure sidebar scroll performance",
+      "Step 5: Create conversation with 500 messages",
+      "Step 6: Verify virtualization works",
+      "Step 7: Measure message send latency",
+      "Step 8: Test with 10 concurrent users",
+      "Step 9: Monitor memory usage over time",
+      "Step 10: Check for memory leaks"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Security testing for common vulnerabilities",
+    "steps": [
+      "Step 1: Test for XSS in message content",
+      "Step 2: Test for SQL injection in search",
+      "Step 3: Verify CSRF protection active",
+      "Step 4: Check authentication token security",
+      "Step 5: Test session timeout behavior",
+      "Step 6: Verify API rate limiting",
+      "Step 7: Test for insecure direct object references",
+      "Step 8: Verify file upload restrictions",
+      "Step 9: Check for sensitive data in responses",
+      "Step 10: Test logout clears all session data"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Error handling and recovery verification",
+    "steps": [
+      "Step 1: Test with invalid API key",
+      "Step 2: Verify friendly error message",
+      "Step 3: Simulate network disconnection",
+      "Step 4: Verify offline indicator appears",
+      "Step 5: Test reconnection behavior",
+      "Step 6: Test with malformed request data",
+      "Step 7: Verify validation error messages",
+      "Step 8: Test rate limit exceeded scenario",
+      "Step 9: Verify retry logic works",
+      "Step 10: Test recovery from server error"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Cross-browser compatibility verification",
+    "steps": [
+      "Step 1: Test in Chrome (latest)",
+      "Step 2: Test in Firefox (latest)",
+      "Step 3: Test in Safari (latest)",
+      "Step 4: Test in Edge (latest)",
+      "Step 5: Verify streaming works in all browsers",
+      "Step 6: Verify keyboard shortcuts work",
+      "Step 7: Verify clipboard operations work",
+      "Step 8: Verify file upload works",
+      "Step 9: Verify local storage persists",
+      "Step 10: Test PWA installation in each"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "functional",
+    "description": "Mobile touch interactions verification",
+    "steps": [
+      "Step 1: Test on iOS Safari",
+      "Step 2: Test on Android Chrome",
+      "Step 3: Test swipe to open sidebar",
+      "Step 4: Test swipe to close sidebar",
+      "Step 5: Test long-press context menu",
+      "Step 6: Test pinch-to-zoom in artifact preview",
+      "Step 7: Verify virtual keyboard doesn't hide input",
+      "Step 8: Test pull-to-refresh if applicable",
+      "Step 9: Verify no double-tap zoom issues",
+      "Step 10: Test scroll momentum"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
+  },
+  {
+    "category": "style",
+    "description": "Animation and transition quality verification",
+    "steps": [
+      "Step 1: Verify sidebar toggle animation (300ms)",
+      "Step 2: Verify modal open/close animation",
+      "Step 3: Verify message fade-in animation",
+      "Step 4: Verify loading spinner animation",
+      "Step 5: Verify tooltip animations",
+      "Step 6: Test with prefers-reduced-motion",
+      "Step 7: Verify no animation jank or stuttering",
+      "Step 8: Check animation timing consistency",
+      "Step 9: Verify hover state transitions",
+      "Step 10: Test animation performance (60fps)"
+    ],
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
   }
 ]
