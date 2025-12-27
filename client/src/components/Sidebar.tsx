@@ -19,6 +19,7 @@ export function Sidebar() {
     updateConversation,
     archiveConversation,
     unarchiveConversation,
+    markConversationRead,
   } = useConversationStore()
 
   const { setSidebarOpen } = useUIStore()
@@ -93,6 +94,22 @@ export function Sidebar() {
     if (window.innerWidth < 768) {
       setSidebarOpen(false)
     }
+
+    // Mark conversation as read when selected
+    const markAsRead = async () => {
+      try {
+        const response = await fetch(`/api/conversations/${conv.id}/mark-read`, {
+          method: 'POST',
+        })
+        if (response.ok) {
+          // Update the conversation in the store
+          updateConversation(conv.id, { unreadCount: 0 })
+        }
+      } catch (error) {
+        console.error('Failed to mark conversation as read:', error)
+      }
+    }
+    markAsRead()
   }
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
@@ -568,6 +585,16 @@ function ConversationItem({
           <span className="flex-1 truncate text-sm">
             {conv.title || 'Untitled'}
           </span>
+
+          {/* Unread message indicator */}
+          {conv.unreadCount > 0 && (
+            <div className="flex items-center gap-1 ml-2">
+              <span className="w-2 h-2 bg-[var(--primary)] rounded-full" />
+              <span className="text-xs text-[var(--text-secondary)] min-w-[16px] text-right">
+                {conv.unreadCount}
+              </span>
+            </div>
+          )}
 
           {(showActions || isSelected) && !isDeleting && !isDuplicating && !isArchiving && !isExporting && !isMoving && (
             <div className="flex gap-1">

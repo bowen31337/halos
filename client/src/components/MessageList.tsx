@@ -19,6 +19,7 @@ interface RowProps {
     messages: Message[]
     onRegenerate: (messageId: string) => void
     onEdit: (messageId: string, content: string) => void
+    onSuggestionClick: (suggestion: string) => void
     measureRef: (index: number, element: HTMLElement | null) => void
     isStreaming: boolean
     isLastMessageThinking: boolean
@@ -26,7 +27,7 @@ interface RowProps {
 }
 
 function Row({ index, style, data }: RowProps) {
-  const { messages, onRegenerate, onEdit, measureRef, isStreaming, isLastMessageThinking } = data
+  const { messages, onRegenerate, onEdit, onSuggestionClick, measureRef, isStreaming, isLastMessageThinking } = data
 
   // Last index is for thinking indicator
   if (index === messages.length) {
@@ -48,6 +49,7 @@ function Row({ index, style, data }: RowProps) {
           message={message}
           onRegenerate={onRegenerate}
           onEdit={onEdit}
+          onSuggestionClick={onSuggestionClick}
         />
       </div>
     </div>
@@ -55,7 +57,7 @@ function Row({ index, style, data }: RowProps) {
 }
 
 export function MessageList() {
-  const { messages, isStreaming, regenerateLastResponse, editAndResend } = useConversationStore()
+  const { messages, isStreaming, regenerateLastResponse, editAndResend, setInputMessage, currentConversationId } = useConversationStore()
   const listRef = useRef<List>(null)
   const sizeMap = useRef<Record<number, number>>({})
   const [listHeight, setListHeight] = useState(0)
@@ -116,6 +118,13 @@ export function MessageList() {
     }
   }, [messages.length])
 
+  // Handle suggestion click - dispatch event to set input and focus
+  const handleSuggestionClick = useCallback((suggestion: string) => {
+    // Use the same custom event as PromptModal to set input and focus
+    const event = new CustomEvent('usePrompt', { detail: { content: suggestion } })
+    window.dispatchEvent(event)
+  }, [])
+
   // For small message lists, use regular rendering for better performance
   if (messages.length < VIRTUALIZATION_THRESHOLD) {
     return (
@@ -126,6 +135,7 @@ export function MessageList() {
             message={message}
             onRegenerate={regenerateLastResponse}
             onEdit={editAndResend}
+            onSuggestionClick={handleSuggestionClick}
           />
         ))}
         {(isStreaming || isLastMessageThinking) && (
@@ -152,6 +162,7 @@ export function MessageList() {
             messages,
             onRegenerate: regenerateLastResponse,
             onEdit: editAndResend,
+            onSuggestionClick: handleSuggestionClick,
             measureRef: setRowHeight,
             isStreaming,
             isLastMessageThinking,

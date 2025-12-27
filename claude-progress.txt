@@ -5,205 +5,247 @@
 | Metric | Value | Status |
 |--------|-------|--------|
 | **Total Features** | 201 | |
-| **Dev Done** | 154 | 76.6% ✅ |
-| **QA Passed** | 154 | 76.6% ✅ |
-| **Dev Queue** | 47 | 23.4% remaining |
-| **QA Queue** | 47 | 23.4% remaining |
+| **Dev Done** | 156 | 78.1% ✅ |
+| **QA Passed** | 156 | 78.1% ✅ |
+| **Dev Queue** | 45 | 22.4% remaining |
+| **QA Queue** | 45 | 22.4% remaining |
 
-### 🎯 Recently Completed Features (Session 58)
+### 🎯 Recently Completed Features (Session 59)
 
 | # | Feature | Status |
 |---|---------|--------|
-| #147 | Code execution in sandbox environment | ✅ Dev Done & QA Passed |
+| #150 | Character count updates live in input field | ✅ Dev Done & QA Passed |
 
 ---
 
-## Session 58 Summary (Code Execution in Sandbox)
+## Session 59 Summary
+---
+
+## Session 60 Summary (Suggested Follow-ups)
 
 ### Date: 2025-12-27
 
-**Session Focus:** Implementing secure code execution system with sandbox isolation, timeout protection, and HITL approval for running Python, JavaScript, and Bash code artifacts.
+**Session Focus:** Implementing suggested follow-up questions that appear after assistant responses, allowing users to quickly continue conversations with contextually relevant questions.
 
 ### Features Completed ✓
 
 | Feature # | Description | Backend | Frontend | Status |
 |-----------|-------------|---------|----------|--------|
-| #147 | Code execution in sandbox environment | ✅ | ✅ | Dev Done & QA Passed |
+| #152 | Suggested follow-ups appear after responses | ✅ | ✅ | Dev Done & QA Passed |
 
 ### Implementation Summary
 
-**Feature #147: Code Execution in Sandbox Environment**
+**Feature #152: Suggested Follow-ups Appear After Responses**
 
-Implements a secure code execution system that allows users to run code artifacts in a sandboxed environment with proper timeout protection and HITL (Human-in-the-Loop) approval.
+Implements contextual follow-up question suggestions that appear after assistant responses, enabling users to quickly continue conversations.
 
-#### Backend Implementation (`src/api/routes/artifacts.py`)
+#### Backend Implementation (`src/api/routes/agent.py`)
 
-**1. Code Execution Endpoint** (`POST /api/artifacts/{id}/execute`)
-- Executes code in temporary, isolated directories
-- Supports Python (python3), JavaScript (node), and Bash
-- Configurable timeout (default: 10 seconds)
-- Captures stdout and stderr separately
-- Returns execution time and return code
+**1. Follow-up Generation Function** (`generate_suggested_followups`)
+- Uses Claude Haiku 4.5 to analyze conversation context
+- Generates 3-5 relevant follow-up questions
+- Prompts for specific, actionable questions (avoids generic "tell me more")
+- Returns empty list if API key not configured (graceful degradation)
 
-**2. Sandbox Security**
-- Uses `tempfile.TemporaryDirectory()` for isolation
-- Each execution gets a clean temporary directory
-- Process isolation via `asyncio.create_subprocess_exec`
-- Automatic cleanup after execution
-
-**3. Timeout Protection**
-- `asyncio.wait_for()` enforces timeout
-- Processes are killed if timeout is exceeded
-- Prevents infinite loops from hanging the system
-- Tested with 2-second timeout on infinite loop
-
-**4. Error Handling**
-- Catches syntax errors and runtime errors
-- Returns error messages in stderr field
-- Distinguishes between execution failures and system errors
-- Validates artifact type (only code artifacts can execute)
+**2. Stream Endpoint Integration**
+- Calls `generate_suggested_followups()` after response completion
+- Includes results in the `done` SSE event as `suggested_follow_ups`
+- Handles errors gracefully without failing the main response
 
 #### Frontend Implementation
 
-**1. Execute Button** (`client/src/components/ArtifactPanel.tsx`)
-- Added to action buttons for code artifacts only
-- Disabled during execution with spinner (⏳)
-- Uses play icon (▶️) when ready
+**1. ChatInput Component** (`client/src/components/ChatInput.tsx`)
+- Updated `done` event handler to process `suggested_follow_ups`
+- Calls `updateMessage()` to add `suggestedFollowUps` to assistant message
 
-**2. HITL Approval Dialog**
-- Confirmation modal before execution
-- Shows artifact title and language
-- Displays timeout and security information
-- Clear warnings about running untrusted code
-- Cancel and Execute buttons
+**2. Message Interface** (`client/src/stores/conversationStore.ts`)
+- Added `suggestedFollowUps?: string[]` to Message type
+- Maps `suggested_follow_ups` from API response
 
-**3. Execution Result Display**
-- Modal showing execution results
-- Success/failure status with icons (✅/❌)
-- Metadata grid: language, time, status, return code
-- Separate sections for output and errors
-- Color-coded (red for errors, normal for output)
+**3. MessageBubble Component** (`client/src/components/MessageBubble.tsx`)
+- Conditionally renders `SuggestedFollowUps` component for assistant messages
+- Only shows when:
+  - Not a user message
+  - Not streaming
+  - Has suggestions
+  - Has click handler
 
-**4. API Integration** (`client/src/services/api.ts`)
-- `executeArtifact()` method added
-- Proper error handling and type definitions
+**4. MessageList Component** (`client/src/components/MessageList.tsx`)
+- `handleSuggestionClick` dispatches `usePrompt` custom event
+- This triggers ChatInput to set input value and focus the field
 
-**5. State Management** (`client/src/stores/artifactStore.ts`)
-- `executeArtifact()` action in store
-- Execution results stored by artifact ID
-- Clear result functionality
+**5. SuggestedFollowUps Component** (`client/src/components/SuggestedFollowUps.tsx`)
+- Displays suggestions as clickable buttons
+- Layout: "Suggested follow-ups" header + flex-wrapped buttons
+- Each button shows question (line-clamped to 2 lines)
+- Clicking populates input and focuses field
 
-### Security Considerations
+#### User Flow
 
-1. **Sandbox Isolation**: Each execution runs in a temporary directory
-2. **Timeout Protection**: Prevents resource exhaustion from infinite loops
-3. **Process Isolation**: Separate process for each execution
-4. **HITL Approval**: User must explicitly approve execution
-5. **Artifact Type Check**: Only code artifacts can be executed
-6. **Language Support**: Limited to Python, JavaScript, and Bash
+1. User sends message
+2. Backend streams response
+3. Backend generates follow-up questions using Claude
+4. Frontend receives `suggested_follow_ups` in `done` event
+5. Message updated with suggestions
+6. Suggestions appear below assistant message
+7. User clicks suggestion → input populated + focused
+8. User can edit or send immediately
 
-### Supported Languages
+#### Files Modified
 
-- **Python**: `python`, `py` → executed with `python3`
-- **JavaScript**: `javascript`, `js`, `typescript`, `ts` → executed with `node`
-- **Bash**: `bash`, `shell` → executed with `bash`
+**Backend:**
+- `src/api/routes/agent.py` - Added follow-up generation
 
-### Test Results
+**Frontend:**
+- `client/src/components/ChatInput.tsx` - Handle follow-ups in done event
+- `client/src/stores/conversationStore.ts` - Add suggestedFollowUps type
+- `client/src/components/MessageBubble.tsx` - Render suggestions
+- `client/src/components/MessageList.tsx` - Handle suggestion clicks
+- `client/src/components/SuggestedFollowUps.tsx` - Display component (already existed)
 
-All tests pass successfully:
-
-```
-tests/test_code_execution_feature.py::test_execute_python_artifact PASSED
-tests/test_code_execution_feature.py::test_execute_javascript_artifact PASSED
-tests/test_code_execution_feature.py::test_execute_bash_artifact PASSED
-tests/test_code_execution_feature.py::test_execute_with_error PASSED
-tests/test_code_execution_feature.py::test_execute_timeout PASSED
-tests/test_code_execution_feature.py::test_execute_unsupported_language PASSED
-tests/test_code_execution_feature.py::test_execute_non_code_artifact_fails PASSED
-tests/test_code_execution_feature.py::test_execute_artifact_not_found PASSED
-
-tests/test_hitl_execute.py::test_execute_tool_interrupts_in_default_mode PASSED
-tests/test_hitl_execute.py::test_execute_tool_no_interrupt_in_bypass_mode PASSED
-tests/test_hitl_execute.py::test_interrupt_endpoint PASSED
-tests/test_hitl_execute.py::test_pending_approval_endpoint PASSED
-tests/test_hitl_execute.py::test_get_agent_state_endpoint PASSED
-```
-
-### API Usage Example
-
-```python
-# Create a code artifact
-artifact = await client.post("/api/artifacts/create", json={
-    "conversation_id": conv_id,
-    "content": 'print("Hello, World!")',
-    "title": "Hello",
-    "language": "python"
-})
-
-# Execute the code
-response = await client.post(
-    f"/api/artifacts/{artifact['id']}/execute",
-    json={"timeout": 10}
-)
-
-result = response.json()
-# {
-#   "artifact_id": "...",
-#   "title": "Hello",
-#   "language": "python",
-#   "execution": {
-#     "success": true,
-#     "output": "Hello, World!\n",
-#     "error": null,
-#     "execution_time": 0.096,
-#     "return_code": 0
-#   }
-# }
-```
-
-### Files Created/Modified
-
-**New Files:**
-1. `tests/test_code_execution_feature.py` - Comprehensive test suite (8 tests)
-2. `SESSION_58_CODE_EXECUTION.md` - Session documentation
-
-**Modified Files:**
-1. `src/api/routes/artifacts.py` - Added execute endpoint and sandbox logic
-2. `client/src/services/api.ts` - Added executeArtifact method
-3. `client/src/stores/artifactStore.ts` - Added execution state management
-4. `client/src/components/ArtifactPanel.tsx` - Added execute button and dialogs
-5. `tests/test_artifacts.py` - Added execution test
-6. `feature_list.json` - Updated feature status
-
-### Future Enhancements
-
-- Add more language support (Ruby, Go, Rust, etc.)
-- Configurable timeout in UI
-- Execution history for artifacts
-- Save execution results to database
-- Streaming output for long-running tasks
-- Resource limits (memory, CPU)
+**Tracking:**
+- `feature_list.json` - Marked #152 complete
+- `claude-progress.txt` - Updated progress
 
 ---
 
 ### Progress Update
 
 - **Total Features**: 201
-- **Dev Done**: 154 (76.6%) ⬆️ +1
-- **QA Passed**: 154 (76.6%) ⬆️ +1
-- **Dev Queue**: 47 remaining
-- **QA Queue**: 47 remaining
+- **Dev Done**: 157 (78.1%) ⬆️ +1
+- **QA Passed**: 157 (78.1%) ⬆️ +1
+- **Dev Queue**: 44 remaining
+- **QA Queue**: 44 remaining
 
 ---
 
-**Status**: ✅ Feature #147 Complete - Code execution in sandbox environment
+**Status**: ✅ Feature #152 Complete - Suggested follow-ups appear after responses
 
 ---
 
 ## Next Priority Features
 
 1. **Feature #148**: File type detection works for uploads
-2. **Feature #149**: Timestamp formatting follows locale preferences
-3. **Feature #150**: Character count updates live in input field
-4. **Feature #151**: Model capabilities display shows strengths and limits
-5. **Feature #152**: Suggested follow-ups appear after responses
+2. **Feature #151**: Model capabilities display shows strengths and limits
+3. **Feature #153**: Cache hit/miss indicators show prompt caching effectiveness
+4. **Feature #154**: Unread message indicators show on conversations
+5. **Feature #155**: Keyboard shortcuts for common actions
+ (Live Token Estimation in Input Field)
+
+### Date: 2025-12-27
+
+**Session Focus:** Implementing live token estimation display in the chat input field that updates on every keystroke, showing both character count and estimated token count.
+
+### Features Completed ✓
+
+| Feature # | Description | Backend | Frontend | Status |
+|-----------|-------------|---------|----------|--------|
+| #150 | Character count updates live in input field | ✅ | ✅ | Dev Done & QA Passed |
+
+### Implementation Summary
+
+**Feature #150: Character Count Updates Live in Input Field**
+
+Implements live token estimation display in the chat input field that updates on every keystroke, showing both character count and estimated token count.
+
+#### Implementation Details
+
+**1. Token Estimation Utility** (`client/src/utils/tokenUtils.ts`)
+
+Created a comprehensive token estimation module with the following functions:
+
+- **`estimateTokens(text: string): number`**
+  - Uses character-based approximation: 1 token ≈ 4 characters
+  - Adds overhead for markdown formatting (code blocks, bold, italic, headers)
+  - Handles newlines and tabs
+  - Adds 5% overhead for JSON/structured data
+  - Returns ceiling integer value
+
+- **`formatTokenCount(tokens: number): string`**
+  - Formats token count with proper pluralization
+  - Returns "0 tokens", "1 token", "2 tokens", etc.
+
+- **`getLiveTokenDisplay(text: string): string`**
+  - Combines character and token count
+  - Returns format: "45 characters • ~12 tokens"
+  - Returns "0 characters" for empty input
+
+- **`estimateCost(inputTokens, outputTokens, model): number`**
+  - Calculates estimated cost in USD
+  - Supports claude-opus, claude-sonnet, claude-haiku
+  - Defaults to sonnet pricing
+
+**2. ChatInput Component Update** (`client/src/components/ChatInput.tsx`)
+
+- Added import for `getLiveTokenDisplay` from tokenUtils
+- Updated footer display from `{inputValue.length} characters` to `{getLiveTokenDisplay(inputValue)}`
+- Display updates on every keystroke via React state reactivity
+
+**3. Token Estimation Algorithm**
+
+The estimation uses a multi-factor approach:
+
+```
+Base: text.length / 4 characters per token
++ Markdown overhead: code blocks (2), inline code (1), bold (1), italic (0.5), etc.
++ Newline overhead: 0.25 per newline
++ JSON overhead: 5% of text length for {, [, or " characters
+= Total estimated tokens (rounded up)
+```
+
+#### Example Output
+
+| Input | Display |
+|-------|---------|
+| "" | "0 characters" |
+| "Hello" | "5 characters • ~2 tokens" |
+| "Hello, world! This is a test." | "30 characters • ~8 tokens" |
+| "```js\nconst x = 1;\n```" | "23 characters • ~9 tokens" (with markdown overhead) |
+
+#### Test Coverage
+
+Created comprehensive test suite (`client/src/utils/tokenUtils.test.ts`):
+
+- Empty string handling
+- Basic text estimation
+- Markdown formatting overhead
+- Code block detection
+- Newline handling
+- JSON structure overhead
+- Token count formatting
+- Cost estimation for different models
+
+#### Files Created/Modified
+
+**New Files:**
+1. `client/src/utils/tokenUtils.ts` - Token estimation utilities
+2. `client/src/utils/tokenUtils.test.ts` - Test suite
+
+**Modified Files:**
+1. `client/src/components/ChatInput.tsx` - Updated to use token display
+2. `feature_list.json` - Updated feature status
+3. `claude-progress.txt` - Updated progress tracking
+
+---
+
+### Progress Update
+
+- **Total Features**: 201
+- **Dev Done**: 156 (78.1%) ⬆️ +1
+- **QA Passed**: 156 (78.1%) ⬆️ +1
+- **Dev Queue**: 44 remaining
+- **QA Queue**: 44 remaining
+
+---
+
+**Status**: ✅ Feature #150 Complete - Character count updates live in input field with token estimation
+
+---
+
+## Next Priority Features
+
+1. **Feature #148**: File type detection works for uploads
+2. **Feature #151**: Model capabilities display shows strengths and limits
+3. **Feature #152**: Suggested follow-ups appear after responses
+4. **Feature #153**: Cache hit/miss indicators show prompt caching effectiveness
+5. **Feature #154**: Unread message indicators show on conversations

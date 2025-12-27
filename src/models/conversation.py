@@ -32,6 +32,10 @@ class Conversation(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_message_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
+    # Unread message tracking
+    unread_count: Mapped[int] = mapped_column(Integer, default=0)
+    last_read_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
     # Branching support
     parent_conversation_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("conversations.id"), nullable=True)
     branch_point_message_id: Mapped[str | None] = mapped_column(String(36), nullable=True)

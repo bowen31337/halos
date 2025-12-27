@@ -8,6 +8,7 @@ import { useNetworkStore, QueuedAction } from '../stores/networkStore'
 import { api } from '../services/api'
 import { v4 as uuidv4 } from 'uuid'
 import { HITLApprovalDialog } from './HITLApprovalDialog'
+import { getLiveTokenDisplay } from '../utils/tokenUtils'
 
 interface ImageAttachment {
   id: string
@@ -555,6 +556,8 @@ export function ChatInput() {
                       outputTokens: eventData.output_tokens,
                       cacheReadTokens: eventData.cache_read_tokens,
                       cacheWriteTokens: eventData.cache_write_tokens,
+                      // Include suggested follow-ups
+                      suggestedFollowUps: eventData.suggested_follow_ups,
                     })
 
                     // Store thinking content if present
@@ -984,7 +987,7 @@ export function ChatInput() {
       </div>
       <div className="flex justify-between mt-2 text-xs text-[var(--text-secondary)]">
         <span>
-          {inputValue.length} characters
+          {getLiveTokenDisplay(inputValue)}
           {images.length > 0 && ` • ${images.length} image${images.length > 1 ? 's' : ''} attached`}
           {isOffline && images.length > 0 && ' (images will be lost)'}
         </span>

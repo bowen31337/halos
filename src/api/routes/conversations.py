@@ -62,6 +62,7 @@ class ConversationResponse(BaseModel):
     is_archived: bool = False
     is_pinned: bool = False
     message_count: int = 0
+    unread_count: int = 0
     created_at: str
     updated_at: str
 
@@ -99,6 +100,7 @@ async def list_conversations(
             "is_archived": conv.is_archived,
             "is_pinned": conv.is_pinned,
             "message_count": conv.message_count,
+            "unread_count": conv.unread_count,
             "created_at": conv.created_at.isoformat(),
             "updated_at": conv.updated_at.isoformat(),
         }
@@ -145,6 +147,7 @@ async def create_conversation(
         "is_archived": conversation.is_archived,
         "is_pinned": conversation.is_pinned,
         "message_count": conversation.message_count,
+        "unread_count": conversation.unread_count,
         "created_at": conversation.created_at.isoformat(),
         "updated_at": conversation.updated_at.isoformat(),
     }
@@ -174,6 +177,7 @@ async def get_conversation(
         "is_archived": conversation.is_archived,
         "is_pinned": conversation.is_pinned,
         "message_count": conversation.message_count,
+        "unread_count": conversation.unread_count,
         "created_at": conversation.created_at.isoformat(),
         "updated_at": conversation.updated_at.isoformat(),
     }
@@ -235,6 +239,7 @@ async def update_conversation(
         "is_archived": conversation.is_archived,
         "is_pinned": conversation.is_pinned,
         "message_count": conversation.message_count,
+        "unread_count": conversation.unread_count,
         "created_at": conversation.created_at.isoformat(),
         "updated_at": conversation.updated_at.isoformat(),
     }
@@ -273,6 +278,81 @@ async def delete_conversation(
         ip_address=ip_address,
         user_agent=user_agent,
     )
+
+
+@router.post("/{conversation_id}/mark-read")
+async def mark_conversation_read(
+    conversation_id: str,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Mark a conversation as read and clear unread count."""
+    result = await db.execute(
+        select(ConversationModel)
+        .where(ConversationModel.id == conversation_id)
+        .where(ConversationModel.is_deleted == False)
+    )
+    conversation = result.scalar_one_or_none()
+
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # Mark as read
+    conversation.unread_count = 0
+    conversation.last_read_at = datetime.utcnow()
+    conversation.updated_at = datetime.utcnow()
+
+    await db.commit()
+    await db.refresh(conversation)
+
+    # Audit log
+    ip_address, user_agent = get_request_info(request)
+    await log_audit(
+        db=db,
+        user_id="default-user",
+        action=AuditAction.CONVERSATION_READ,
+        resource_type="conversation",
+        resource_id=conversation.id,
+        details={"unread_count": 0},
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+
+    return {
+        "id": conversation.id,
+        "unread_count": conversation.unread_count,
+        "last_read_at": conversation.last_read_at.isoformat(),
+    }
+
+
+@router.post("/{conversation_id}/mark-unread")
+async def increment_unread_count(
+    conversation_id: str,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Manually increment unread count for testing purposes."""
+    result = await db.execute(
+        select(ConversationModel)
+        .where(ConversationModel.id == conversation_id)
+        .where(ConversationModel.is_deleted == False)
+    )
+    conversation = result.scalar_one_or_none()
+
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # Increment unread count
+    conversation.unread_count += 1
+    conversation.updated_at = datetime.utcnow()
+
+    await db.commit()
+    await db.refresh(conversation)
+
+    return {
+        "id": conversation.id,
+        "unread_count": conversation.unread_count,
+    }
 
 
 @router.post("/{conversation_id}/duplicate")

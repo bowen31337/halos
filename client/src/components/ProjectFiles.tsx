@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useProjectStore, Project } from '../stores/projectStore'
+import { detectFileType, getFileDescription } from '../utils/fileTypeDetection'
 
 interface ProjectFilesProps {
   project: Project
@@ -177,21 +178,27 @@ export function ProjectFiles({ project }: ProjectFilesProps) {
               No files uploaded yet. Upload a file to add it to the project knowledge base.
             </div>
           ) : (
-            files.map((file) => (
+            files.map((file) => {
+              const fileType = detectFileType(file.original_filename)
+              const fileDescription = getFileDescription(file.original_filename)
+
+              return (
               <div
                 key={file.id}
                 className="flex items-center justify-between p-3 bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg"
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex items-center justify-center w-10 h-10 bg-[var(--surface-elevated)] rounded-lg text-sm">
-                    {file.content_type === 'application/pdf' ? '📄' : '📄'}
+                  <div className="flex items-center justify-center w-10 h-10 bg-[var(--surface-elevated)] rounded-lg text-xl" title={fileDescription}>
+                    {fileType.icon}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-[var(--text-primary)] truncate">
                       {file.original_filename}
                     </div>
-                    <div className="text-xs text-[var(--text-secondary)]">
-                      {file.content_type} • {(file.file_size / 1024).toFixed(1)} KB
+                    <div className="text-xs text-[var(--text-secondary)] flex gap-2">
+                      <span>{fileDescription}</span>
+                      <span>•</span>
+                      <span>{(file.file_size / 1024).toFixed(1)} KB</span>
                     </div>
                   </div>
                 </div>

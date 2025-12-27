@@ -20,8 +20,70 @@ from src.models.conversation import Conversation
 from src.models.memory import Memory
 from src.utils.audit import log_agent_invocation, get_request_info
 from src.utils.content_filter import apply_content_filtering_to_message, should_filter_response
+from anthropic import Anthropic
 
 router = APIRouter()
+
+# Initialize Anthropic client for generating suggested follow-ups
+anthropic_client = None
+
+
+def get_anthropic_client():
+    """Get or create the Anthropic client."""
+    global anthropic_client
+    if anthropic_client is None and settings.anthropic_api_key:
+        anthropic_client = Anthropic(api_key=settings.anthropic_api_key)
+    return anthropic_client
+
+
+async def generate_suggested_followups(response_content: str, user_message: str) -> list[str]:
+    """
+    Generate 3-5 suggested follow-up questions based on the conversation context.
+
+    Uses Claude to analyze the response and suggest relevant follow-up questions.
+    """
+    try:
+        client = get_anthropic_client()
+        if not client:
+            # Return empty list if API key not configured
+            return []
+
+        prompt = f"""Based on this conversation, suggest 3-5 relevant follow-up questions the user might want to ask.
+
+User's question: {user_message}
+
+Assistant's response: {response_content[:2000]}
+
+Guidelines:
+- Generate questions that naturally continue the conversation
+- Questions should be specific and actionable
+- Avoid generic questions like "Can you tell me more?"
+- Each question should be on its own line
+- Return ONLY the questions, no numbering or prefixes
+
+Example format:
+What is the specific implementation detail?
+How does this compare to alternative approaches?
+What are the potential edge cases?
+"""
+
+        response = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=300,
+            temperature=0.7,
+            messages=[{"role": "user", "content": prompt}]
+        )
+
+        content = response.content[0].text
+        # Parse the response into a list of questions
+        questions = [q.strip() for q in content.split('\n') if q.strip()]
+        # Limit to 5 suggestions
+        return questions[:5]
+
+    except Exception as e:
+        # Don't fail the response if suggestion generation fails
+        print(f"Failed to generate suggested follow-ups: {e}")
+        return []
 
 
 async def get_effective_custom_instructions(
@@ -938,6 +1000,15 @@ async def stream_agent(
                 # Replace the response with a filtered message
                 full_response = f"[Content Filtered: {filter_reason}]"
 
+            # Generate suggested follow-ups
+            suggested_followups = []
+            if full_response and message:
+                try:
+                    suggested_followups = await generate_suggested_followups(full_response, message)
+                except Exception as e:
+                    # Don't fail the response if suggestion generation fails
+                    print(f"Failed to generate suggested follow-ups: {e}")
+
             # Done event with thinking content and artifacts if available
             done_data = {"thread_id": thread_id}
             if extended_thinking and thinking_content:
@@ -946,6 +1017,8 @@ async def stream_agent(
                 done_data["artifacts"] = artifacts
             if extracted_memories:
                 done_data["extracted_memories"] = extracted_memories
+            if suggested_followups:
+                done_data["suggested_follow_ups"] = suggested_followups
             # Include files in done event for immediate UI update
             if hasattr(agent, '_thread_state') and 'files' in agent._thread_state:
                 done_data["files"] = agent._thread_state["files"]

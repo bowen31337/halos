@@ -42,6 +42,7 @@ class MessageCreate(BaseModel):
     tool_calls: Optional[dict] = None
     tool_results: Optional[dict] = None
     thinking_content: Optional[str] = None
+    suggested_follow_ups: Optional[list[str]] = None  # Suggested follow-up questions
 
 
 class MessageUpdate(BaseModel):
@@ -83,6 +84,7 @@ async def list_messages(
             "tool_calls": msg.tool_calls,
             "tool_results": msg.tool_results,
             "thinking_content": msg.thinking_content,
+            "suggested_follow_ups": msg.suggested_follow_ups,
             "attachments": msg.attachments,
             "createdAt": msg.created_at.isoformat(),
             "editedAt": msg.edited_at.isoformat() if msg.edited_at else None,
@@ -115,6 +117,7 @@ async def create_message(
         tool_calls=data.tool_calls,
         tool_results=data.tool_results,
         thinking_content=data.thinking_content,
+        suggested_follow_ups=data.suggested_follow_ups,
     )
 
     now = datetime.utcnow()
@@ -124,6 +127,10 @@ async def create_message(
     # Update conversation message count and last_message_at
     conversation.message_count += 1
     conversation.last_message_at = now
+
+    # Handle unread count - increment for assistant messages
+    if data.role == 'assistant':
+        conversation.unread_count += 1
 
     await db.commit()
     await db.refresh(message)
@@ -136,6 +143,7 @@ async def create_message(
         "tool_calls": message.tool_calls,
         "tool_results": message.tool_results,
         "thinking_content": message.thinking_content,
+        "suggested_follow_ups": message.suggested_follow_ups,
         "attachments": message.attachments,
         "input_tokens": message.input_tokens,
         "output_tokens": message.output_tokens,
@@ -167,6 +175,7 @@ async def get_message(
         "tool_calls": message.tool_calls,
         "tool_results": message.tool_results,
         "thinking_content": message.thinking_content,
+        "suggested_follow_ups": message.suggested_follow_ups,
         "attachments": message.attachments,
         "input_tokens": message.input_tokens,
         "output_tokens": message.output_tokens,
@@ -204,6 +213,7 @@ async def update_message(
         "tool_calls": message.tool_calls,
         "tool_results": message.tool_results,
         "thinking_content": message.thinking_content,
+        "suggested_follow_ups": message.suggested_follow_ups,
         "attachments": message.attachments,
         "input_tokens": message.input_tokens,
         "output_tokens": message.output_tokens,

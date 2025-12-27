@@ -33,6 +33,9 @@ class Message(Base):
     # Extended thinking
     thinking_content: Mapped[str | None] = mapped_column(Text, nullable=True)
 
+    # Suggested follow-ups
+    suggested_follow_ups: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
+
     # Branching support
     parent_message_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("messages.id"), nullable=True)
     is_branch_point: Mapped[bool] = mapped_column(Boolean, default=False)

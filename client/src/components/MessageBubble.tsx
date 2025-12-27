@@ -9,14 +9,32 @@ import { useUIStore } from '../stores/uiStore'
 import { useConversationStore } from '../stores/conversationStore'
 import { useBranchingStore } from '../stores/branchingStore'
 import { OptimizedImage } from './OptimizedImage'
+import { SuggestedFollowUps } from './SuggestedFollowUps'
+
+// Helper function to format relative time
+function formatRelativeTime(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffMins = Math.floor(diffMs / 60000)
+  const diffHours = Math.floor(diffMs / 3600000)
+  const diffDays = Math.floor(diffMs / 86400000)
+
+  if (diffMins < 1) return 'Just now'
+  if (diffMins < 60) return `${diffMins}m ago`
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays < 7) return `${diffDays}d ago`
+  return date.toLocaleDateString()
+}
 
 interface MessageBubbleProps {
   message: Message
   onRegenerate?: (messageId: string) => void
   onEdit?: (messageId: string, content: string) => void
+  onSuggestionClick?: (suggestion: string) => void
 }
 
-export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubbleProps) {
+export function MessageBubble({ message, onRegenerate, onEdit, onSuggestionClick }: MessageBubbleProps) {
   const isUser = message.role === 'user'
   const isTool = message.role === 'tool'
   const isStreaming = message.isStreaming
@@ -38,6 +56,12 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
   const hasCodeBlocks = message.content && /```/.test(message.content)
   const currentIndex = messages.findIndex(m => m.id === message.id)
   const isLastMessage = currentIndex === messages.length - 1
+
+  // Format timestamp
+  const timestamp = {
+    full: new Date(message.createdAt).toLocaleString(),
+    relative: formatRelativeTime(message.createdAt)
+  }
 
   const copyToClipboard = async (text: string, language: string) => {
     try {
@@ -407,6 +431,14 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
             </>
           )}
         </div>
+
+        {/* Suggested follow-ups for assistant messages */}
+        {!isUser && !isStreaming && message.suggestedFollowUps && message.suggestedFollowUps.length > 0 && onSuggestionClick && (
+          <SuggestedFollowUps
+            suggestions={message.suggestedFollowUps}
+            onSuggestionClick={onSuggestionClick}
+          />
+        )}
 
         {/* Edit button for user messages */}
         {isUser && showActions && !isEditing && (

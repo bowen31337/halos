@@ -43,6 +43,10 @@ class SettingsUpdate(BaseModel):
     color_blind_mode: Optional[str] = None
     content_filter_level: Optional[str] = None
     content_filter_categories: Optional[list[str]] = None
+    locale: Optional[str] = None
+    time_format: Optional[str] = None  # "12h" or "24h"
+    date_format: Optional[str] = None  # "MM/DD/YYYY", "DD/MM/YYYY", "YYYY-MM-DD"
+    relative_time: Optional[bool] = None  # Show "5m ago" instead of exact time
 
 
 class CustomInstructionsUpdate(BaseModel):
@@ -68,6 +72,10 @@ user_settings: dict = {
     "color_blind_mode": "none",
     "content_filter_level": "low",
     "content_filter_categories": ["violence", "hate", "sexual", "self-harm", "illegal"],
+    "locale": "en-US",
+    "time_format": "12h",
+    "date_format": "MM/DD/YYYY",
+    "relative_time": True,
 }
 
 
@@ -110,6 +118,14 @@ async def update_settings(data: SettingsUpdate) -> dict:
         user_settings["content_filter_level"] = data.content_filter_level
     if data.content_filter_categories is not None:
         user_settings["content_filter_categories"] = data.content_filter_categories
+    if data.locale is not None:
+        user_settings["locale"] = data.locale
+    if data.time_format is not None:
+        user_settings["time_format"] = data.time_format
+    if data.date_format is not None:
+        user_settings["date_format"] = data.date_format
+    if data.relative_time is not None:
+        user_settings["relative_time"] = data.relative_time
 
     return user_settings
 

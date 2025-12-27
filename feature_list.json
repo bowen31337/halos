@@ -2585,8 +2585,9 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
-    "notes": "Already implemented in client/src/utils/dateUtils.ts with Intl.DateTimeFormat"
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Feature completed: Locale-aware timestamp formatting with UI store integration, date utilities, message bubble timestamps, settings modal locale selection, and comprehensive testing"
   },
   {
     "category": "functional",
@@ -2601,8 +2602,8 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
-    "notes": "Already implemented in client/src/components/ChatInput.tsx with live character display"
+    "is_qa_passed": true,
+    "notes": "Implemented with live character count and token estimation. Added tokenUtils.ts with estimateTokens() and getLiveTokenDisplay() functions. ChatInput.tsx now shows \"X characters \u2022 ~Y tokens\" format that updates on every keystroke."
   },
   {
     "category": "functional",
@@ -2630,9 +2631,11 @@
       "Step 4: Verify it populates input and sends",
       "Step 5: Verify suggestions are contextually relevant"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Implemented: Backend generates AI-powered suggestions using Claude Haiku, frontend displays clickable suggestion buttons"
   },
   {
     "category": "functional",

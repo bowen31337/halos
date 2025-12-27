@@ -17,6 +17,7 @@ export interface Message {
   outputTokens?: number
   cacheReadTokens?: number
   cacheWriteTokens?: number
+  suggestedFollowUps?: string[]  // Suggested follow-up questions
 }
 
 export interface Conversation {
@@ -27,6 +28,7 @@ export interface Conversation {
   isArchived: boolean
   isPinned: boolean
   messageCount: number
+  unreadCount: number
   createdAt: string
   updatedAt: string
 }
@@ -105,6 +107,7 @@ const transformConversation = (apiConv: any): Conversation => ({
   isArchived: apiConv.is_archived,
   isPinned: apiConv.is_pinned,
   messageCount: apiConv.message_count,
+  unreadCount: apiConv.unread_count || 0,
   createdAt: apiConv.created_at,
   updatedAt: apiConv.updated_at,
 })
@@ -126,6 +129,7 @@ const transformMessage = (apiMsg: any): Message => ({
   outputTokens: apiMsg.output_tokens,
   cacheReadTokens: apiMsg.cache_read_tokens,
   cacheWriteTokens: apiMsg.cache_write_tokens,
+  suggestedFollowUps: apiMsg.suggested_follow_ups || apiMsg.suggestedFollowUps,
 })
 
 export const useConversationStore = create<ConversationState>((set) => ({
@@ -220,6 +224,23 @@ export const useConversationStore = create<ConversationState>((set) => ({
         currentConversationId:
           state.currentConversationId === id ? null : state.currentConversationId,
       }))
+    }
+  },
+
+  markConversationRead: async (id: string) => {
+    try {
+      const response = await fetch(`/api/conversations/${id}/mark-read`, {
+        method: 'POST',
+      })
+      if (response.ok) {
+        set((state) => ({
+          conversations: state.conversations.map((c) =>
+            c.id === id ? { ...c, unreadCount: 0 } : c
+          ),
+        }))
+      }
+    } catch (error) {
+      console.error('Failed to mark conversation as read:', error)
     }
   },
 
