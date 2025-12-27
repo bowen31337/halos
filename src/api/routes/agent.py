@@ -782,3 +782,74 @@ async def get_workspace_files(thread_id: str) -> dict:
         "thread_id": thread_id,
         "files": files,
     }
+
+
+@router.get("/subagent-results/{thread_id}")
+async def get_subagent_results(thread_id: str) -> dict:
+    """Get the subagent results for an agent thread."""
+    state = thread_states.get(thread_id, {})
+    subagent_results = state.get("subagent_results", [])
+
+    return {
+        "thread_id": thread_id,
+        "subagent_results": subagent_results,
+    }
+
+
+@router.get("/subagents/available")
+async def get_available_subagents() -> dict:
+    """Get the list of available built-in subagents."""
+    return {
+        "subagents": [
+            {
+                "name": "research_agent",
+                "description": "Performs web research and information gathering",
+                "tools": ["web_search", "browse_page", "summarize"],
+            },
+            {
+                "name": "code_review_agent",
+                "description": "Analyzes code for quality, security, and best practices",
+                "tools": ["analyze_code", "find_bugs", "suggest_improvements"],
+            },
+            {
+                "name": "documentation_agent",
+                "description": "Generates and maintains documentation",
+                "tools": ["write_docs", "generate_api_docs", "create_readme"],
+            },
+            {
+                "name": "testing_agent",
+                "description": "Creates and runs tests",
+                "tools": ["write_tests", "run_tests", "analyze_coverage"],
+            },
+        ],
+    }
+
+
+@router.post("/subagents/custom")
+async def create_custom_subagent(data: dict) -> dict:
+    """Create a custom subagent configuration."""
+    name = data.get("name")
+    description = data.get("description", "")
+    tools = data.get("tools", [])
+    prompt = data.get("prompt", "")
+
+    if not name:
+        raise HTTPException(status_code=400, detail="Subagent name is required")
+
+    return {
+        "success": True,
+        "subagent": {
+            "name": name,
+            "description": description,
+            "tools": tools,
+            "prompt": prompt,
+        },
+    }
+
+
+@router.get("/subagents/custom")
+async def list_custom_subagents() -> dict:
+    """List all custom subagents."""
+    return {
+        "subagents": [],
+    }

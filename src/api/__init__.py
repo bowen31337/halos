@@ -15,6 +15,7 @@ from src.api.routes import (
     projects,
     search,
     settings,
+    subagents,
     usage,
 )
 
@@ -35,4 +36,5 @@ router.include_router(projects.router, prefix="/projects", tags=["Projects"])
 router.include_router(memory.router, prefix="/memory", tags=["Memory"])
 router.include_router(search.router, prefix="/search", tags=["Search"])
 router.include_router(settings.router, prefix="/settings", tags=["Settings"])
+router.include_router(subagents.router, prefix="/subagents", tags=["SubAgents"])
 router.include_router(usage.router, prefix="/usage", tags=["Usage"])

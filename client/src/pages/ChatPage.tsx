@@ -10,6 +10,7 @@ import { ArtifactPanel } from '../components/ArtifactPanel'
 import { TodoPanel } from '../components/TodoPanel'
 import { FilesPanel } from '../components/FilesPanel'
 import { DiffPanel } from '../components/DiffPanel'
+import { SubAgentIndicator } from '../components/SubAgentIndicator'
 
 export function ChatPage() {
   const { conversationId } = useParams()
@@ -55,6 +56,9 @@ export function ChatPage() {
           </>
         )}
       </div>
+
+      {/* SubAgent Indicator - handles its own visibility */}
+      <SubAgentIndicator />
 
       {/* Input area */}
       <div className={`flex-shrink-0 border-t border-[var(--border-primary)] transition-all duration-300 ${panelOpen ? getPanelWidth() : ''}`}>

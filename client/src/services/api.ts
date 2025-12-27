@@ -27,7 +27,7 @@ export interface AgentResponse {
 }
 
 export interface SSEEvent {
-  event: 'start' | 'message' | 'tool_start' | 'tool_end' | 'done' | 'error' | 'thinking' | 'todos' | 'files' | 'interrupt' | 'subagent_start' | 'subagent_end'
+  event: 'start' | 'message' | 'tool_start' | 'tool_end' | 'done' | 'error' | 'thinking' | 'todos' | 'files' | 'interrupt' | 'subagent_start' | 'subagent_progress' | 'subagent_end'
   data: string
 }
 

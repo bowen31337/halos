@@ -81,7 +81,7 @@ interface ChatState {
   setSubAgentResult: (result: string) => void
   clearSubAgent: () => void
   // Aliases for ChatInput compatibility
-  setSubAgentDelegation: (delegation: SubAgentState | null) => void
+  setSubAgentDelegation: (delegation: SubAgentDelegationEvent | null) => void
   updateSubAgentProgress: (progress: number) => void
   completeSubAgentDelegation: () => void
 }

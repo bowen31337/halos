@@ -316,20 +316,21 @@ console.log(greet("World"));
         sub_agent_keywords = ["research", "investigate", "delegate", "sub-agent", "subagent", "specialist", "expert"]
         if any(word in actual_message.lower() for word in sub_agent_keywords):
             # Determine which sub-agent to use based on message content
-            sub_agent_name = "research-agent"
+            # Use underscore naming to match test expectations
+            sub_agent_name = "research_agent"
             task_description = "Gathering information and analyzing the request"
 
             if "code" in actual_message.lower() or "review" in actual_message.lower():
-                sub_agent_name = "code-review-agent"
+                sub_agent_name = "code_review_agent"
                 task_description = "Analyzing code quality and suggesting improvements"
             elif "doc" in actual_message.lower() or "documentation" in actual_message.lower():
-                sub_agent_name = "docs-agent"
+                sub_agent_name = "documentation_agent"
                 task_description = "Creating comprehensive documentation"
             elif "test" in actual_message.lower():
-                sub_agent_name = "test-agent"
+                sub_agent_name = "testing_agent"
                 task_description = "Writing and running test cases"
 
-            # Sub-agent start event
+            # Sub-agent start event - emit as on_custom_event which the agent routes handle
             yield {
                 "event": "on_custom_event",
                 "name": "subagent_start",
