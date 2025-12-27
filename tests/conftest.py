@@ -1,6 +1,7 @@
 """Pytest configuration and shared fixtures."""
 
 import asyncio
+import os
 from typing import AsyncGenerator, Generator
 
 import pytest
@@ -15,6 +16,49 @@ from src.core.database import Base, get_db
 
 # Test database URL - use in-memory database for tests
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+
+
+@pytest.fixture(scope="session", autouse=True)
+def use_mock_agent() -> Generator[None, None, None]:
+    """Force use of MockAgent by temporarily removing API keys during tests."""
+    import os
+    from src.core.config import get_settings
+
+    # Save original API key
+    original_api_key = os.environ.get("ANTHROPIC_API_KEY")
+    original_base_url = os.environ.get("ANTHROPIC_BASE_URL")
+
+    # Remove API key to force MockAgent
+    if "ANTHROPIC_API_KEY" in os.environ:
+        del os.environ["ANTHROPIC_API_KEY"]
+    if "ANTHROPIC_BASE_URL" in os.environ:
+        del os.environ["ANTHROPIC_BASE_URL"]
+
+    # Also clear any other API key variants
+    for key in list(os.environ.keys()):
+        if key.startswith("ANTHROPIC_API_KEY"):
+            del os.environ[key]
+
+    # Clear the cached settings
+    get_settings.cache_clear()
+
+    # Clear the agent_service cache and reset api_key
+    # Also update the settings reference to the new instance
+    from src.services.agent_service import agent_service as agent_service_instance
+    agent_service_instance.agents.clear()
+    agent_service_instance.api_key = None
+    agent_service_instance.settings = get_settings()
+
+    yield
+
+    # Restore original API key
+    if original_api_key:
+        os.environ["ANTHROPIC_API_KEY"] = original_api_key
+    if original_base_url:
+        os.environ["ANTHROPIC_BASE_URL"] = original_base_url
+
+    # Clear cache again
+    get_settings.cache_clear()
 
 
 @pytest.fixture(scope="session")

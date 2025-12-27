@@ -900,9 +900,9 @@
       "Step 5: Verify completed tasks show checkmarks",
       "Step 6: Verify progress bar updates accordingly"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",

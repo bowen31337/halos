@@ -11,7 +11,7 @@ interface UIState {
 
   // Panel
   panelOpen: boolean
-  panelType: 'artifacts' | 'files' | 'todos' | null
+  panelType: 'artifacts' | 'files' | 'todos' | 'diffs' | null
 
   // Model
   selectedModel: string
@@ -36,7 +36,7 @@ interface UIState {
   setSidebarWidth: (width: number) => void
   togglePanel: () => void
   setPanelOpen: (open: boolean) => void
-  setPanelType: (type: 'artifacts' | 'files' | 'todos' | null) => void
+  setPanelType: (type: 'artifacts' | 'files' | 'todos' | 'diffs' | null) => void
   setSelectedModel: (model: string) => void
   toggleExtendedThinking: () => void
   setFontSize: (size: number) => void

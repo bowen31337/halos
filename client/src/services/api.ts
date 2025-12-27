@@ -27,7 +27,7 @@ export interface AgentResponse {
 }
 
 export interface SSEEvent {
-  event: 'start' | 'message' | 'tool_start' | 'tool_end' | 'done' | 'error' | 'thinking'
+  event: 'start' | 'message' | 'tool_start' | 'tool_end' | 'done' | 'error' | 'thinking' | 'todos' | 'files' | 'interrupt'
   data: string
 }
 
@@ -294,6 +294,11 @@ class APIService {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ threadId, decision, editedInput }),
     })
+    return response.json()
+  }
+
+  async getPendingApproval(threadId: string): Promise<any> {
+    const response = await fetch(`${API_BASE}/agent/pending-approval/${threadId}`)
     return response.json()
   }
 

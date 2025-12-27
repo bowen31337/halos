@@ -3,14 +3,23 @@ import { useConversationStore } from '../stores/conversationStore'
 import { useUIStore } from '../stores/uiStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useArtifactStore } from '../stores/artifactStore'
+import { useChatStore } from '../stores/chatStore'
 import { api } from '../services/api'
 import { v4 as uuidv4 } from 'uuid'
+import { HITLApprovalDialog } from './HITLApprovalDialog'
 
 interface ImageAttachment {
   id: string
   url: string
   file: File
   preview: string
+}
+
+interface HITLPendingApproval {
+  threadId: string
+  tool: string
+  input: any
+  reason: string
 }
 
 export function ChatInput() {
@@ -42,6 +51,7 @@ export function ChatInput() {
   const [inputValue, setInputValue] = useState(storeInputMessage)
   const [images, setImages] = useState<ImageAttachment[]>([])
   const [isDragOver, setIsDragOver] = useState(false)
+  const [hitlApproval, setHitlApproval] = useState<HITLPendingApproval | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -193,6 +203,7 @@ export function ChatInput() {
       let buffer = ''
       let fullAssistantContent = ''
       let fullThinkingContent = ''
+      let currentToolCall: { toolName: string; toolInput: Record<string, unknown> } | null = null
 
       while (true) {
         const { done, value } = await reader.read()
@@ -259,10 +270,69 @@ export function ChatInput() {
                     }
                     break
                   case 'tool_start':
-                    console.log('Tool started:', eventData.tool, eventData.input)
+                    // Store tool call info for when it completes
+                    currentToolCall = {
+                      toolName: eventData.tool,
+                      toolInput: eventData.input,
+                    }
                     break
                   case 'tool_end':
-                    console.log('Tool ended:', eventData.output)
+                    // Create a tool message when tool completes
+                    if (currentToolCall) {
+                      const { addMessage } = useConversationStore.getState()
+                      addMessage({
+                        id: `tool-${Date.now()}`,
+                        conversationId: convId,
+                        role: 'tool',
+                        content: '',
+                        createdAt: new Date().toISOString(),
+                        toolName: currentToolCall.toolName,
+                        toolInput: currentToolCall.toolInput,
+                        toolOutput: eventData.output,
+                      })
+                      currentToolCall = null
+                    }
+                    break
+                  case 'todos':
+                    // Handle todos update from agent
+                    if (eventData.todos) {
+                      const { setTodos, todos } = useChatStore.getState()
+                      const previousTodos = todos
+                      setTodos(eventData.todos)
+                      // Auto-open todo panel if this is the first time todos are set
+                      if (previousTodos.length === 0 && eventData.todos.length > 0) {
+                        const { setPanelType, setPanelOpen } = useUIStore.getState()
+                        setPanelType('todos')
+                        setPanelOpen(true)
+                      }
+                    }
+                    break
+                  case 'files':
+                    // Handle files update from agent
+                    if (eventData.files) {
+                      const { setFiles, files } = useChatStore.getState()
+                      const previousFiles = files
+                      setFiles(eventData.files)
+                      // Auto-open files panel if this is the first time files are set
+                      if (previousFiles.length === 0 && eventData.files.length > 0) {
+                        const { setPanelType, setPanelOpen } = useUIStore.getState()
+                        setPanelType('files')
+                        setPanelOpen(true)
+                      }
+                    }
+                    break
+                  case 'interrupt':
+                    // Handle HITL interrupt - show approval dialog
+                    if (eventData.tool && eventData.input) {
+                      setHitlApproval({
+                        threadId: convId,
+                        tool: eventData.tool,
+                        input: eventData.input,
+                        reason: eventData.reason || 'Tool execution requires approval',
+                      })
+                      // Mark streaming as stopped since we're waiting for approval
+                      setStreaming(false)
+                    }
                     break
                   case 'done':
                     console.log('Stream completed')
@@ -289,6 +359,16 @@ export function ChatInput() {
                       // Open the artifact panel
                       const { setPanelType } = useUIStore.getState()
                       setPanelType('artifacts')
+                    }
+                    // Handle todos from done event (fallback if no todos event was emitted)
+                    if (eventData.todos) {
+                      const { setTodos } = useChatStore.getState()
+                      setTodos(eventData.todos)
+                    }
+                    // Handle files from done event (fallback if no files event was emitted)
+                    if (eventData.files) {
+                      const { setFiles } = useChatStore.getState()
+                      setFiles(eventData.files)
                     }
                     break
                   case 'error':

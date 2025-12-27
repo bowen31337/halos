@@ -486,6 +486,8 @@ async def stream_agent(
             # Track thinking content and full response for artifact detection
             thinking_content = ""
             full_response = ""
+            last_todos = None
+            last_files = None
 
             # Send thinking status indicator first
             if extended_thinking:
@@ -544,6 +546,67 @@ async def stream_agent(
                         "data": json.dumps({"output": str(tool_output)[:500]}),  # Limit output size
                     }
 
+                # Interrupt event (HITL - Human in the Loop)
+                elif event_kind == "on_interrupt":
+                    tool_name = event.get("name", "")
+                    tool_input = event.get("data", {}).get("input", {})
+                    reason = event.get("data", {}).get("reason", "Tool execution requires approval")
+
+                    # Store in pending approvals
+                    pending_approvals[thread_id] = {
+                        "tool": tool_name,
+                        "input": tool_input,
+                        "reason": reason,
+                    }
+
+                    # Emit interrupt event to frontend
+                    yield {
+                        "event": "interrupt",
+                        "data": json.dumps({
+                            "tool": tool_name,
+                            "input": tool_input,
+                            "reason": reason,
+                        }),
+                    }
+                    # Stop streaming - will be resumed after approval
+                    return
+
+                # Handle custom events (e.g., todos from mock agent)
+                elif event_kind == "on_custom_event":
+                    event_name = event.get("name", "")
+                    if event_name == "todo_update":
+                        event_data = event.get("data", {})
+                        if "todos" in event_data:
+                            todos = event_data["todos"]
+                            # Store in thread state
+                            thread_states[thread_id] = thread_states.get(thread_id, {})
+                            thread_states[thread_id]["todos"] = todos
+                            # Emit todos event
+                            yield {
+                                "event": "todos",
+                                "data": json.dumps({"todos": todos}),
+                            }
+
+                # Check for todos in agent state during streaming
+                if hasattr(agent, '_thread_state') and 'todos' in agent._thread_state:
+                    current_todos = agent._thread_state["todos"]
+                    if current_todos != last_todos:
+                        last_todos = current_todos
+                        yield {
+                            "event": "todos",
+                            "data": json.dumps({"todos": current_todos}),
+                        }
+
+                # Check for files in agent state during streaming
+                if hasattr(agent, '_thread_state') and 'files' in agent._thread_state:
+                    current_files = agent._thread_state["files"]
+                    if current_files != last_files:
+                        last_files = current_files
+                        yield {
+                            "event": "files",
+                            "data": json.dumps({"files": current_files}),
+                        }
+
             # Detect and create artifacts from the full response
             artifacts = []
             if full_response and conversation_id:
@@ -557,12 +620,35 @@ async def stream_agent(
                     # Don't fail the response if artifact creation fails
                     print(f"Artifact creation error: {e}")
 
+            # Update thread state with todos if agent provided them
+            if hasattr(agent, '_thread_state') and 'todos' in agent._thread_state:
+                thread_states[thread_id] = thread_states.get(thread_id, {})
+                thread_states[thread_id]["todos"] = agent._thread_state["todos"]
+                # Emit final todos update
+                yield {
+                    "event": "todos",
+                    "data": json.dumps({"todos": agent._thread_state["todos"]}),
+                }
+
+            # Update thread state with files if agent provided them
+            if hasattr(agent, '_thread_state') and 'files' in agent._thread_state:
+                thread_states[thread_id] = thread_states.get(thread_id, {})
+                thread_states[thread_id]["files"] = agent._thread_state["files"]
+                # Emit final files update
+                yield {
+                    "event": "files",
+                    "data": json.dumps({"files": agent._thread_state["files"]}),
+                }
+
             # Done event with thinking content and artifacts if available
             done_data = {"thread_id": thread_id}
             if extended_thinking and thinking_content:
                 done_data["thinking_content"] = thinking_content
             if artifacts:
                 done_data["artifacts"] = artifacts
+            # Include files in done event for immediate UI update
+            if hasattr(agent, '_thread_state') and 'files' in agent._thread_state:
+                done_data["files"] = agent._thread_state["files"]
             yield {
                 "event": "done",
                 "data": json.dumps(done_data),
@@ -575,6 +661,22 @@ async def stream_agent(
             }
 
     return EventSourceResponse(event_generator())
+
+
+@router.get("/pending-approval/{thread_id}")
+async def get_pending_approval(thread_id: str) -> dict:
+    """Get pending approval for a thread."""
+    if thread_id not in pending_approvals:
+        return {"thread_id": thread_id, "pending": False}
+
+    approval = pending_approvals[thread_id]
+    return {
+        "thread_id": thread_id,
+        "pending": True,
+        "tool": approval.get("tool"),
+        "input": approval.get("input"),
+        "reason": approval.get("reason", "Tool execution requires approval"),
+    }
 
 
 @router.post("/interrupt")

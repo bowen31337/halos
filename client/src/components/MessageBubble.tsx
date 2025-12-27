@@ -100,16 +100,61 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
   }
 
   if (isTool) {
+    const [isExpanded, setIsExpanded] = useState(true)
+    const toolName = message.toolName || 'unknown'
+    const toolInput = message.toolInput || {}
+    const toolOutput = message.toolOutput || message.content || ''
+
+    // Format tool input as JSON
+    const formattedInput = Object.keys(toolInput).length > 0
+      ? JSON.stringify(toolInput, null, 2)
+      : '{}'
+
     return (
       <div className="mb-6">
-        <div className="bg-[var(--surface-elevated)] rounded-lg border border-[var(--border-primary)] p-4">
-          <div className="flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)] mb-2">
-            <span>🔧</span>
-            <span>Tool: {message.toolName || 'unknown'}</span>
+        <div className="bg-[var(--surface-elevated)] rounded-lg border border-[var(--border-primary)] overflow-hidden">
+          {/* Tool header */}
+          <div
+            className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-[var(--surface-secondary)] transition-colors"
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            <div className="flex items-center gap-2 text-sm font-medium text-[var(--text-primary)]">
+              <span>🔧</span>
+              <span>{toolName}</span>
+              <span className="text-xs text-[var(--text-secondary)] px-2 py-0.5 bg-[var(--bg-secondary)] rounded">Tool Call</span>
+            </div>
+            <svg
+              className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
           </div>
-          <pre className="text-sm text-[var(--text-secondary)] overflow-x-auto">
-            {message.toolOutput || message.content}
-          </pre>
+
+          {/* Tool content - collapsible */}
+          {isExpanded && (
+            <div className="px-4 pb-3 space-y-3">
+              {/* Tool Input */}
+              <div>
+                <div className="text-xs font-semibold text-[var(--text-secondary)] mb-1">Input:</div>
+                <pre className="text-xs text-[var(--text-primary)] bg-[var(--bg-primary)] p-2 rounded overflow-x-auto font-mono">
+                  {formattedInput}
+                </pre>
+              </div>
+
+              {/* Tool Output */}
+              {toolOutput && (
+                <div>
+                  <div className="text-xs font-semibold text-[var(--text-secondary)] mb-1">Output:</div>
+                  <pre className="text-xs text-[var(--text-primary)] bg-[var(--bg-primary)] p-2 rounded overflow-x-auto font-mono whitespace-pre-wrap">
+                    {toolOutput}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     )

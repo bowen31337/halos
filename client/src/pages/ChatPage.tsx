@@ -8,6 +8,8 @@ import { ChatInput } from '../components/ChatInput'
 import { WelcomeScreen } from '../components/WelcomeScreen'
 import { ArtifactPanel } from '../components/ArtifactPanel'
 import { TodoPanel } from '../components/TodoPanel'
+import { FilesPanel } from '../components/FilesPanel'
+import { DiffPanel } from '../components/DiffPanel'
 
 export function ChatPage() {
   const { conversationId } = useParams()
@@ -34,10 +36,16 @@ export function ChatPage() {
 
   const showWelcome = messages.length === 0 && !currentConversationId
 
+  // Determine panel width based on type
+  const getPanelWidth = () => {
+    if (panelType === 'diffs') return 'mr-[600px]'
+    return 'mr-[450px]'
+  }
+
   return (
     <div className="flex flex-col h-full relative">
       {/* Messages area */}
-      <div className={`flex-1 overflow-y-auto transition-all duration-300 ${panelOpen ? 'mr-[450px]' : ''}`}>
+      <div className={`flex-1 overflow-y-auto transition-all duration-300 ${panelOpen ? getPanelWidth() : ''}`}>
         {showWelcome ? (
           <WelcomeScreen />
         ) : (
@@ -49,13 +57,15 @@ export function ChatPage() {
       </div>
 
       {/* Input area */}
-      <div className={`flex-shrink-0 border-t border-[var(--border-primary)] transition-all duration-300 ${panelOpen ? 'mr-[450px]' : ''}`}>
+      <div className={`flex-shrink-0 border-t border-[var(--border-primary)] transition-all duration-300 ${panelOpen ? getPanelWidth() : ''}`}>
         <ChatInput />
       </div>
 
       {/* Panels */}
       {panelType === 'artifacts' && <ArtifactPanel />}
       {panelType === 'todos' && <TodoPanel />}
+      {panelType === 'files' && <FilesPanel />}
+      {panelType === 'diffs' && <DiffPanel />}
     </div>
   )
 }

@@ -32,13 +32,43 @@ class MockAgent:
         response_text = self._generate_mock_response(actual_message, custom_instructions)
 
         # Add mock todos if message is complex
-        if any(word in actual_message.lower() for word in ["plan", "build", "create", "write", "implement"]):
+        if any(word in actual_message.lower() for word in ["plan", "build", "create", "write", "implement", "task"]):
             self._thread_state["todos"] = [
                 {"id": str(uuid4()), "content": "Analyze requirements", "status": "completed"},
                 {"id": str(uuid4()), "content": "Plan implementation", "status": "in_progress"},
                 {"id": str(uuid4()), "content": "Execute tasks", "status": "pending"},
             ]
             response_text += "\n\nI've created a todo list to track this task."
+
+        # Add mock files if message mentions files or writing
+        if any(word in actual_message.lower() for word in ["file", "write", "create", "code", "script"]):
+            if "files" not in self._thread_state:
+                self._thread_state["files"] = []
+
+            # Only add files if they don't already exist (avoid duplicates)
+            existing_file_names = [f.get("name") for f in self._thread_state["files"]]
+
+            if "main.py" not in existing_file_names:
+                self._thread_state["files"].append({
+                    "id": str(uuid4()),
+                    "name": "main.py",
+                    "path": "main.py",
+                    "content": "# Main application file\n\ndef main():\n    print('Hello, World!')\n\nif __name__ == '__main__':\n    main()",
+                    "size": 85,
+                    "file_type": "text/x-python",
+                    "created_at": "2024-01-01T00:00:00Z"
+                })
+
+            if "utils.py" not in existing_file_names:
+                self._thread_state["files"].append({
+                    "id": str(uuid4()),
+                    "name": "utils.py",
+                    "path": "src/utils.py",
+                    "content": "# Utility functions\n\ndef helper_function():\n    return 'helper'\n",
+                    "size": 58,
+                    "file_type": "text/x-python",
+                    "created_at": "2024-01-01T00:00:00Z"
+                })
 
         # Apply temperature effect
         if temperature > 0.8:
@@ -180,6 +210,7 @@ console.log(greet("World"));
         last_message = messages[-1] if messages else None
         content = last_message.content if last_message else ""
         thread_id = config.get("configurable", {}).get("thread_id", str(uuid4()))
+        permission_mode = config.get("configurable", {}).get("permission_mode", "auto")
 
         # Extract custom instructions and actual message
         custom_instructions, actual_message = self._extract_custom_instructions(content)
@@ -194,19 +225,36 @@ console.log(greet("World"));
 
         # Check if we should simulate tool usage
         if any(word in actual_message.lower() for word in ["read", "file", "write", "edit"]):
+            tool_name = "write_file" if any(word in actual_message.lower() for word in ["write", "edit"]) else "read_file"
+            tool_input = {"path": "/example/file.txt", "content": "example content"} if tool_name == "write_file" else {"path": "/example/file.txt"}
+
             # Tool start - matches LangGraph format
             yield {
                 "event": "on_tool_start",
-                "name": "read_file",
-                "data": {"input": {"/example/file.txt": "example"}},
+                "name": tool_name,
+                "data": {"input": tool_input},
             }
             await asyncio.sleep(0.1)
+
+            # If in manual permission mode, emit interrupt event instead of completing
+            if permission_mode == "manual" and tool_name == "write_file":
+                yield {
+                    "event": "on_interrupt",
+                    "name": "approval_required",
+                    "data": {
+                        "tool": tool_name,
+                        "input": tool_input,
+                        "reason": "Writing files requires manual approval in permission mode"
+                    },
+                }
+                # Stop the stream here - will be resumed after approval
+                return
 
             # Tool end - matches LangGraph format
             yield {
                 "event": "on_tool_end",
-                "name": "read_file",
-                "data": {"output": "File content: This is a mock file for testing."},
+                "name": tool_name,
+                "data": {"output": f"Tool {tool_name} executed successfully with input {tool_input}"},
             }
             await asyncio.sleep(0.1)
 
@@ -214,7 +262,8 @@ console.log(greet("World"));
         response_text = self._generate_mock_response(actual_message, custom_instructions)
 
         # Add todo simulation for complex tasks
-        if any(word in actual_message.lower() for word in ["plan", "build", "create", "write", "implement"]):
+        has_todos = any(word in actual_message.lower() for word in ["plan", "build", "create", "write", "implement", "task"])
+        if has_todos:
             self._thread_state["todos"] = [
                 {"id": str(uuid4()), "content": "Analyze requirements", "status": "completed"},
                 {"id": str(uuid4()), "content": "Plan implementation", "status": "in_progress"},
@@ -231,6 +280,37 @@ I'll help you with this. Let me break it down:
 
 """
             response_text += "I've created a todo list to track progress."
+
+        # Add file simulation for file-related tasks
+        has_files = any(word in actual_message.lower() for word in ["file", "write", "create", "code", "script"])
+        if has_files:
+            if "files" not in self._thread_state:
+                self._thread_state["files"] = []
+
+            # Only add files if they don't already exist
+            existing_file_names = [f.get("name") for f in self._thread_state["files"]]
+
+            if "main.py" not in existing_file_names:
+                self._thread_state["files"].append({
+                    "id": str(uuid4()),
+                    "name": "main.py",
+                    "path": "main.py",
+                    "content": "# Main application file\n\ndef main():\n    print('Hello, World!')\n\nif __name__ == '__main__':\n    main()",
+                    "size": 85,
+                    "file_type": "text/x-python",
+                    "created_at": "2024-01-01T00:00:00Z"
+                })
+
+            if "utils.py" not in existing_file_names:
+                self._thread_state["files"].append({
+                    "id": str(uuid4()),
+                    "name": "utils.py",
+                    "path": "src/utils.py",
+                    "content": "# Utility functions\n\ndef helper_function():\n    return 'helper'\n",
+                    "size": 58,
+                    "file_type": "text/x-python",
+                    "created_at": "2024-01-01T00:00:00Z"
+                })
 
         # Apply temperature effect (higher temp = more creative/varied responses)
         # For mock purposes, we'll add some variation based on temperature
@@ -276,6 +356,10 @@ I'll help you with this. Let me break it down:
         base_delay = 0.02
         delay = base_delay + (0.01 * (1 - temperature))  # Higher temp = slightly slower
         words = response_text.split()
+
+        # Track if we've emitted todos already
+        todos_emitted = False
+
         for i, word in enumerate(words):
             await asyncio.sleep(delay)
             # Use AIMessage as the chunk, which is what LangChain expects
@@ -287,6 +371,16 @@ I'll help you with this. Let me break it down:
                 },
                 "name": "ChatAnthropic",
             }
+
+            # Emit todos mid-stream if they exist and haven't been emitted yet
+            # Do this after some content has been streamed (after ~4 words)
+            if not todos_emitted and i > 3 and has_todos:
+                todos_emitted = True
+                yield {
+                    "event": "on_custom_event",
+                    "name": "todo_update",
+                    "data": {"todos": self._thread_state["todos"]},
+                }
 
 
 class MockChunk:
