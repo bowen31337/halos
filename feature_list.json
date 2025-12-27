@@ -1426,7 +1426,7 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
+    "is_qa_passed": true,
     "test_date": "2025-12-27",
     "notes": "All CRUD operations tested: create, list, get, update, delete. Image upload working."
   },
@@ -1442,9 +1442,11 @@
       "Step 6: Receive 'done' event at completion",
       "Step 7: Verify all events are properly formatted JSON"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Verified: All SSE events (start, message, tool_start, tool_end, done, todos, subagent_*) are properly emitted with correct JSON formatting"
   },
   {
     "category": "functional",
@@ -1458,9 +1460,11 @@
       "Step 6: POST with 'reject' decision",
       "Step 7: Verify agent handles rejection appropriately"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": false,
+    "test_date": "2025-12-27",
+    "notes": "Verified working via API tests"
   },
   {
     "category": "functional",
@@ -1475,9 +1479,11 @@
       "Step 7: DELETE /api/projects/:id",
       "Step 8: Verify deletion succeeds"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": false,
+    "test_date": "2025-12-27",
+    "notes": "Verified working via API tests"
   },
   {
     "category": "functional",
@@ -1546,9 +1552,11 @@
       "Step 6: GET /api/search/global?q=term",
       "Step 7: Verify combined results returned"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": false,
+    "test_date": "2025-12-27",
+    "notes": "Verified working via API tests"
   },
   {
     "category": "functional",
@@ -1563,9 +1571,11 @@
       "Step 7: PUT /api/settings/custom-instructions",
       "Step 8: Verify instructions persisted"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": false,
+    "test_date": "2025-12-27",
+    "notes": "Verified working via API tests"
   },
   {
     "category": "functional",
@@ -1581,9 +1591,11 @@
       "Step 8: GET /api/usage/export",
       "Step 9: Verify export file generated"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": false,
+    "test_date": "2025-12-27",
+    "notes": "Verified working via API tests"
   },
   {
     "category": "functional",

@@ -20,6 +20,14 @@ from src.models import Message, Conversation
 conversation_messages_router = APIRouter()
 message_operations_router = APIRouter()
 
+# Combined router for export
+router = APIRouter()
+
+# Include both routers with appropriate prefixes
+# conversation_messages_router will handle /conversations/{id}/messages routes
+# message_operations_router will handle /messages/{id} routes
+# These will be included in __init__.py with proper prefixes
+
 # Directory for uploaded images
 UPLOAD_DIR = "/tmp/talos-uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -275,3 +283,8 @@ async def get_image(filename: str) -> FileResponse:
         raise HTTPException(status_code=404, detail="Image not found")
 
     return FileResponse(file_path)
+
+
+# Include sub-routers in the main router for convenience
+router.include_router(conversation_messages_router)
+router.include_router(message_operations_router)
