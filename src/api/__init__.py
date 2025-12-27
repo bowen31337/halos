@@ -12,6 +12,7 @@ from src.api.routes import (
     memory,
     messages,
     projects,
+    project_files,
     search,
     settings,
     usage,
@@ -28,6 +29,7 @@ router.include_router(agent.router, prefix="/agent", tags=["Agent"])
 router.include_router(artifacts.router, prefix="/artifacts", tags=["Artifacts"])
 router.include_router(checkpoints.router, prefix="/checkpoints", tags=["Checkpoints"])
 router.include_router(projects.router, prefix="/projects", tags=["Projects"])
+router.include_router(project_files.router, prefix="/projects", tags=["Project Files"])
 router.include_router(memory.router, prefix="/memory", tags=["Memory"])
 router.include_router(search.router, prefix="/search", tags=["Search"])
 router.include_router(settings.router, prefix="/settings", tags=["Settings"])
