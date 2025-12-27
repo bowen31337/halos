@@ -17,6 +17,7 @@ from src.core.database import get_db
 from src.services.agent_service import agent_service
 from src.models.artifact import Artifact
 from src.models.conversation import Conversation
+from src.models.memory import Memory
 
 router = APIRouter()
 
@@ -104,6 +105,103 @@ async def get_project_files_content(
 
     file_context += "[END PROJECT FILES CONTEXT]\n\n"
     return file_context
+
+
+async def get_memory_context(
+    conversation_id: Optional[str],
+    db: AsyncSession
+) -> str:
+    """
+    Get relevant long-term memories for the agent context.
+
+    Returns a formatted string containing memories for the agent context.
+    """
+    from src.api.routes.settings import user_settings
+
+    # Check if memory is enabled
+    if not user_settings.get("memory_enabled", True):
+        return ""
+
+    # Get all active memories
+    result = await db.execute(
+        select(Memory)
+        .where(Memory.is_active == True)
+        .order_by(Memory.created_at.desc())
+    )
+    memories = result.scalars().all()
+
+    if not memories:
+        return ""
+
+    # Format memories for the agent
+    memory_context = "\n\n[LONG-TERM MEMORY CONTEXT]\n"
+    memory_context += "The following are facts and preferences stored in your long-term memory:\n\n"
+
+    for memory in memories:
+        memory_context += f"- [{memory.category.upper()}] {memory.content}\n"
+
+    memory_context += "[END LONG-TERM MEMORY CONTEXT]\n\n"
+    return memory_context
+
+
+async def extract_memories_from_response(
+    content: str,
+    conversation_id: Optional[str],
+    db: AsyncSession
+) -> list[dict]:
+    """
+    Extract and store memories from agent response content.
+
+    This function looks for patterns indicating the agent learned something
+    about the user that should be stored in long-term memory.
+
+    Returns list of created memories.
+    """
+    from src.api.routes.settings import user_settings
+
+    # Check if memory is enabled
+    if not user_settings.get("memory_enabled", True):
+        return []
+
+    # Simple pattern matching for memory extraction
+    # Look for phrases like "I remember", "You mentioned", "Your preference is"
+    memory_indicators = [
+        "remember that",
+        "your favorite",
+        "you prefer",
+        "you like",
+        "your preference",
+        "you mentioned",
+        "you said",
+    ]
+
+    content_lower = content.lower()
+    created_memories = []
+
+    # Check if content contains memory indicators
+    for indicator in memory_indicators:
+        if indicator in content_lower:
+            # Extract a simple memory - in production, this would use NLP
+            # For now, store the relevant sentence or phrase
+            memory_content = content[:200]  # Truncate to 200 chars
+            if len(memory_content) < 10:
+                continue
+
+            # Create memory
+            memory = Memory(
+                content=memory_content,
+                category="preference",
+                source_conversation_id=conversation_id,
+            )
+
+            db.add(memory)
+            await db.commit()
+            await db.refresh(memory)
+
+            created_memories.append(memory.to_dict())
+            break  # Only extract one memory per response for now
+
+    return created_memories
 
 
 # Artifact detection constants
@@ -338,6 +436,12 @@ async def invoke_agent(
             db
         )
 
+        # Get long-term memory context
+        memory_content = await get_memory_context(
+            str(data.conversation_id) if data.conversation_id else None,
+            db
+        )
+
         # Use explicitly provided instructions, or fall back to effective instructions
         effective_instructions = data.custom_instructions
         if not effective_instructions or not effective_instructions.strip():
@@ -352,6 +456,10 @@ async def invoke_agent(
         # Add project files context if available
         if files_content:
             message_content = f"{files_content}{message_content}"
+
+        # Add long-term memory context if available
+        if memory_content:
+            message_content = f"{memory_content}{message_content}"
 
         # Invoke agent with message and parameters
         config = {
@@ -455,6 +563,12 @@ async def stream_agent(
                 db
             )
 
+            # Get long-term memory context
+            memory_content = await get_memory_context(
+                str(conversation_id) if conversation_id else None,
+                db
+            )
+
             # Use explicitly provided instructions, or fall back to effective instructions
             effective_instructions = custom_instructions
             if not effective_instructions or not effective_instructions.strip():
@@ -472,6 +586,10 @@ async def stream_agent(
             # Add project files context if available
             if files_content:
                 message_content = f"{files_content}{message_content}"
+
+            # Add long-term memory context if available
+            if memory_content:
+                message_content = f"{memory_content}{message_content}"
 
             config = {
                 "configurable": {
@@ -658,6 +776,19 @@ async def stream_agent(
                     # Don't fail the response if artifact creation fails
                     print(f"Artifact creation error: {e}")
 
+            # Extract and store memories from the response
+            extracted_memories = []
+            if full_response and conversation_id:
+                try:
+                    extracted_memories = await extract_memories_from_response(
+                        full_response,
+                        str(conversation_id),
+                        db
+                    )
+                except Exception as e:
+                    # Don't fail the response if memory extraction fails
+                    print(f"Memory extraction error: {e}")
+
             # Update thread state with todos if agent provided them
             if hasattr(agent, '_thread_state') and 'todos' in agent._thread_state:
                 thread_states[thread_id] = thread_states.get(thread_id, {})
@@ -684,6 +815,8 @@ async def stream_agent(
                 done_data["thinking_content"] = thinking_content
             if artifacts:
                 done_data["artifacts"] = artifacts
+            if extracted_memories:
+                done_data["extracted_memories"] = extracted_memories
             # Include files in done event for immediate UI update
             if hasattr(agent, '_thread_state') and 'files' in agent._thread_state:
                 done_data["files"] = agent._thread_state["files"]

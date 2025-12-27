@@ -579,6 +579,71 @@ class APIService {
       throw new Error(`Failed to delete checkpoint: ${response.status}`)
     }
   }
+
+  // Memory APIs
+  async listMemories(category?: string, activeOnly: boolean = true): Promise<any[]> {
+    const params = new URLSearchParams()
+    if (category) params.append('category', category)
+    if (activeOnly) params.append('active_only', 'true')
+    const response = await fetch(`${API_BASE}/memory?${params}`)
+    return response.json()
+  }
+
+  async searchMemories(query: string): Promise<any[]> {
+    const response = await fetch(`${API_BASE}/memory/search?q=${encodeURIComponent(query)}`)
+    return response.json()
+  }
+
+  async getMemory(memoryId: string): Promise<any> {
+    const response = await fetch(`${API_BASE}/memory/${memoryId}`)
+    if (!response.ok) {
+      throw new Error(`Failed to get memory: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async createMemory(data: {
+    content: string
+    category?: string
+  }): Promise<any> {
+    const response = await fetch(`${API_BASE}/memory`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to create memory: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async updateMemory(
+    memoryId: string,
+    data: {
+      content?: string
+      category?: string
+      is_active?: boolean
+    }
+  ): Promise<any> {
+    const response = await fetch(`${API_BASE}/memory/${memoryId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to update memory: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async deleteMemory(memoryId: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/memory/${memoryId}`, {
+      method: 'DELETE',
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to delete memory: ${response.status}`)
+    }
+  }
 }
 
 export const api = new APIService()

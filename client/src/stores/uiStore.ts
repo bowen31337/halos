@@ -32,6 +32,9 @@ interface UIState {
   // Permission mode for HITL
   permissionMode: 'auto' | 'manual'
 
+  // Memory enabled
+  memoryEnabled: boolean
+
   // Actions
   setTheme: (theme: 'light' | 'dark' | 'system') => void
   toggleSidebar: () => void
@@ -47,6 +50,8 @@ interface UIState {
   setTemperature: (temp: number) => void
   setMaxTokens: (tokens: number) => void
   setPermissionMode: (mode: 'auto' | 'manual') => void
+  setMemoryEnabled: (enabled: boolean) => void
+  toggleMemoryEnabled: () => void
 }
 
 export const useUIStore = create<UIState>()(
@@ -65,6 +70,7 @@ export const useUIStore = create<UIState>()(
       temperature: 0.7,
       maxTokens: 4096,
       permissionMode: 'auto',
+      memoryEnabled: true,
 
       // Actions
       setTheme: (theme) => {
@@ -99,10 +105,13 @@ export const useUIStore = create<UIState>()(
         document.documentElement.style.setProperty('--base-font-size', `${size}px`)
       },
 
+      setPermissionMode: (mode) => set({ permissionMode: mode }),
+      setMemoryEnabled: (enabled) => set({ memoryEnabled: enabled }),
+      toggleMemoryEnabled: () => set((state) => ({ memoryEnabled: !state.memoryEnabled })),
+
       setCustomInstructions: (instructions) => set({ customInstructions: instructions }),
       setTemperature: (temp) => set({ temperature: temp }),
       setMaxTokens: (tokens) => set({ maxTokens: tokens }),
-      setPermissionMode: (mode) => set({ permissionMode: mode }),
     }),
     {
       name: 'claude-ui-settings',
@@ -116,6 +125,7 @@ export const useUIStore = create<UIState>()(
         temperature: state.temperature,
         maxTokens: state.maxTokens,
         permissionMode: state.permissionMode,
+        memoryEnabled: state.memoryEnabled,
       }),
     }
   )

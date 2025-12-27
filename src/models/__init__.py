@@ -13,5 +13,6 @@ from src.models.project import Project
 from src.models.project_file import ProjectFile
 from src.models.artifact import Artifact
 from src.models.checkpoint import Checkpoint
+from src.models.memory import Memory
 
-__all__ = ["Base", "Conversation", "Message", "Project", "ProjectFile", "Artifact", "Checkpoint"]
+__all__ = ["Base", "Conversation", "Message", "Project", "ProjectFile", "Artifact", "Checkpoint", "Memory"]

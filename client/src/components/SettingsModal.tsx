@@ -26,6 +26,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     setMaxTokens,
     permissionMode,
     setPermissionMode,
+    memoryEnabled,
+    toggleMemoryEnabled,
   } = useUIStore()
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('general')
@@ -138,6 +140,33 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         </div>
         <p className="text-xs text-[var(--text-secondary)] mt-2">
           Manual mode triggers Human-in-the-Loop approval dialogs for sensitive operations like file writes.
+        </p>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Long-term Memory</h3>
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-[var(--text-secondary)]">
+            Enable AI to remember information across conversations
+          </span>
+          <button
+            onClick={async () => {
+              toggleMemoryEnabled()
+              await saveSettings({ memory_enabled: !memoryEnabled })
+            }}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              memoryEnabled ? 'bg-[var(--primary)]' : 'bg-[var(--border-primary)]'
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                memoryEnabled ? 'translate-x-6' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+        <p className="text-xs text-[var(--text-secondary)] mt-2">
+          When enabled, the AI can store and retrieve information about your preferences across all conversations.
         </p>
       </div>
     </div>

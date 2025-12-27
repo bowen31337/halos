@@ -29,6 +29,7 @@ class SettingsUpdate(BaseModel):
     temperature: Optional[float] = None
     max_tokens: Optional[int] = None
     extended_thinking_enabled: Optional[bool] = None
+    memory_enabled: Optional[bool] = None
 
 
 class CustomInstructionsUpdate(BaseModel):
@@ -85,6 +86,8 @@ async def update_settings(data: SettingsUpdate) -> dict:
         user_settings["max_tokens"] = data.max_tokens
     if data.extended_thinking_enabled is not None:
         user_settings["extended_thinking_enabled"] = data.extended_thinking_enabled
+    if data.memory_enabled is not None:
+        user_settings["memory_enabled"] = data.memory_enabled
 
     return user_settings
 
