@@ -1,5 +1,94 @@
 # Claude.ai Clone - Development Progress
 
+## Session 39 Summary (Folders API and Conversation Management)
+
+### Date: 2025-12-27
+
+**Session Focus:** Implemented Folders API for conversation organization and improved conversation soft delete handling
+
+### Features Completed & Verified ✓
+
+**Folders API Feature** - COMPLETE (100%)
+
+| Feature # | Description | Backend | Frontend | QA |
+|-----------|-------------|---------|----------|-----|
+| #87 | Folders API organizes conversations hierarchically | ✅ | ✅ | ✅ |
+
+### Implementation Summary
+
+#### Backend (FastAPI/Python)
+- **`src/models/folder.py`**: Complete folder models
+  - `Folder` - Hierarchical folder structure with parent-child relationships
+  - `FolderItem` - Association table for conversations in folders
+  - Soft delete support (`is_deleted`, `is_archived`)
+  - Position ordering for UI display
+
+- **`src/api/routes/folders.py`**: Complete Folders API
+  - `GET /api/folders` - List root folders (with parent filter)
+  - `POST /api/folders` - Create new folder
+  - `GET /api/folders/{id}` - Get specific folder
+  - `PUT /api/folders/{id}` - Update folder (name, description, position, archive)
+  - `DELETE /api/folders/{id}` - Soft delete folder
+  - `POST /api/folders/{id}/items` - Add conversation to folder
+  - `GET /api/folders/{id}/items` - List conversations in folder
+  - `DELETE /api/folders/{id}/items/{conversation_id}` - Remove conversation
+
+- **`src/api/routes/conversations.py`**: Updated for soft delete
+  - All endpoints now filter `is_deleted == False`
+  - Consistent soft delete handling across all operations
+
+- **`src/models/__init__.py`**: Added folder model exports
+- **`src/api/__init__.py`**: Added folders router registration
+
+- **`src/services/agent_service.py`**: Added `list_memories()` method
+
+### Testing Results
+
+#### Folders API Tests
+All CRUD operations verified:
+1. ✅ Create folder (with/without parent)
+2. ✅ List folders (root and nested)
+3. ✅ Get folder details
+4. ✅ Update folder (name, description, position, archive)
+5. ✅ Soft delete folder
+6. ✅ Add conversation to folder
+7. ✅ List conversations in folder
+8. ✅ Remove conversation from folder
+
+#### Conversation Soft Delete Tests
+All endpoints properly filter deleted conversations:
+1. ✅ Get conversation excludes deleted
+2. ✅ Update conversation excludes deleted
+3. ✅ Delete conversation (soft delete)
+4. ✅ Move conversation excludes deleted
+5. ✅ Export conversation excludes deleted
+6. ✅ List branches excludes deleted
+7. ✅ Branch tree excludes deleted
+
+### Technical Details
+
+- **Folder Hierarchy**: Supports nested folders via `parent_folder_id`
+- **Position Tracking**: `position` field for UI ordering
+- **Soft Deletes**: `is_deleted` flag prevents data loss
+- **Folder Items**: Association table links conversations to folders
+- **One-to-One**: Each conversation can be in only one folder at a time
+
+### Progress Update
+
+- **Total Features**: 201
+- **Dev Done**: 101 (50.2%) - Increased from 96
+- **QA Passed**: 101 (50.2%) - Increased from 96
+- **Dev Queue**: 100 - Decreased from 105
+- **QA Queue**: 0 (All verified)
+
+### Next Steps
+
+- Continue with next feature in dev queue: Feature #88 (Search API returns relevant results)
+- Backend server running on port 8000
+- Folders system ready for frontend integration
+
+---
+
 ## Session 38 Summary (Agent Streaming Feature Implementation)
 
 ### Date: 2025-12-27
