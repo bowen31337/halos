@@ -14,6 +14,8 @@ import { ShareModal } from './ShareModal'
 import { PromptModal } from './PromptModal'
 import { MCPModal } from './MCPModal'
 import { exportToPDF } from '../utils/exportPdf'
+import { NetworkStatusBadge } from './NetworkStatusIndicator'
+import { useNetworkStore } from '../stores/networkStore'
 
 const MODELS = [
   { id: 'claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5', description: 'Balanced' },
@@ -23,6 +25,7 @@ const MODELS = [
 
 export function Header() {
   const { toggleSidebar, sidebarOpen, selectedModel, setSelectedModel, extendedThinkingEnabled, toggleExtendedThinking } = useUIStore()
+  const { isOffline } = useNetworkStore()
   const { conversationId } = useParams()
   const {
     projects,
@@ -656,6 +659,9 @@ export function Header() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
         </button>
+
+        {/* Network status indicator - only show when offline */}
+        {isOffline && <NetworkStatusBadge />}
       </div>
     </div>
 

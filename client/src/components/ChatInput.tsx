@@ -4,6 +4,7 @@ import { useUIStore } from '../stores/uiStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useArtifactStore } from '../stores/artifactStore'
 import { useChatStore } from '../stores/chatStore'
+import { useNetworkStore, QueuedAction } from '../stores/networkStore'
 import { api } from '../services/api'
 import { v4 as uuidv4 } from 'uuid'
 import { HITLApprovalDialog } from './HITLApprovalDialog'
@@ -48,6 +49,7 @@ export function ChatInput() {
   } = useUIStore()
 
   const { detectArtifacts } = useArtifactStore()
+  const { isOffline, queueAction, actionQueue } = useNetworkStore()
 
   // Use local state for immediate UI feedback, sync with store
   const [inputValue, setInputValue] = useState(storeInputMessage)
@@ -171,6 +173,54 @@ export function ChatInput() {
     }
 
     if ((!inputValue.trim() && images.length === 0) || isLoading) return
+
+    // OFFLINE MODE: Queue actions instead of sending
+    if (isOffline) {
+      // Store the message locally for display
+      const userMessageId = uuidv4()
+      const convId = currentConversationId || 'offline-placeholder'
+
+      const userMessage = {
+        id: userMessageId,
+        conversationId: convId,
+        role: 'user' as const,
+        content: inputValue,
+        createdAt: new Date().toISOString(),
+      }
+
+      addMessage(userMessage)
+
+      // Queue the action for later sync
+      queueAction({
+        type: 'send_message',
+        payload: {
+          conversationId: convId,
+          content: inputValue,
+          images: images.map(img => img.file.name), // Store image names only
+          timestamp: new Date().toISOString()
+        }
+      })
+
+      // Add a system message indicating offline mode
+      addMessage({
+        id: uuidv4(),
+        conversationId: convId,
+        role: 'system' as const,
+        content: 'Message queued. Will be sent when connection is restored.',
+        createdAt: new Date().toISOString(),
+      })
+
+      // Clear input
+      setInputValue('')
+      setImages([])
+
+      console.log('Message queued for offline mode:', {
+        content: inputValue,
+        queueSize: actionQueue.length + 1
+      })
+
+      return
+    }
 
     // Upload images first
     const uploadedImages: string[] = []
@@ -847,18 +897,29 @@ export function ChatInput() {
         </div>
       )}
 
+      {/* Offline mode indicator in input area */}
+      {isOffline && (
+        <div className="mb-3 p-3 bg-[var(--warning)]/10 border border-[var(--warning)] rounded-lg text-[var(--text-primary)] text-sm">
+          <div className="font-medium mb-1">⚠️ Offline Mode</div>
+          <div className="opacity-80">
+            Messages will be queued and sent when connection is restored.
+            {actionQueue.length > 0 && ` ${actionQueue.length} message${actionQueue.length > 1 ? 's' : ''} queued.`}
+          </div>
+        </div>
+      )}
+
       <div className="flex items-end gap-3">
         {/* Voice input button */}
         <button
           onClick={handleVoiceInput}
-          disabled={isLoading || isStreaming}
+          disabled={isLoading || isStreaming || isOffline}
           className={`p-3 rounded-lg transition-colors disabled:opacity-50 ${
             isRecording
               ? 'bg-red-500 text-white hover:bg-red-600'
               : 'text-[var(--text-secondary)] hover:text-[var(--primary)]'
           }`}
           type="button"
-          title={isRecording ? "Stop recording" : "Voice input (click to record)"}
+          title={isRecording ? "Stop recording" : isOffline ? "Voice input unavailable offline" : "Voice input (click to record)"}
         >
           {isRecording ? (
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -874,10 +935,10 @@ export function ChatInput() {
         {/* Attachment button */}
         <button
           onClick={handleFileSelect}
-          disabled={isLoading || isStreaming}
+          disabled={isLoading || isStreaming || isOffline}
           className="p-3 text-[var(--text-secondary)] hover:text-[var(--primary)] transition-colors disabled:opacity-50"
           type="button"
-          title="Attach image"
+          title={isOffline ? "Attachments unavailable offline" : "Attach image"}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
@@ -901,7 +962,7 @@ export function ChatInput() {
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
-            placeholder="Type your message... (Paste images directly)"
+            placeholder={isOffline ? "Type message to queue... (images not supported offline)" : "Type your message... (Paste images directly)"}
             disabled={isLoading || isStreaming}
             className={`w-full resize-none border border-[var(--border-primary)] rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[var(--primary)] bg-[var(--bg-primary)] text-[var(--text-primary)] disabled:opacity-50 min-h-[60px] max-h-[200px] ${isDragOver ? 'ring-2 ring-[var(--primary)]' : ''}`}
             rows={1}
@@ -911,17 +972,22 @@ export function ChatInput() {
           onClick={handleSend}
           disabled={(!inputValue.trim() && images.length === 0) || isLoading}
           className={`px-6 py-3 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-lg font-medium transition-smooth disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${isLoading ? 'loading' : ''}`}
+          title={isOffline ? "Message will be queued" : "Send message"}
         >
           {isLoading ? (
             <>
               <span className="loading-spinner primary small"></span>
               <span>Sending...</span>
             </>
-          ) : isStreaming ? 'Stop' : 'Send'}
+          ) : isStreaming ? 'Stop' : (isOffline ? 'Queue' : 'Send')}
         </button>
       </div>
       <div className="flex justify-between mt-2 text-xs text-[var(--text-secondary)]">
-        <span>{inputValue.length} characters {images.length > 0 && `• ${images.length} image${images.length > 1 ? 's' : ''} attached`}</span>
+        <span>
+          {inputValue.length} characters
+          {images.length > 0 && ` • ${images.length} image${images.length > 1 ? 's' : ''} attached`}
+          {isOffline && images.length > 0 && ' (images will be lost)'}
+        </span>
         <span>Enter to send, Shift+Enter for newline</span>
       </div>
 

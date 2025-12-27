@@ -4,9 +4,15 @@ import { Layout } from './components/Layout'
 import { ChatPage } from './pages/ChatPage'
 import { SharedView } from './pages/SharedView'
 import { useUIStore } from './stores/uiStore'
+import { PWAInstallPrompt } from './components/PWAInstallPrompt'
+import { OfflineIndicator } from './components/OfflineIndicator'
+import { useOnlineStatus } from './hooks/useOnlineStatus'
 
 function App() {
   const { theme, setTheme, fontSize, setFontSize, highContrast, setHighContrast, colorBlindMode, setColorBlindMode } = useUIStore()
+
+  // Monitor online/offline status
+  useOnlineStatus()
 
   // Initialize theme on mount
   useEffect(() => {
@@ -29,13 +35,17 @@ function App() {
   }, [colorBlindMode, setColorBlindMode])
 
   return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route index element={<ChatPage />} />
-        <Route path="c/:conversationId" element={<ChatPage />} />
-      </Route>
-      <Route path="/share/:shareToken" element={<SharedView />} />
-    </Routes>
+    <>
+      <OfflineIndicator />
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<ChatPage />} />
+          <Route path="c/:conversationId" element={<ChatPage />} />
+        </Route>
+        <Route path="/share/:shareToken" element={<SharedView />} />
+      </Routes>
+      <PWAInstallPrompt />
+    </>
   )
 }
 

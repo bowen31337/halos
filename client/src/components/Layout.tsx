@@ -9,9 +9,12 @@ import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 import { useState, useEffect, useRef } from 'react'
 import { SkipNavigation } from './SkipNavigation'
 import { ResizableHandle } from './ResizableHandle'
+import { NetworkStatusIndicator } from './NetworkStatusIndicator'
+import { useNetworkStore } from '../stores/networkStore'
 
 export function Layout() {
   const { sidebarOpen, sidebarWidth, setSidebarOpen, setSidebarWidth } = useUIStore()
+  const { setOnline } = useNetworkStore()
   const [isMobile, setIsMobile] = useState(false)
   const [isTablet, setIsTablet] = useState(false)
   const location = useLocation()
@@ -23,6 +26,29 @@ export function Layout() {
 
   // Initialize global keyboard shortcuts
   useKeyboardShortcuts()
+
+  // Network status monitoring
+  useEffect(() => {
+    const handleOnline = () => {
+      setOnline(true)
+    }
+
+    const handleOffline = () => {
+      setOnline(false)
+    }
+
+    // Set initial state
+    setOnline(navigator.onLine)
+
+    // Add event listeners
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [setOnline])
 
   // Handle responsive breakpoints
   useEffect(() => {
@@ -109,6 +135,7 @@ export function Layout() {
       aria-label="Claude AI Assistant"
     >
       <SkipNavigation />
+      <NetworkStatusIndicator />
 
       {/* Sidebar - proper three-column layout on desktop with resize handle */}
       <div
