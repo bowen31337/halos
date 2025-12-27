@@ -13,7 +13,7 @@ from src.models.conversation import Conversation
 from src.models.message import Message
 from src.utils import generate_thread_id
 
-router = APIRouter(prefix="/api/conversations", tags=["conversation-branching"])
+router = APIRouter(tags=["conversation-branching"])
 
 
 @router.post("/{conversation_id}/branch")
@@ -360,6 +360,89 @@ async def switch_to_branch(
         },
         "switched_from": conversation_id,
         "switched_to": target_conversation_id
+    }
+
+
+@router.get("/{conversation_id}/branch-tree")
+async def get_branch_tree(
+    conversation_id: str,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get the complete branch tree structure for a conversation.
+
+    Returns all branches (direct children) and the root conversation.
+
+    Args:
+        conversation_id: ID of the conversation
+        db: Database session
+
+    Returns:
+        Branch tree with root and all branches
+    """
+    # Get the current conversation
+    current_conversation = await db.execute(
+        select(Conversation).where(Conversation.id == conversation_id)
+    )
+    current_conversation = current_conversation.scalar_one_or_none()
+
+    if not current_conversation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Conversation not found"
+        )
+
+    # Find the root conversation
+    root = current_conversation
+    while root.parent_conversation_id:
+        root = await db.execute(
+            select(Conversation).where(
+                Conversation.id == root.parent_conversation_id
+            )
+        )
+        root = root.scalar_one_or_none()
+
+    # Get all direct branches from the root
+    branches_query = await db.execute(
+        select(Conversation).where(
+            Conversation.parent_conversation_id == root.id
+        ).order_by(Conversation.created_at)
+    )
+    branches = branches_query.scalars().all()
+
+    # Get all branches (including nested ones)
+    all_branches_query = await db.execute(
+        select(Conversation).where(
+            Conversation.parent_conversation_id.isnot(None)
+        ).order_by(Conversation.created_at)
+    )
+    all_branches = all_branches_query.scalars().all()
+
+    return {
+        "root": {
+            "id": root.id,
+            "title": root.title,
+            "model": root.model,
+            "created_at": root.created_at.isoformat() if root.created_at else None
+        },
+        "current_conversation": {
+            "id": current_conversation.id,
+            "title": current_conversation.title,
+            "branch_name": current_conversation.branch_name,
+            "branch_color": current_conversation.branch_color,
+            "parent_conversation_id": current_conversation.parent_conversation_id
+        },
+        "branches": [
+            {
+                "id": b.id,
+                "title": b.title,
+                "branch_name": b.branch_name,
+                "branch_color": b.branch_color,
+                "parent_conversation_id": b.parent_conversation_id,
+                "created_at": b.created_at.isoformat() if b.created_at else None
+            }
+            for b in all_branches
+        ]
     }
 
 

@@ -37,6 +37,10 @@ class Message(Base):
     parent_message_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("messages.id"), nullable=True)
     is_branch_point: Mapped[bool] = mapped_column(Boolean, default=False)
 
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    edited_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
     # Relationships
     conversation = relationship("Conversation", back_populates="messages")
     parent_message = relationship("Message", remote_side=[id], backref="child_messages")

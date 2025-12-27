@@ -177,7 +177,7 @@ async def detect_artifacts(request: ArtifactDetectionRequest) -> list[dict]:
     return artifacts
 
 
-@router.post("/create")
+@router.post("/create", status_code=status.HTTP_201_CREATED)
 async def create_artifact(data: ArtifactCreate, db: AsyncSession = Depends(get_db)) -> dict:
     """Create a new artifact."""
     # Verify conversation exists if provided

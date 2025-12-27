@@ -92,8 +92,6 @@ async def create_message(
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
-    now = datetime.utcnow()
-
     message = Message(
         conversation_id=conversation_id,
         role=data.role,
@@ -102,8 +100,9 @@ async def create_message(
         tool_calls=data.tool_calls,
         tool_results=data.tool_results,
         thinking_content=data.thinking_content,
-        created_at=now,
     )
+
+    now = datetime.utcnow()
 
     db.add(message)
 

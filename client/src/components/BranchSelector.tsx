@@ -7,16 +7,16 @@ interface BranchSelectorProps {
 }
 
 export function BranchSelector({ conversationId }: BranchSelectorProps) {
-  const { branches, branchPath, loadBranches, loadBranchPath, switchBranch, isBranching } = useBranchingStore()
+  const { branches, branchPath, loadBranches, loadBranchTree, switchBranch, isBranching } = useBranchingStore()
   const { currentConversationId, setCurrentConversation, loadMessages } = useConversationStore()
   const [showDropdown, setShowDropdown] = useState(false)
 
   useEffect(() => {
     if (conversationId) {
       loadBranches(conversationId)
-      loadBranchPath(conversationId)
+      loadBranchTree(conversationId)
     }
-  }, [conversationId, loadBranches, loadBranchPath])
+  }, [conversationId, loadBranches, loadBranchTree])
 
   const handleSwitchBranch = async (targetConversationId: string) => {
     if (targetConversationId === currentConversationId) {

@@ -13,8 +13,8 @@ from src.main import app
 from src.core.database import Base, get_db
 
 
-# Test database URL
-TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
+# Test database URL - use in-memory database for tests
+TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
 
 @pytest.fixture(scope="session")

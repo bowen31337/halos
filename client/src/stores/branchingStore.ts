@@ -41,6 +41,7 @@ interface BranchingState {
   loadBranches: (conversationId: string) => Promise<void>
   loadBranchHistory: (conversationId: string) => Promise<void>
   loadBranchPath: (conversationId: string) => Promise<void>
+  loadBranchTree: (conversationId: string) => Promise<void>
   switchBranch: (conversationId: string, targetConversationId: string) => Promise<any>
   clearBranches: () => void
   clearError: () => void
@@ -103,18 +104,43 @@ export const useBranchingStore = create<BranchingState>((set, get) => ({
 
     try {
       const result = await api.listConversationBranches(conversationId)
-      // Transform the response to our BranchInfo format
-      const branches: BranchInfo[] = result.branches?.map((b: any) => ({
+      // API returns { branches: [...], parent_conversation_id: ..., count: ... }
+      const branches: BranchInfo[] = (result.branches || []).map((b: any) => ({
         id: b.id,
         title: b.title,
         branchName: b.branch_name,
         branchColor: b.branch_color,
-        parentId: b.parent_id,
+        parentId: b.parent_conversation_id,
         createdAt: b.created_at
-      })) || []
+      }))
       set({ branches })
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to load branches'
+      set({ error: errorMsg })
+    }
+  },
+
+  // Load branch path (the lineage from root to current)
+  loadBranchPath: async (conversationId: string) => {
+    set({ error: null })
+
+    try {
+      const result = await api.getConversationBranchPath(conversationId)
+      const branchPath: BranchPathNode[] = (result.branch_path || []).map((p: any) => ({
+        id: p.id,
+        title: p.title,
+        branchColor: p.branch_color
+      }))
+
+      set({
+        branchPath,
+        currentBranchInfo: {
+          isBranch: result.is_branch,
+          rootConversationId: result.root_conversation_id
+        }
+      })
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to load branch path'
       set({ error: errorMsg })
     }
   },
@@ -138,27 +164,36 @@ export const useBranchingStore = create<BranchingState>((set, get) => ({
     }
   },
 
-  // Load branch path (the lineage from root to current)
-  loadBranchPath: async (conversationId: string) => {
+  // Load branch tree
+  loadBranchTree: async (conversationId: string) => {
     set({ error: null })
 
     try {
-      const result = await api.getConversationBranchPath(conversationId)
-      const branchPath: BranchPathNode[] = result.branch_path?.map((p: any) => ({
+      const result = await api.getConversationBranchTree(conversationId)
+      const branchPath: BranchPathNode[] = result.branches?.map((p: any) => ({
         id: p.id,
         title: p.title,
         branchColor: p.branch_color
       })) || []
 
+      // Add root conversation to path
+      if (result.root) {
+        branchPath.unshift({
+          id: result.root.id,
+          title: result.root.title,
+          branchColor: undefined
+        })
+      }
+
       set({
         branchPath,
         currentBranchInfo: {
-          isBranch: result.is_branch,
-          rootConversationId: result.root_conversation_id
+          isBranch: result.branches && result.branches.length > 0,
+          rootConversationId: result.root?.id
         }
       })
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to load branch path'
+      const errorMsg = err instanceof Error ? err.message : 'Failed to load branch tree'
       set({ error: errorMsg })
     }
   },

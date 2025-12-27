@@ -12,5 +12,6 @@ from src.models.message import Message
 from src.models.project import Project
 from src.models.project_file import ProjectFile
 from src.models.artifact import Artifact
+from src.models.checkpoint import Checkpoint
 
-__all__ = ["Base", "Conversation", "Message", "Project", "ProjectFile", "Artifact"]
+__all__ = ["Base", "Conversation", "Message", "Project", "ProjectFile", "Artifact", "Checkpoint"]

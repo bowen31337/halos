@@ -7,6 +7,7 @@ import { SettingsModal } from './SettingsModal'
 import { ProjectModal } from './ProjectModal'
 import { ProjectFilesModal } from './ProjectFilesModal'
 import { BranchSelector } from './BranchSelector'
+import { CheckpointManager } from './CheckpointManager'
 
 const MODELS = [
   { id: 'claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5', description: 'Balanced' },
@@ -34,6 +35,7 @@ export function Header() {
   const [projectFilesOpen, setProjectFilesOpen] = useState(false)
   const [editingProject, setEditingProject] = useState<{ id: string } | null>(null)
   const [isExporting, setIsExporting] = useState(false)
+  const [checkpointManagerOpen, setCheckpointManagerOpen] = useState(false)
 
   // Fetch projects on mount
   useEffect(() => {
@@ -353,6 +355,41 @@ export function Header() {
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2">
+        {/* Checkpoint button - only show when in a conversation */}
+        {conversationId && (
+          <button
+            onClick={() => setCheckpointManagerOpen(true)}
+            className="p-2 hover:bg-[var(--surface-elevated)] rounded-lg transition-colors"
+            title="Manage checkpoints"
+          >
+            <svg className="w-5 h-5 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
+        )}
+
+        {/* Todo button - only show when in a conversation */}
+        {conversationId && (
+          <button
+            onClick={() => {
+              const { panelType, setPanelType, panelOpen, setPanelOpen } = useUIStore.getState()
+              if (panelType === 'todos' && panelOpen) {
+                setPanelOpen(false)
+                setTimeout(() => setPanelType(null), 300)
+              } else {
+                setPanelType('todos')
+                setPanelOpen(true)
+              }
+            }}
+            className="p-2 hover:bg-[var(--surface-elevated)] rounded-lg transition-colors"
+            title="Toggle task list"
+          >
+            <svg className="w-5 h-5 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </button>
+        )}
+
         {/* Export button - only show when in a conversation */}
         {conversationId && (
           <div className="relative">
@@ -441,6 +478,11 @@ export function Header() {
         projectId={selectedProject.id}
         projectName={selectedProject.name}
       />
+    )}
+
+    {/* Checkpoint Manager Modal */}
+    {checkpointManagerOpen && (
+      <CheckpointManager onClose={() => setCheckpointManagerOpen(false)} />
     )}
     </>
   )

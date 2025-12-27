@@ -28,7 +28,9 @@ router.include_router(conversation_branching.router, prefix="/conversations", ta
 router.include_router(messages.router, prefix="/messages", tags=["Messages"])
 router.include_router(agent.router, prefix="/agent", tags=["Agent"])
 router.include_router(artifacts.router, prefix="/artifacts", tags=["Artifacts"])
-router.include_router(checkpoints.router, prefix="/checkpoints", tags=["Checkpoints"])
+# Checkpoints routes - conversation-specific ops under /conversations, checkpoint ops under /checkpoints
+router.include_router(checkpoints.conversation_router, prefix="/conversations", tags=["Checkpoints"])
+router.include_router(checkpoints.checkpoint_router, prefix="/checkpoints", tags=["Checkpoints"])
 router.include_router(projects.router, prefix="/projects", tags=["Projects"])
 router.include_router(memory.router, prefix="/memory", tags=["Memory"])
 router.include_router(search.router, prefix="/search", tags=["Search"])

@@ -7,6 +7,7 @@ import { MessageList } from '../components/MessageList'
 import { ChatInput } from '../components/ChatInput'
 import { WelcomeScreen } from '../components/WelcomeScreen'
 import { ArtifactPanel } from '../components/ArtifactPanel'
+import { TodoPanel } from '../components/TodoPanel'
 
 export function ChatPage() {
   const { conversationId } = useParams()
@@ -52,8 +53,9 @@ export function ChatPage() {
         <ChatInput />
       </div>
 
-      {/* Artifact Panel */}
+      {/* Panels */}
       {panelType === 'artifacts' && <ArtifactPanel />}
+      {panelType === 'todos' && <TodoPanel />}
     </div>
   )
 }

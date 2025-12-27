@@ -457,6 +457,63 @@ class APIService {
     })
     return response.json()
   }
+
+  // Checkpoint APIs
+  async listCheckpoints(conversationId: string): Promise<any[]> {
+    const response = await fetch(`${API_BASE}/conversations/${conversationId}/checkpoints`)
+    return response.json()
+  }
+
+  async createCheckpoint(
+    conversationId: string,
+    data: { name?: string; notes?: string }
+  ): Promise<any> {
+    const response = await fetch(`${API_BASE}/conversations/${conversationId}/checkpoints`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to create checkpoint: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async getCheckpoint(checkpointId: string): Promise<any> {
+    const response = await fetch(`${API_BASE}/checkpoints/${checkpointId}`)
+    return response.json()
+  }
+
+  async updateCheckpoint(
+    checkpointId: string,
+    data: { name?: string; notes?: string }
+  ): Promise<any> {
+    const response = await fetch(`${API_BASE}/checkpoints/${checkpointId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    return response.json()
+  }
+
+  async restoreCheckpoint(checkpointId: string): Promise<any> {
+    const response = await fetch(`${API_BASE}/checkpoints/${checkpointId}/restore`, {
+      method: 'POST',
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to restore checkpoint: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async deleteCheckpoint(checkpointId: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/checkpoints/${checkpointId}`, {
+      method: 'DELETE',
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to delete checkpoint: ${response.status}`)
+    }
+  }
 }
 
 export const api = new APIService()
