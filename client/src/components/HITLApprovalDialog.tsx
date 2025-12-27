@@ -96,7 +96,7 @@ export function HITLApprovalDialog({
           <div className="flex items-center gap-3">
             <span className="text-2xl animate-pulse">⚠️</span>
             <div>
-              <span className="text-base font-bold text-[var(--text-primary)] tracking-wide">APPROVAL REQUIRED</span>
+              <span id="hiltl-dialog-title" className="text-base font-bold text-[var(--text-primary)] tracking-wide">APPROVAL REQUIRED</span>
               <div className="text-xs text-[var(--text-secondary)] mt-0.5">Human-in-the-Loop Intervention</div>
             </div>
           </div>

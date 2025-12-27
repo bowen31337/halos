@@ -37,6 +37,18 @@ export function SubAgentModal({ onClose }: SubAgentModalProps) {
   // Available tools
   const availableTools = ['search', 'read_file', 'write_file', 'edit_file', 'glob', 'grep', 'execute']
 
+  // Handle Escape key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
   useEffect(() => {
     loadSubagents()
   }, [])

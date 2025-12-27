@@ -22,7 +22,7 @@ const MODELS = [
 ]
 
 export function Header() {
-  const { toggleSidebar, selectedModel, setSelectedModel, extendedThinkingEnabled, toggleExtendedThinking } = useUIStore()
+  const { toggleSidebar, sidebarOpen, selectedModel, setSelectedModel, extendedThinkingEnabled, toggleExtendedThinking } = useUIStore()
   const { conversationId } = useParams()
   const {
     projects,

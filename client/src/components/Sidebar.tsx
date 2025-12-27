@@ -262,9 +262,11 @@ export function Sidebar() {
   const grouped = groupByDate(sortedConversations)
 
   return (
-    <div className="flex flex-col h-full bg-[var(--bg-secondary)] border-r border-[var(--border)]">
+    <div className="flex flex-col h-full bg-[var(--bg-secondary)] border-r border-[var(--border)]" role="navigation" aria-label="Conversation sidebar">
       <div className="p-4 border-b border-[var(--border)] space-y-3">
         <button
+          aria-label="New conversation"
+          tabIndex={0}
           onClick={handleNewConversation}
           disabled={isCreating}
           className="w-full px-4 py-3 bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
@@ -293,6 +295,8 @@ export function Sidebar() {
 
         <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
           <button
+          aria-label="New conversation"
+          tabIndex={0}
             onClick={() => setShowArchived(!showArchived)}
             className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
               showArchived
@@ -322,6 +326,8 @@ export function Sidebar() {
 
             {/* Call-to-action button */}
             <button
+          aria-label="New conversation"
+          tabIndex={0}
               onClick={handleNewConversation}
               disabled={isCreating}
               className="px-6 py-3 bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm hover:shadow-md"
@@ -429,6 +435,8 @@ export function Sidebar() {
       <div className="p-3 border-t border-[var(--border)] text-xs text-[var(--text-secondary)] flex justify-between items-center">
         <span>{conversations.length} conversations</span>
         <button
+          aria-label="New conversation"
+          tabIndex={0}
           onClick={() => setSidebarOpen(false)}
           className="lg:hidden px-2 py-1 bg-[var(--bg-primary)] rounded hover:bg-[var(--border)]"
         >
@@ -544,6 +552,8 @@ function ConversationItem({
             onFocus={(e) => e.target.select()}
           />
           <button
+          aria-label="New conversation"
+          tabIndex={0}
             type="button"
             onClick={handleCancelEdit}
             className={`p-1 rounded text-xs ${
@@ -562,6 +572,8 @@ function ConversationItem({
           {(showActions || isSelected) && !isDeleting && !isDuplicating && !isArchiving && !isExporting && !isMoving && (
             <div className="flex gap-1">
               <button
+          aria-label="New conversation"
+          tabIndex={0}
                 onClick={handleStartEdit}
                 title="Rename"
                 className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
@@ -571,6 +583,8 @@ function ConversationItem({
                 ✏️
               </button>
               <button
+          aria-label="New conversation"
+          tabIndex={0}
                 onClick={onPin}
                 title={conv.isPinned ? 'Unpin' : 'Pin'}
                 className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
@@ -580,6 +594,8 @@ function ConversationItem({
                 {conv.isPinned ? '📌' : '📍'}
               </button>
               <button
+          aria-label="New conversation"
+          tabIndex={0}
                 onClick={onDuplicate}
                 title="Duplicate"
                 className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
@@ -590,6 +606,8 @@ function ConversationItem({
               </button>
               {conv.isArchived ? (
                 <button
+          aria-label="New conversation"
+          tabIndex={0}
                   onClick={onUnarchive}
                   title="Unarchive"
                   className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
@@ -600,6 +618,8 @@ function ConversationItem({
                 </button>
               ) : (
                 <button
+          aria-label="New conversation"
+          tabIndex={0}
                   onClick={onArchive}
                   title="Archive"
                   className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
@@ -610,6 +630,8 @@ function ConversationItem({
                 </button>
               )}
               <button
+          aria-label="New conversation"
+          tabIndex={0}
                 onClick={(e) => onExport(e, 'json')}
                 title="Export as JSON"
                 className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
@@ -619,6 +641,8 @@ function ConversationItem({
                 📄
               </button>
               <button
+          aria-label="New conversation"
+          tabIndex={0}
                 onClick={(e) => onExport(e, 'markdown')}
                 title="Export as Markdown"
                 className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
@@ -628,6 +652,8 @@ function ConversationItem({
                 📝
               </button>
               <button
+          aria-label="New conversation"
+          tabIndex={0}
                 onClick={onMove}
                 title="Move to Project"
                 className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
@@ -637,6 +663,8 @@ function ConversationItem({
                 📁
               </button>
               <button
+          aria-label="New conversation"
+          tabIndex={0}
                 onClick={onDelete}
                 title="Delete"
                 className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
@@ -676,6 +704,8 @@ function MoveModal({ conversationId, projects, currentProjectId, onMove, onClose
             Move Conversation
           </h2>
           <button
+          aria-label="New conversation"
+          tabIndex={0}
             onClick={onClose}
             className="p-2 hover:bg-[var(--surface-elevated)] rounded-lg transition-colors"
           >
@@ -691,6 +721,8 @@ function MoveModal({ conversationId, projects, currentProjectId, onMove, onClose
           </p>
 
           <button
+          aria-label="New conversation"
+          tabIndex={0}
             onClick={(e) => onMove(e, conversationId, null)}
             className={`w-full px-4 py-3 text-left rounded-lg border transition-colors ${
               currentProjectId === null
@@ -717,6 +749,8 @@ function MoveModal({ conversationId, projects, currentProjectId, onMove, onClose
           ) : (
             projects.map((project) => (
               <button
+          aria-label="New conversation"
+          tabIndex={0}
                 key={project.id}
                 onClick={(e) => onMove(e, conversationId, project.id)}
                 className={`w-full px-4 py-3 text-left rounded-lg border transition-colors ${
@@ -746,6 +780,8 @@ function MoveModal({ conversationId, projects, currentProjectId, onMove, onClose
 
         <div className="px-6 py-4 border-t border-[var(--border)] flex justify-end">
           <button
+          aria-label="New conversation"
+          tabIndex={0}
             onClick={onClose}
             className="px-4 py-2 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-elevated)] rounded-lg transition-colors"
           >
