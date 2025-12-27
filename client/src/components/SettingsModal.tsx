@@ -4,7 +4,7 @@ import { MemoryModal } from './MemoryModal'
 import { api } from '../services/api'
 import { PWAStatusIndicator } from './PWAInstallPrompt'
 
-type SettingsTab = 'general' | 'appearance' | 'advanced' | 'api'
+type SettingsTab = 'general' | 'appearance' | 'privacy' | 'advanced' | 'api'
 
 interface SettingsModalProps {
   onClose: () => void
@@ -34,6 +34,10 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     setPermissionMode,
     memoryEnabled,
     toggleMemoryEnabled,
+    contentFilterLevel,
+    setContentFilterLevel,
+    contentFilterCategories,
+    setContentFilterCategories,
   } = useUIStore()
 
   const [activeTab, setActiveTab] = useState<SettingsTab>('appearance')
@@ -375,6 +379,111 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     </div>
   )
 
+  // Privacy & Safety Tab
+  const renderPrivacyTab = () => {
+    const filterLevels = [
+      { value: 'off' as const, label: 'Off', description: 'No content filtering' },
+      { value: 'low' as const, label: 'Low', description: 'Basic filtering for explicit content' },
+      { value: 'medium' as const, label: 'Medium', description: 'Standard filtering with additional safety measures' },
+      { value: 'high' as const, label: 'High', description: 'Strict filtering for maximum safety' },
+    ]
+
+    const categories = [
+      { id: 'violence', label: 'Violence & Gore', description: 'Violent content and graphic imagery' },
+      { id: 'hate', label: 'Hate Speech', description: 'Discriminatory or hateful language' },
+      { id: 'sexual', label: 'Sexual Content', description: 'Explicit sexual material' },
+      { id: 'self-harm', label: 'Self-Harm', description: 'Content promoting self-harm or suicide' },
+      { id: 'illegal', label: 'Illegal Activities', description: 'Content about illegal acts' },
+    ]
+
+    return (
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Content Filtering Level</h3>
+          <p className="text-xs text-[var(--text-secondary)] mb-3">
+            Choose the level of content filtering for AI responses
+          </p>
+          <div className="space-y-2">
+            {filterLevels.map((level) => (
+              <button
+                key={level.value}
+                onClick={() => {
+                  setContentFilterLevel(level.value)
+                  saveSettings({ content_filter_level: level.value })
+                }}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-colors ${
+                  contentFilterLevel === level.value
+                    ? 'border-[var(--primary)] bg-[var(--surface-elevated)]'
+                    : 'border-[var(--border-primary)] hover:bg-[var(--surface-elevated)]'
+                }`}
+              >
+                <div className="text-left">
+                  <div className="font-medium text-[var(--text-primary)]">{level.label}</div>
+                  <div className="text-xs text-[var(--text-secondary)]">{level.description}</div>
+                </div>
+                {contentFilterLevel === level.value && (
+                  <svg className="w-5 h-5 text-[var(--primary)]" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Filtered Categories</h3>
+          <p className="text-xs text-[var(--text-secondary)] mb-3">
+            Select which content categories should be filtered
+          </p>
+          <div className="space-y-2">
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => {
+                  const newCategories = contentFilterCategories.includes(category.id)
+                    ? contentFilterCategories.filter((c) => c !== category.id)
+                    : [...contentFilterCategories, category.id]
+                  setContentFilterCategories(newCategories)
+                  saveSettings({ content_filter_categories: newCategories })
+                }}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-colors ${
+                  contentFilterCategories.includes(category.id)
+                    ? 'border-[var(--primary)] bg-[var(--surface-elevated)]'
+                    : 'border-[var(--border-primary)] hover:bg-[var(--surface-elevated)]'
+                }`}
+              >
+                <div className="text-left">
+                  <div className="font-medium text-[var(--text-primary)]">{category.label}</div>
+                  <div className="text-xs text-[var(--text-secondary)]">{category.description}</div>
+                </div>
+                {contentFilterCategories.includes(category.id) && (
+                  <svg className="w-5 h-5 text-[var(--primary)]" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="p-4 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border-primary)]">
+          <div className="flex items-start gap-3">
+            <svg className="w-5 h-5 text-[var(--primary)] mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+            <div className="flex-1">
+              <div className="text-sm font-medium text-[var(--text-primary)]">About Content Filtering</div>
+              <div className="text-xs text-[var(--text-secondary)] mt-1">
+                Content filtering helps prevent inappropriate responses. Higher levels may filter more content but could also limit legitimate responses. Your preferences are saved locally and synchronized with your account.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // API Tab
   const renderAPITab = () => (
     <div className="space-y-6">
@@ -426,6 +535,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           {[
             { id: 'general' as SettingsTab, label: 'General' },
             { id: 'appearance' as SettingsTab, label: 'Appearance' },
+            { id: 'privacy' as SettingsTab, label: 'Privacy & Safety' },
             { id: 'advanced' as SettingsTab, label: 'Advanced' },
             { id: 'api' as SettingsTab, label: 'API' },
           ].map((tab) => (
@@ -447,6 +557,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         <div className="flex-1 overflow-y-auto p-6">
           {activeTab === 'general' && renderGeneralTab()}
           {activeTab === 'appearance' && renderAppearanceTab()}
+          {activeTab === 'privacy' && renderPrivacyTab()}
           {activeTab === 'advanced' && renderAdvancedTab()}
           {activeTab === 'api' && renderAPITab()}
         </div>

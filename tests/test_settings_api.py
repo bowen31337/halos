@@ -161,3 +161,48 @@ async def test_effective_instructions(test_db):
         assert result["effective_instructions"] == "Global instructions"
 
     app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+async def test_content_filtering_settings(test_db):
+    """Test content filtering settings (Feature #137)."""
+    app.dependency_overrides[get_db] = lambda: test_db
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        # Get initial settings - should include content filtering defaults
+        response = await client.get("/api/settings")
+        assert response.status_code == 200
+        settings = response.json()
+        assert "content_filter_level" in settings
+        assert "content_filter_categories" in settings
+
+        # Update content filtering level
+        update_data = {
+            "content_filter_level": "high",
+            "content_filter_categories": ["violence", "hate", "sexual", "self-harm"]
+        }
+        response = await client.put("/api/settings", json=update_data)
+        assert response.status_code == 200
+        settings = response.json()
+        assert settings["content_filter_level"] == "high"
+        assert settings["content_filter_categories"] == ["violence", "hate", "sexual", "self-harm"]
+
+        # Verify the settings persisted
+        response = await client.get("/api/settings")
+        assert response.status_code == 200
+        settings = response.json()
+        assert settings["content_filter_level"] == "high"
+        assert settings["content_filter_categories"] == ["violence", "hate", "sexual", "self-harm"]
+
+        # Test turning off content filtering
+        update_data = {
+            "content_filter_level": "off",
+            "content_filter_categories": []
+        }
+        response = await client.put("/api/settings", json=update_data)
+        assert response.status_code == 200
+        settings = response.json()
+        assert settings["content_filter_level"] == "off"
+        assert settings["content_filter_categories"] == []
+
+    app.dependency_overrides.clear()

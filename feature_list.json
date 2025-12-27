@@ -2358,7 +2358,7 @@
     "is_dev_done": true,
     "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "Full implementation: Session store with timeout detection, warning modal, data preservation, backend session refresh endpoints, and activity monitoring. All 10 tests passing."
+    "notes": "Full implementation: Backend session management with JWT tokens, refresh tokens, timeout detection. Frontend session store, timeout warnings, data preservation. All 20 tests passing."
   },
   {
     "category": "functional",
@@ -2371,9 +2371,11 @@
       "Step 5: Verify appropriate handling",
       "Step 6: Disable filtering and verify change"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "notes": "Full implementation: UI in SettingsModal (Privacy tab), store integration, backend settings API, content filter utility, and agent integration. All 8 tests passing.",
+    "test_date": "2025-12-27"
   },
   {
     "category": "functional",

@@ -1,9 +1,11 @@
 """User settings endpoints."""
 
+import json
 from typing import Optional
 from uuid import UUID
+from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,6 +13,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.database import get_db
 from src.models.conversation import Conversation
 from src.models.project import Project
+from src.models.message import Message
+from src.models.memory import Memory
+from src.models.prompt import Prompt
+from src.models.artifact import Artifact
+from src.models.checkpoint import Checkpoint
+from src.models.audit_log import AuditActionType, AuditAction
+from src.utils.audit import log_audit, get_request_info
 from src.core.config import settings
 
 router = APIRouter()
@@ -32,6 +41,8 @@ class SettingsUpdate(BaseModel):
     extended_thinking_enabled: Optional[bool] = None
     memory_enabled: Optional[bool] = None
     color_blind_mode: Optional[str] = None
+    content_filter_level: Optional[str] = None
+    content_filter_categories: Optional[list[str]] = None
 
 
 class CustomInstructionsUpdate(BaseModel):
@@ -55,6 +66,8 @@ user_settings: dict = {
     "temperature": 0.7,
     "max_tokens": 4096,
     "color_blind_mode": "none",
+    "content_filter_level": "low",
+    "content_filter_categories": ["violence", "hate", "sexual", "self-harm", "illegal"],
 }
 
 
@@ -93,6 +106,10 @@ async def update_settings(data: SettingsUpdate) -> dict:
         user_settings["memory_enabled"] = data.memory_enabled
     if data.color_blind_mode is not None:
         user_settings["color_blind_mode"] = data.color_blind_mode
+    if data.content_filter_level is not None:
+        user_settings["content_filter_level"] = data.content_filter_level
+    if data.content_filter_categories is not None:
+        user_settings["content_filter_categories"] = data.content_filter_categories
 
     return user_settings
 
