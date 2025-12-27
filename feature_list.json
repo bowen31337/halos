@@ -1349,9 +1349,11 @@
       "Step 6: Complete the tour",
       "Step 7: Verify tour doesn't restart on next visit"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "OnboardingTour component created with 8 steps. Integrated into Layout.tsx. Uses onboardingStore for state persistence. data-tour attributes added to Header and ChatInput components."
   },
   {
     "category": "functional",

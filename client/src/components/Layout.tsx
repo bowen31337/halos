@@ -3,6 +3,7 @@ import { Sidebar } from './Sidebar'
 import { Header } from './Header'
 import { SubAgentIndicator } from './SubAgentIndicator'
 import { CommandPalette } from './CommandPalette'
+import { OnboardingTour } from './OnboardingTour'
 import { useUIStore } from '../stores/uiStore'
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 
@@ -37,6 +38,9 @@ export function Layout() {
 
       {/* Command Palette - global keyboard shortcut menu */}
       <CommandPalette />
+
+      {/* Onboarding Tour */}
+      <OnboardingTour />
     </div>
   )
 }

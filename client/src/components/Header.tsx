@@ -13,6 +13,7 @@ import { MemoryManager } from './MemoryManager'
 import { ShareModal } from './ShareModal'
 import { PromptModal } from './PromptModal'
 import { MCPModal } from './MCPModal'
+import { exportToPDF } from '../utils/exportPdf'
 
 const MODELS = [
   { id: 'claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5', description: 'Balanced' },
@@ -90,6 +91,37 @@ export function Header() {
     } catch (error) {
       console.error('Export failed:', error)
       alert('Failed to export conversation')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const handlePDFExport = async () => {
+    if (!conversationId) return
+
+    setIsExporting(true)
+    try {
+      // Get conversation data
+      const conversation = conversations.find(c => c.id === conversationId)
+      if (!conversation) {
+        throw new Error('Conversation not found')
+      }
+
+      // Prepare data for PDF export
+      const pdfData = {
+        title: conversation.title || 'Untitled Conversation',
+        model: conversation.model || 'Claude',
+        created_at: conversation.created_at || new Date().toISOString(),
+        messages: conversation.messages || []
+      }
+
+      // Export to PDF
+      await exportToPDF(pdfData)
+
+      setExportMenuOpen(false)
+    } catch (error) {
+      console.error('PDF export failed:', error)
+      alert('Failed to export PDF: ' + (error as Error).message)
     } finally {
       setIsExporting(false)
     }
@@ -507,6 +539,14 @@ export function Header() {
                   >
                     <span>📝</span>
                     <span className="text-sm text-[var(--text-primary)]">Markdown</span>
+                  </button>
+                  <button
+                    onClick={handlePDFExport}
+                    disabled={isExporting}
+                    className="w-full px-4 py-2 text-left hover:bg-[var(--surface-elevated)] transition-colors flex items-center gap-2 disabled:opacity-50"
+                  >
+                    <span>📕</span>
+                    <span className="text-sm text-[var(--text-primary)]">PDF</span>
                   </button>
                   {isExporting && (
                     <div className="px-4 py-2 text-xs text-[var(--text-secondary)]">

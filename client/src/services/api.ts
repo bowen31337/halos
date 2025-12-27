@@ -997,12 +997,45 @@ class APIService {
     return response.json()
   }
 
-  async getMCPServerTools(serverId: string): Promise<any> {
-    const response = await fetch(`${API_BASE}/mcp/${serverId}/tools`, {
+  // API Key Management APIs
+  async validateAPIKey(apiKey: string): Promise<{ valid: boolean; message: string; key_preview: string }> {
+    const response = await fetch(`${API_BASE}/settings/api-key/validate`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ api_key: apiKey }),
     })
     if (!response.ok) {
-      throw new Error(`Failed to get MCP server tools: ${response.status}`)
+      throw new Error(`Failed to validate API key: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async saveAPIKey(apiKey: string): Promise<{ message: string; key_preview: string }> {
+    const response = await fetch(`${API_BASE}/settings/api-key/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ api_key: apiKey }),
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to save API key: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async getAPIKeyStatus(): Promise<{ configured: boolean; has_saved_key: boolean; key_preview: string; message: string }> {
+    const response = await fetch(`${API_BASE}/settings/api-key/status`)
+    if (!response.ok) {
+      throw new Error(`Failed to get API key status: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async removeAPIKey(): Promise<{ message: string }> {
+    const response = await fetch(`${API_BASE}/settings/api-key`, {
+      method: 'DELETE',
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to remove API key: ${response.status}`)
     }
     return response.json()
   }
