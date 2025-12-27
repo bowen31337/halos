@@ -167,7 +167,7 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
       onMouseLeave={() => setShowActions(false)}
     >
       <div
-        className={`max-w-full ${isUser ? 'bg-[var(--primary)] text-white px-4 py-3 rounded-2xl' : ''}`}
+        className={`max-w-full ${isUser ? 'bg-[var(--primary)] text-white px-4 py-3 rounded-2xl' : 'bg-[var(--bg-secondary)] px-4 py-3 rounded-2xl border border-[var(--border)]'}`}
       >
         {!isUser && (
           <div className="flex items-center gap-2 mb-2">
@@ -179,14 +179,14 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
             </span>
             {/* Thinking indicator badge */}
             {isThinking && (
-              <span className="text-xs px-2 py-0.5 bg-[var(--bg-secondary)] rounded-full text-[var(--text-secondary)] flex items-center gap-1">
+              <span className="text-xs px-2 py-0.5 bg-[var(--surface-elevated)] rounded-full text-[var(--text-secondary)] flex items-center gap-1">
                 <span className="w-1.5 h-1.5 bg-[var(--text-secondary)] rounded-full animate-pulse"></span>
                 Thinking...
               </span>
             )}
             {/* Token usage badge */}
             {!isThinking && message.inputTokens && message.outputTokens && (
-              <span className="text-xs px-2 py-0.5 bg-[var(--bg-secondary)] rounded-full text-[var(--text-secondary)] flex items-center gap-1">
+              <span className="text-xs px-2 py-0.5 bg-[var(--surface-elevated)] rounded-full text-[var(--text-secondary)] flex items-center gap-1">
                 <span className="text-[var(--primary)]">🔢</span>
                 {message.inputTokens} in, {message.outputTokens} out
                 {message.cacheReadTokens ? ` (${message.cacheReadTokens} cached)` : ''}
@@ -200,7 +200,7 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
                   <button
                     onClick={handleExtractArtifacts}
                     disabled={isExtracting}
-                    className="p-1 hover:bg-[var(--bg-secondary)] rounded transition-colors"
+                    className="p-1 hover:bg-[var(--bg-primary)] rounded transition-colors"
                     title="Extract artifacts"
                   >
                     {isExtracting ? '⏳' : '📦'}
@@ -209,7 +209,7 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
                 {onRegenerate && (
                   <button
                     onClick={() => onRegenerate(message.id)}
-                    className="p-1 hover:bg-[var(--bg-secondary)] rounded transition-colors"
+                    className="p-1 hover:bg-[var(--bg-primary)] rounded transition-colors"
                     title="Regenerate response"
                   >
                     🔄
@@ -220,7 +220,7 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
                   <button
                     onClick={handleBranch}
                     disabled={isBranching}
-                    className="p-1 hover:bg-[var(--bg-secondary)] rounded transition-colors"
+                    className="p-1 hover:bg-[var(--bg-primary)] rounded transition-colors"
                     title="Create branch from this message"
                   >
                     {isBranching ? '⏳' : '🌳'}
@@ -263,7 +263,7 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
               {thinkingExpanded ? 'Hide thinking' : 'Show thinking'} process
             </button>
             {thinkingExpanded && (
-              <div className="mt-2 p-3 bg-[var(--bg-secondary)] rounded-lg border border-[var(--border-primary)]">
+              <div className="mt-2 p-3 bg-[var(--surface-elevated)] rounded-lg border border-[var(--border-primary)]">
                 <div className="text-xs font-medium text-[var(--text-secondary)] mb-2">Thinking Process:</div>
                 <div className="text-xs text-[var(--text-secondary)] whitespace-pre-wrap font-mono leading-relaxed">
                   {message.thinkingContent}
@@ -319,7 +319,7 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
                     if (!isInline) {
                       return (
                         <div className="relative group my-4">
-                          <div className="flex items-center justify-between bg-[var(--bg-secondary)] px-4 py-2 rounded-t-lg border border-[var(--border)] border-b-0">
+                          <div className="flex items-center justify-between bg-[var(--surface-elevated)] px-4 py-2 rounded-t-lg border border-[var(--border)] border-b-0">
                             <span className="text-xs font-medium text-[var(--text-secondary)]">
                               {language}
                             </span>
@@ -347,7 +347,7 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
                     }
 
                     return (
-                      <code className="bg-[var(--bg-secondary)] px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
+                      <code className="bg-[var(--surface-elevated)] px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
                         {children}
                       </code>
                     )

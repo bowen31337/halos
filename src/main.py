@@ -7,9 +7,10 @@ from typing import AsyncGenerator
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
+import os
 
 from src.core.config import settings
 from src.core.database import init_db
@@ -131,14 +132,30 @@ async def general_exception_handler(request: Request, exc: Exception):
 # ==================== API Endpoints ====================
 
 
-@app.get("/")
-async def root() -> dict[str, str]:
-    """Root endpoint."""
-    return {
-        "name": settings.app_name,
-        "version": settings.app_version,
-        "docs": "/docs",
-    }
+@app.get("/", response_class=HTMLResponse)
+async def root() -> HTMLResponse:
+    """Root endpoint - serves the frontend HTML."""
+    html_path = os.path.join(os.path.dirname(__file__), "static", "index.html")
+    if os.path.exists(html_path):
+        with open(html_path, "r") as f:
+            return HTMLResponse(content=f.read())
+    # Fallback if HTML doesn't exist
+    return HTMLResponse(content="""
+    <html>
+        <head>
+            <title>Claude AI Clone</title>
+            <style>
+                body { font-family: sans-serif; padding: 40px; text-align: center; }
+                h1 { color: #CC785C; }
+            </style>
+        </head>
+        <body>
+            <h1>Claude AI Clone</h1>
+            <p>Frontend not yet built. Backend is running.</p>
+            <p>API Docs: <a href="/docs">/docs</a></p>
+        </body>
+    </html>
+    """)
 
 
 @app.get("/health")
