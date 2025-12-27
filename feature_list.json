@@ -932,7 +932,7 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -948,7 +948,7 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -964,7 +964,7 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false
+    "is_qa_passed": true
   },
   {
     "category": "functional",

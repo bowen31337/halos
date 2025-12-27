@@ -223,8 +223,53 @@ console.log(greet("World"));
         temperature = config.get("configurable", {}).get("temperature", 0.7)
         max_tokens = config.get("configurable", {}).get("max_tokens", 4096)
 
-        # Check if we should simulate tool usage
-        if any(word in actual_message.lower() for word in ["read", "file", "write", "edit"]):
+        # Determine interrupt configuration based on permission mode
+        # This matches what agent_service does
+        interrupt_config = {}
+        if permission_mode == "default":
+            interrupt_config = {"execute": True, "write_file": True, "edit_file": True}
+        elif permission_mode == "acceptEdits":
+            interrupt_config = {"execute": True}
+        # plan and bypassPermissions modes have no interrupts
+
+        # Check if we should simulate execute tool usage
+        execute_keywords = ["execute", "run", "command", "shell", "bash", "terminal"]
+        if any(word in actual_message.lower() for word in execute_keywords):
+            tool_name = "execute"
+            tool_input = {"command": actual_message}
+
+            # Tool start - matches LangGraph format
+            yield {
+                "event": "on_tool_start",
+                "name": tool_name,
+                "data": {"input": tool_input},
+            }
+            await asyncio.sleep(0.1)
+
+            # Check if this tool should interrupt based on permission mode
+            if interrupt_config.get(tool_name, False):
+                yield {
+                    "event": "on_interrupt",
+                    "name": "approval_required",
+                    "data": {
+                        "tool": tool_name,
+                        "input": tool_input,
+                        "reason": "Shell command execution requires approval in default permission mode"
+                    },
+                }
+                # Stop the stream here - will be resumed after approval
+                return
+
+            # Tool end - matches LangGraph format
+            yield {
+                "event": "on_tool_end",
+                "name": tool_name,
+                "data": {"output": f"Command executed successfully: {actual_message}"},
+            }
+            await asyncio.sleep(0.1)
+
+        # Check if we should simulate file tool usage
+        elif any(word in actual_message.lower() for word in ["read", "file", "write", "edit"]):
             tool_name = "write_file" if any(word in actual_message.lower() for word in ["write", "edit"]) else "read_file"
             tool_input = {"path": "/example/file.txt", "content": "example content"} if tool_name == "write_file" else {"path": "/example/file.txt"}
 
@@ -236,15 +281,15 @@ console.log(greet("World"));
             }
             await asyncio.sleep(0.1)
 
-            # If in manual permission mode, emit interrupt event instead of completing
-            if permission_mode == "manual" and tool_name == "write_file":
+            # Check if this tool should interrupt based on permission mode
+            if interrupt_config.get(tool_name, False):
                 yield {
                     "event": "on_interrupt",
                     "name": "approval_required",
                     "data": {
                         "tool": tool_name,
                         "input": tool_input,
-                        "reason": "Writing files requires manual approval in permission mode"
+                        "reason": f"{tool_name} requires approval in {permission_mode} permission mode"
                     },
                 }
                 # Stop the stream here - will be resumed after approval
