@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { useRecentItemsStore } from './recentItemsStore'
+import { logActivity } from '../services/api'
 
 export interface Message {
   id: string
@@ -242,6 +243,15 @@ export const useConversationStore = create<ConversationState>((set) => ({
     const apiConv = await response.json()
     const conv = transformConversation(apiConv)
     set((state) => ({ conversations: [conv, ...state.conversations] }))
+
+    // Log activity
+    logActivity({
+      action_type: 'conversation_created',
+      resource_type: 'conversation',
+      resource_id: conv.id,
+      resource_name: conv.title,
+    })
+
     return conv
   },
 
@@ -265,11 +275,22 @@ export const useConversationStore = create<ConversationState>((set) => ({
       method: 'DELETE',
     })
     if (response.ok) {
+      // Get conversation title before removing for activity log
+      const conv = useConversationStore.getState().conversations.find(c => c.id === id)
+
       set((state) => ({
         conversations: state.conversations.filter((c) => c.id !== id),
         currentConversationId:
           state.currentConversationId === id ? null : state.currentConversationId,
       }))
+
+      // Log activity
+      logActivity({
+        action_type: 'conversation_deleted',
+        resource_type: 'conversation',
+        resource_id: id,
+        resource_name: conv?.title,
+      })
     }
   },
 

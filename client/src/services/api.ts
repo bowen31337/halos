@@ -1743,3 +1743,48 @@ class APIService {
 }
 
 export const api = new APIService()
+
+// Helper function for logging activities throughout the app
+export async function logActivity(data: {
+  action_type: string
+  resource_type?: string
+  resource_id?: string
+  resource_name?: string
+  details?: Record<string, any>
+  user_id?: string
+  user_name?: string
+}): Promise<void> {
+  try {
+    // Get user info from localStorage if available
+    const storedUser = localStorage.getItem('talos_user')
+    let userId = data.user_id
+    let userName = data.user_name
+
+    if (storedUser && (!userId || !userName)) {
+      try {
+        const user = JSON.parse(storedUser)
+        if (!userId) userId = user.id || user.user_id
+        if (!userName) userName = user.name || user.email
+      } catch (e) {
+        // Ignore parse errors
+      }
+    }
+
+    // Use "Anonymous" as fallback
+    if (!userId) userId = 'anonymous'
+    if (!userName) userName = 'Anonymous'
+
+    await api.logActivity({
+      action_type: data.action_type,
+      resource_type: data.resource_type,
+      resource_id: data.resource_id,
+      resource_name: data.resource_name,
+      details: data.details,
+      user_id: userId,
+      user_name: userName,
+    })
+  } catch (error) {
+    // Silently fail - activity logging should not break the main flow
+    console.debug('Activity logging failed:', error)
+  }
+}

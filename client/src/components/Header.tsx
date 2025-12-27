@@ -749,6 +749,19 @@ export function Header() {
           />
         </div>
 
+        {/* Activity Feed button */}
+        <Tooltip content="Activity feed">
+          <button
+            onClick={() => setActivityFeedOpen(true)}
+            className="p-2 hover:bg-[var(--surface-elevated)] rounded-lg transition-colors"
+            aria-label="Open activity feed"
+          >
+            <svg className="w-5 h-5 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
+        </Tooltip>
+
         {/* Settings button */}
         <Tooltip content="Settings" shortcut="Ctrl+,">
           <button
@@ -853,6 +866,11 @@ export function Header() {
           setComparisonModalOpen(false)
         }}
       />
+    )}
+
+    {/* Activity Feed Modal */}
+    {activityFeedOpen && (
+      <ActivityFeed onClose={() => setActivityFeedOpen(false)} />
     )}
     </>
   )
