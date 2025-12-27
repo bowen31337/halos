@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { MessageBubble } from '../components/MessageBubble'
+import { CommentList } from '../components/CommentList'
 
 interface SharedConversation {
   id: string
@@ -125,20 +126,26 @@ export function SharedView() {
             <p>No messages in this conversation yet.</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {sharedData.messages.map((message) => (
-              <MessageBubble
-                key={message.id}
-                message={{
-                  id: message.id,
-                  conversationId: sharedData.id,
-                  role: message.role,
-                  content: message.content,
-                  createdAt: message.createdAt,
-                  attachments: message.attachments,
-                  thinkingContent: message.thinkingContent,
-                }}
-              />
+              <div key={message.id} className="space-y-2">
+                <MessageBubble
+                  message={{
+                    id: message.id,
+                    conversationId: sharedData.id,
+                    role: message.role,
+                    content: message.content,
+                    createdAt: message.createdAt,
+                    attachments: message.attachments,
+                    thinkingContent: message.thinkingContent,
+                  }}
+                />
+                <CommentList
+                  shareToken={shareToken!}
+                  messageId={message.id}
+                  allowComments={sharedData.allow_comments}
+                />
+              </div>
             ))}
           </div>
         )}

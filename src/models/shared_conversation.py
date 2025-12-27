@@ -31,3 +31,4 @@ class SharedConversation(Base):
 
     # Relationships
     conversation = relationship("Conversation", back_populates="shares")
+    comments = relationship("Comment", back_populates="shared_conversation", cascade="all, delete-orphan")

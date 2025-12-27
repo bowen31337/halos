@@ -50,3 +50,4 @@ class Conversation(Base):
     shares = relationship("SharedConversation", back_populates="conversation", cascade="all, delete-orphan")
     tags = relationship("Tag", secondary="conversation_tags", back_populates="conversations")
     parent_conversation = relationship("Conversation", remote_side=[id], backref="branches")
+    comments = relationship("Comment", back_populates="conversation", cascade="all, delete-orphan")

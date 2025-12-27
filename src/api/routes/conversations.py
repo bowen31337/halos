@@ -1105,6 +1105,7 @@ async def batch_export_conversations(
 
     Returns a JSON array of exported conversations.
     """
+    print(f"DEBUG: batch_export_conversations called with request={request}, format={format}")
     results = []
     success_count = 0
     failure_count = 0

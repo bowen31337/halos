@@ -9,6 +9,10 @@ class Base(DeclarativeBase):
 
 # Import tag models first (needed for the conversation_tags association table used by Conversation)
 from src.models.tag import Tag, conversation_tags
+# Import User first (needed by Comment)
+from src.models.user import User, Session, PasswordResetToken, APIKey, UserStatus
+# Import Comment before Conversation and Message (they reference Comment in relationships)
+from src.models.comment import Comment
 from src.models.conversation import Conversation
 from src.models.message import Message
 from src.models.project import Project
@@ -22,10 +26,9 @@ from src.models.mcp_server import MCPServer
 from src.models.folder import Folder, FolderItem
 from src.models.background_task import BackgroundTask, TaskStatus
 from src.models.audit_log import AuditLog, AuditActionType, AuditAction
-from src.models.user import User, Session, PasswordResetToken, APIKey, UserStatus
 
 __all__ = [
-    "Base", "Conversation", "Message", "Project", "ProjectFile", "Artifact",
+    "Base", "Conversation", "Message", "Comment", "Project", "ProjectFile", "Artifact",
     "Checkpoint", "Memory", "SharedConversation", "Prompt", "MCPServer",
     "Folder", "FolderItem", "BackgroundTask", "TaskStatus", "AuditLog",
     "AuditActionType", "AuditAction", "User", "Session", "PasswordResetToken",

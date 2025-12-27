@@ -49,6 +49,9 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    # Relationships
+    comments = relationship("Comment", back_populates="user", cascade="all, delete-orphan")
+
 
 class Session(Base):
     """Session model for tracking user sessions and timeout management."""

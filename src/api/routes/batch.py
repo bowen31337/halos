@@ -198,6 +198,7 @@ async def batch_export_conversations(
 
     Frontend-compatible endpoint that returns blob data.
     """
+    print(f"DEBUG batch.py: batch_export_conversations called with request={request}, export_format={export_format}")
     # Extract conversation_ids from request body
     conversation_ids = request.get("conversation_ids", [])
     if not conversation_ids:

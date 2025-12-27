@@ -47,3 +47,4 @@ class Message(Base):
     # Relationships
     conversation = relationship("Conversation", back_populates="messages")
     parent_message = relationship("Message", remote_side=[id], backref="child_messages")
+    comments = relationship("Comment", back_populates="message", cascade="all, delete-orphan")
