@@ -3297,9 +3297,11 @@
       "Step 11: Revoke share access",
       "Step 12: Verify link no longer works"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-28",
+    "notes": "Verified: read, comment, and edit access levels, share creation, viewing, and revocation"
   },
   {
     "category": "functional",
@@ -3318,9 +3320,11 @@
       "Step 11: Test AI with custom instructions",
       "Step 12: Reset settings to defaults"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-28",
+    "notes": "Verified: theme, font size, code theme, message density, custom instructions, permission mode, and persistence"
   },
   {
     "category": "functional",
