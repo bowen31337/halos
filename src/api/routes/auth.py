@@ -61,7 +61,8 @@ async def logout(token_data: TokenData = Depends(JWTBearer())):
 
 @router.post("/refresh")
 async def refresh_token(
-    request: dict
+    request: Request,
+    refresh_token: Optional[str] = Body(None, embed=True)
 ) -> dict:
     """Refresh access token.
 
@@ -69,10 +70,8 @@ async def refresh_token(
     1. Using existing access token (automatic refresh)
     2. Using refresh token (when access token expired)
     """
-    refresh_token = request.get("refresh_token")
-
+    # Mode 2: Refresh using refresh token
     if refresh_token:
-        # Mode 2: Refresh using refresh token
         new_access_token = session_manager.refresh_with_refresh_token(refresh_token)
         if not new_access_token:
             raise HTTPException(
@@ -86,7 +85,7 @@ async def refresh_token(
         }
 
     # Mode 1: Try to refresh using existing access token from header
-    auth_header = request.get("Authorization", "")
+    auth_header = request.headers.get("Authorization", "")
     if auth_header.startswith("Bearer "):
         token = auth_header[7:]  # Remove "Bearer " prefix
         token_data = session_manager.verify_token(token)

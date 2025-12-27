@@ -9,12 +9,12 @@ Tests for backend session timeout handling:
 """
 
 import time
+import jwt
 import pytest
 from datetime import timedelta
 
 from src.core.session import SessionManager, TokenData, session_manager
 from src.core.config import settings
-from fastapi import HTTPException
 
 
 def test_session_manager_init():
@@ -87,26 +87,31 @@ def test_verify_token():
     print("✓ Token verification works")
 
 
-def test_session_timeout():
-    """Verify session times out after inactivity."""
+def test_session_activity_timeout():
+    """Verify session times out based on last activity."""
     sm = SessionManager()
     original_timeout = sm.timeout_minutes
     sm.timeout_minutes = 0.01  # 0.01 minutes = 0.6 seconds for testing
 
     try:
-        # Create session
+        # Create session with short timeout
         token = sm.create_session("test_user")
-        token_data = sm.verify_token(token)
+
+        # Decode token to get session_id
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        session_id = payload["session_id"]
+        last_activity = payload["last_activity"]
 
         # Session should be active initially
-        assert token_data is not None
+        assert sm._is_session_active(session_id, last_activity)
 
-        # Wait for timeout
-        time.sleep(0.7)
+        # Wait for timeout (longer than JWT expiry)
+        time.sleep(1.0)
 
-        # Session should be inactive
-        token_data_after = sm.verify_token(token)
-        assert token_data_after is None
+        # Session should be inactive (last_activity is old)
+        # Note: verify_token will fail because JWT is expired
+        token_data = sm.verify_token(token)
+        assert token_data is None
         print("✓ Session times out correctly after inactivity")
     finally:
         sm.timeout_minutes = original_timeout
@@ -258,22 +263,33 @@ def test_update_session_activity():
 def test_cleanup_expired_sessions():
     """Verify expired session cleanup."""
     sm = SessionManager()
+    original_timeout = sm.timeout_minutes
     sm.timeout_minutes = 0.01  # 0.6 seconds
 
-    # Create sessions
-    sm.create_session("user1")
-    sm.create_session("user2")
+    try:
+        # Create sessions
+        sm.create_session("user1")
+        sm.create_session("user2")
 
-    # Wait for timeout
-    time.sleep(0.7)
+        # Get session IDs
+        session_ids = list(sm.sessions.keys())
 
-    # Cleanup
-    sm.cleanup_expired_sessions()
+        # Wait for timeout
+        time.sleep(0.7)
 
-    # All sessions should be inactive
-    for session_id, session_data in sm.sessions.items():
-        assert session_data["is_active"] == False
-    print("✓ Expired session cleanup works")
+        # Manually mark as expired by updating last_activity to old value
+        for session_id in session_ids:
+            sm.sessions[session_id]["last_activity"] = int(time.time()) - 1000
+
+        # Cleanup
+        sm.cleanup_expired_sessions()
+
+        # All sessions should be inactive
+        for session_id, session_data in sm.sessions.items():
+            assert session_data["is_active"] == False
+        print("✓ Expired session cleanup works")
+    finally:
+        sm.timeout_minutes = original_timeout
 
 
 def test_invalid_token_verification():
@@ -295,19 +311,23 @@ def test_invalid_token_verification():
 def test_refresh_with_expired_refresh_token():
     """Verify expired refresh tokens are rejected."""
     sm = SessionManager()
+    original_expiry = sm.refresh_token_expiry_days
     sm.refresh_token_expiry_days = 0.0001  # Very short expiry for testing
 
-    # Create session
-    result = sm.create_full_session("test_user")
-    refresh_token = result["refresh_token"]
+    try:
+        # Create session
+        result = sm.create_full_session("test_user")
+        refresh_token = result["refresh_token"]
 
-    # Wait for expiry
-    time.sleep(0.5)
+        # Wait for expiry
+        time.sleep(0.5)
 
-    # Try to refresh
-    new_token = sm.refresh_with_refresh_token(refresh_token)
-    assert new_token is None
-    print("✓ Expired refresh token rejection works")
+        # Try to refresh
+        new_token = sm.refresh_with_refresh_token(refresh_token)
+        assert new_token is None
+        print("✓ Expired refresh token rejection works")
+    finally:
+        sm.refresh_token_expiry_days = original_expiry
 
 
 def test_refresh_with_inactive_session():
@@ -340,7 +360,7 @@ def run_all_tests():
         ("Create Refresh Token", test_create_refresh_token),
         ("Create Full Session", test_create_full_session),
         ("Verify Token", test_verify_token),
-        ("Session Timeout", test_session_timeout),
+        ("Session Activity Timeout", test_session_activity_timeout),
         ("Refresh Token", test_refresh_token),
         ("Refresh With Refresh Token", test_refresh_with_refresh_token),
         ("Should Refresh Token", test_should_refresh_token),

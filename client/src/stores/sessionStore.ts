@@ -108,9 +108,16 @@ export const useSessionStore = create<SessionState>()(
       extendSession: async () => {
         // Called when user clicks "extend session" or re-authenticates
         try {
-          // Call backend to refresh session
-          await api.refreshSession()
-          console.log('Session refreshed on backend')
+          // Try to refresh the access token using refresh token
+          const refreshToken = api.getRefreshToken()
+          if (refreshToken) {
+            await api.refreshToken(refreshToken)
+            console.log('Access token refreshed on backend')
+          } else {
+            // Fallback to keep-alive endpoint
+            await api.keepSessionAlive()
+            console.log('Session kept alive on backend')
+          }
         } catch (e) {
           console.warn('Could not refresh session on backend:', e)
         }

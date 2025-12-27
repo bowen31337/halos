@@ -38,6 +38,10 @@ interface UIState {
   // Memory enabled
   memoryEnabled: boolean
 
+  // Content filtering
+  contentFilterLevel: 'off' | 'low' | 'medium' | 'high'
+  contentFilterCategories: string[]
+
   // Actions
   setTheme: (theme: 'light' | 'dark' | 'system') => void
   setHighContrast: (enabled: boolean) => void
@@ -59,6 +63,8 @@ interface UIState {
   setPermissionMode: (mode: 'auto' | 'manual') => void
   setMemoryEnabled: (enabled: boolean) => void
   toggleMemoryEnabled: () => void
+  setContentFilterLevel: (level: 'off' | 'low' | 'medium' | 'high') => void
+  setContentFilterCategories: (categories: string[]) => void
 }
 
 export const useUIStore = create<UIState>()(
@@ -81,6 +87,8 @@ export const useUIStore = create<UIState>()(
       maxTokens: 4096,
       permissionMode: 'auto',
       memoryEnabled: true,
+      contentFilterLevel: 'low',
+      contentFilterCategories: ['violence', 'hate', 'sexual', 'self-harm', 'illegal'],
 
       // Actions
       setTheme: (theme) => {
@@ -165,6 +173,8 @@ export const useUIStore = create<UIState>()(
       setCustomInstructions: (instructions) => set({ customInstructions: instructions }),
       setTemperature: (temp) => set({ temperature: temp }),
       setMaxTokens: (tokens) => set({ maxTokens: tokens }),
+      setContentFilterLevel: (level) => set({ contentFilterLevel: level }),
+      setContentFilterCategories: (categories) => set({ contentFilterCategories: categories }),
     }),
     {
       name: 'claude-ui-settings',
@@ -182,6 +192,8 @@ export const useUIStore = create<UIState>()(
         maxTokens: state.maxTokens,
         permissionMode: state.permissionMode,
         memoryEnabled: state.memoryEnabled,
+        contentFilterLevel: state.contentFilterLevel,
+        contentFilterCategories: state.contentFilterCategories,
       }),
     }
   )

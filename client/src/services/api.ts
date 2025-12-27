@@ -1076,9 +1076,11 @@ class APIService {
   // Auth APIs
   async login(username: string, password: string): Promise<{
     access_token: string
+    refresh_token: string
     token_type: string
     username: string
     expires_in: number
+    session_id: string
   }> {
     const formData = new FormData()
     formData.append('username', username)
@@ -1094,22 +1096,31 @@ class APIService {
     }
 
     const data = await response.json()
-    // Store token in localStorage
+    // Store tokens in localStorage
     localStorage.setItem('access_token', data.access_token)
+    if (data.refresh_token) {
+      localStorage.setItem('refresh_token', data.refresh_token)
+    }
+    if (data.session_id) {
+      localStorage.setItem('session_id', data.session_id)
+    }
     return data
   }
 
-  async refreshToken(currentToken: string): Promise<{
+  async refreshToken(refreshToken?: string): Promise<{
     access_token: string
     token_type: string
     expires_in: number
   }> {
+    // Use provided refresh token or get from localStorage
+    const token = refreshToken || localStorage.getItem('refresh_token')
+
     const response = await fetch(`${API_BASE}/auth/refresh`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${currentToken}`,
       },
+      body: JSON.stringify({ refresh_token: token }),
     })
 
     if (!response.ok) {
@@ -1125,15 +1136,21 @@ class APIService {
   async logout(): Promise<void> {
     const token = localStorage.getItem('access_token')
     if (token) {
-      await fetch(`${API_BASE}/auth/logout`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      })
+      try {
+        await fetch(`${API_BASE}/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        })
+      } catch (e) {
+        // Ignore errors on logout
+      }
     }
-    // Clear token from localStorage
+    // Clear tokens from localStorage
     localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
+    localStorage.removeItem('session_id')
   }
 
   async getSessionInfo(): Promise<{
@@ -1160,16 +1177,75 @@ class APIService {
     return response.json()
   }
 
+  async checkSessionStatus(): Promise<{
+    is_active: boolean
+    is_expired: boolean
+    remaining_seconds: number
+    remaining_minutes: number
+    expires_at: number
+  }> {
+    const token = localStorage.getItem('access_token')
+    if (!token) {
+      throw new Error('No access token found')
+    }
+
+    const response = await fetch(`${API_BASE}/auth/session/status`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to check session status: ${response.status}`)
+    }
+
+    return response.json()
+  }
+
+  async keepSessionAlive(): Promise<{
+    message: string
+    session_info: any
+  }> {
+    const token = localStorage.getItem('access_token')
+    if (!token) {
+      throw new Error('No access token found')
+    }
+
+    const response = await fetch(`${API_BASE}/auth/session/keep-alive`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to keep session alive: ${response.status}`)
+    }
+
+    return response.json()
+  }
+
   getAccessToken(): string | null {
     return localStorage.getItem('access_token')
+  }
+
+  getRefreshToken(): string | null {
+    return localStorage.getItem('refresh_token')
   }
 
   setAccessToken(token: string): void {
     localStorage.setItem('access_token', token)
   }
 
+  setRefreshToken(token: string): void {
+    localStorage.setItem('refresh_token', token)
+  }
+
   clearAccessToken(): void {
     localStorage.removeItem('access_token')
+    localStorage.removeItem('refresh_token')
+    localStorage.removeItem('session_id')
   }
 }
 

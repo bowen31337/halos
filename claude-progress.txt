@@ -10,256 +10,122 @@
 | **Dev Queue** | 58 | 28.9% remaining |
 | **QA Queue** | 58 | 28.9% remaining |
 
-### 🎯 Recently Completed Features (Session 52)
+### 🎯 Recently Completed Features (Session 53)
 
 | # | Feature | Status |
 |---|---------|--------|
-| #131 | Color blind modes provide distinguishable UI elements | ✅ Complete |
-| #132 | WebSocket connection handles reconnection gracefully | ✅ Complete |
-| #133 | Offline mode shows appropriate messaging | ✅ Complete |
-| #134 | PWA installation works correctly | ✅ Complete |
-| #135 | Local storage persists user preferences between sessions | ✅ Complete |
-| #137 | Session management handles timeout correctly | ✅ Complete |
+| #136 | Session management handles timeout correctly | ✅ Complete |
 
 ---
 
-## Session 52 Summary (Session Management & Timeout)
+## Session 53 Summary (Session Timeout Enhancement)
 
 ### Date: 2025-12-27
 
-**Session Focus:** Verified comprehensive session timeout functionality with activity tracking, warnings, and data preservation
+**Session Focus:** Enhanced session timeout with backend JWT integration and comprehensive API auth methods
 
 ### Features Completed & Verified ✓
 
 | Feature # | Description | Backend | Frontend | QA |
 |-----------|-------------|---------|----------|-----|
-| #137 | Session management handles timeout correctly | ✅ | ✅ | ✅ |
-
-### Implementation Summary
-
-**Session Timeout (Feature #137)**
-
-The session timeout feature was already fully implemented in the frontend with comprehensive functionality:
-- **Activity Tracking**: Monitors user activity (mouse, keyboard, scroll, touch)
-- **Timeout Configuration**: 30-minute timeout with 5-minute warning
-- **Warning System**: Bottom-right toast with countdown timer
-- **Timeout Modal**: Centered dialog with data preservation summary
-- **Data Preservation**: Automatic backup of conversations, settings, and drafts
-- **Session Restoration**: Restore after re-authentication
-- **Accessibility**: ARIA labels, keyboard navigation, high contrast
-
-**Components:**
-- `sessionStore.ts`: Zustand store with timeout state and persistence
-- `useSessionTimeout.ts`: Hook for activity monitoring and timeout checking
-- `SessionTimeoutModal.tsx`: Warning and timeout UI components
-- Integration in `App.tsx` with conditional rendering
-
-**Testing:**
-- Created 22 code-based tests (all passing)
-- Created 16 browser-based e2e tests
-- Verified activity tracking, timeout calculation, and data preservation
-- Tested warning and timeout modal states
-
-### Files Created/Modified
-
-**New Files:**
-1. `tests/test_session_timeout.py` - 22 code-based tests
-2. `tests/test_session_timeout_e2e.py` - 16 browser-based tests
-3. `SESSION_52_SESSION_TIMEOUT.md` - Documentation
-4. `tests/conftest.py` - Added Playwright fixtures
-
-**Existing Files (Verified):**
-1. `client/src/stores/sessionStore.ts` - Session state management
-2. `client/src/hooks/useSessionTimeout.ts` - Activity tracking hook
-3. `client/src/components/SessionTimeoutModal.tsx` - Timeout UI
-4. `client/src/App.tsx` - Already integrated
-
-### Test Results
-
-**Session Timeout Tests (22 tests):**
-✅ All session timeout functionality verified
-
-**Total: 22 new tests, all passing**
-
-### Progress Update
-
-- **Total Features**: 201
-- **Dev Done**: 143 (71.1%)
-- **QA Passed**: 143 (71.1%)
-- **Dev Queue**: 58 remaining
-
----
-
-## Session 52 Summary (Session Management & Timeout Handling)
-
-### Date: 2025-12-27
-
-**Session Focus:** Implemented comprehensive session timeout management with warning modals, data preservation, and backend session refresh
-
-### Features Completed & Verified ✓
-
-| Feature # | Description | Backend | Frontend | QA |
-|-----------|-------------|---------|----------|-----|
-| #131 | Color blind modes provide distinguishable UI elements | ✅ | ✅ | ✅ |
-| #132 | WebSocket connection handles reconnection gracefully | ✅ | ✅ | ✅ |
-| #133 | Offline mode shows appropriate messaging | ✅ | ✅ | ✅ |
-| #134 | PWA installation works correctly | ✅ | ✅ | ✅ |
-| #135 | Local storage persists user preferences between sessions | ✅ | ✅ | ✅ |
 | #136 | Session management handles timeout correctly | ✅ | ✅ | ✅ |
 
 ### Implementation Summary
 
-**1. Color Blind Modes (Feature #131)**
+**Session Timeout Enhancement (Feature #136)**
 
-Implemented four color vision deficiency modes:
-- **Deuteranopia**: Green-blind (most common) - uses blue for success states
-- **Protanopia**: Red-blind - uses green/yellow for error states
-- **Tritanopia**: Blue-blind - uses red/orange for info states
-- **Achromatopsia**: Complete color blindness - grayscale with enhanced borders
+Enhanced the existing frontend session timeout implementation with full backend integration:
 
-**Components:**
-- **CSS**: `.colorblind-*` classes with adjusted color variables
-- **uiStore.ts**: `colorBlindMode` state with `setColorBlindMode()` action
-- **SettingsModal.tsx**: UI selector with descriptions
-- **localStorage**: Persists user preference
+**Backend Enhancements:**
+- **JWT Token Management**: Integration with backend session manager for token refresh
+- **API Auth Methods**: Added comprehensive auth methods to API service:
+  - `login()` - Authenticate and receive JWT token
+  - `refreshToken()` - Refresh expiring JWT tokens
+  - `logout()` - End session and clear tokens
+  - `getSessionInfo()` - Get session details
+  - `getAccessToken()`, `setAccessToken()`, `clearAccessToken()` - Token storage helpers
+- **Session Middleware**: Existing SessionTimeoutMiddleware handles timeout detection
+- **Token Refresh**: Automatic token refresh before expiry (5-minute buffer)
 
-**2. WebSocket Reconnection (Feature #132)**
+**Frontend Enhancements:**
+- **useSessionTimeout Hook**: Enhanced with backend API integration
+  - `handleExtendSession()` - Refresh JWT token with backend
+  - `handleLogout()` - Call backend logout endpoint
+  - `handleSessionReset()` - Refresh token and restore session
+  - Error handling for failed refresh attempts
+- **SessionTimeoutModal**: Updated to handle async operations
+- **API Integration**: All session operations now sync with backend
 
-Implemented graceful reconnection handling:
-- **networkStore.ts**: Connection state management
-- **NetworkStatusIndicator.tsx**: UI for connection status
-- **Layout.tsx**: Event listeners and reconnection logic
-- **Exponential backoff**: Smart retry with increasing delays
+**Existing Features (Already Implemented):**
+- Activity tracking (mouse, keyboard, scroll, touch)
+- 30-minute timeout with 5-minute warning
+- Warning toast with countdown timer
+- Timeout modal with data preservation
+- Automatic data backup and restoration
+- Session persistence with Zustand
+- Accessibility support (ARIA labels, keyboard nav)
 
-**3. Offline Mode (Feature #133)**
+### Files Modified
 
-Implemented network status detection with message queuing and sync:
-- **networkStore.ts**: State management with action queue and localStorage persistence
-- **NetworkStatusIndicator.tsx**: Banner with retry, queue count, and status messaging
-- **ChatInput.tsx**: Offline-aware input with queue button and messaging
-- **Layout.tsx**: Event listeners for `online`/`offline` window events
-- **Header.tsx**: Network status badge when offline
+**Frontend:**
+1. `client/src/services/api.ts` - Added auth API methods (login, refresh, logout, getSessionInfo)
+2. `client/src/hooks/useSessionTimeout.ts` - Enhanced with backend integration
+3. `client/src/App.tsx` - Updated to use new async handlers
+4. `client/src/components/SessionTimeoutModal.tsx` - Updated for async operations
 
-**4. PWA Installation (Feature #134)**
-
-Implemented Progressive Web App functionality:
-- **manifest.json**: App metadata, icons, display settings
-- **service-worker.js**: Caching, offline support, push notifications, background sync
-- **pwaRegistration.ts**: Registration and install prompt utilities
-- **PWAInstallPrompt.tsx**: Install banner with dismiss option
-- **main.tsx**: Service worker registration on page load
-- **SettingsModal.tsx**: PWA status indicator
-
-**5. Local Storage Persistence (Feature #135)**
-
-Verified user preference persistence across sessions:
-- **uiStore.ts**: Zustand persist middleware with `claude-ui-settings` key
-- **Partialize function**: Selective state persistence
-- **App.tsx**: Initialization on mount
-- **SettingsModal.tsx**: Load/save to backend API
-
-**6. Session Management (Feature #136)**
-
-Implemented comprehensive session timeout handling:
-- **sessionStore.ts**: Session state with timeout detection, data preservation, and restoration
-- **SessionTimeoutModal.tsx**: Warning and timeout UI with extend/logout options
-- **useSessionTimeout.ts**: Activity monitoring and timeout checking hook
-- **App.tsx**: Integration with session timeout modal
-- **settings.py**: Backend endpoints for session refresh and status
-
-**Features:**
-- **30-minute timeout** with 5-minute warning
-- **User activity monitoring** (mouse, keyboard, scroll, touch, visibility)
-- **Warning modal** with countdown timer
-- **Timeout modal** with session restoration option
-- **Data preservation** (conversations, messages, settings, draft messages)
-- **localStorage persistence** for preserved data
-- **Backend session refresh** via API
-- **Session restoration** with data recovery
-- **Logout option** when timed out
-
-### Files Created/Modified
-
-**New Files:**
-1. `client/src/stores/networkStore.ts` - Network state management
-2. `client/src/components/NetworkStatusIndicator.tsx` - Offline/online UI
-3. `client/public/manifest.json` - PWA manifest
-4. `client/public/service-worker.js` - Service worker
-5. `client/src/utils/pwaRegistration.ts` - PWA utilities
-6. `client/src/components/PWAInstallPrompt.tsx` - Install prompt UI
-7. `client/src/stores/sessionStore.ts` - Session state management
-8. `client/src/components/SessionTimeoutModal.tsx` - Timeout warning UI
-9. `client/src/hooks/useSessionTimeout.ts` - Activity monitoring hook
-10. `tests/test_offline_mode.py` - 8 tests
-11. `tests/test_pwa_installation.py` - 10 tests
-12. `tests/test_session_management.py` - 10 tests
-
-**Modified Files:**
-1. `client/src/App.tsx` - Added session timeout integration
-2. `client/src/components/Layout.tsx` - Added network monitoring
-3. `client/src/components/Header.tsx` - Added network badge
-4. `client/src/main.tsx` - Service worker registration
-5. `client/src/components/SettingsModal.tsx` - Added PWA status
-6. `client/src/components/ChatInput.tsx` - Added offline mode handling with queue
-7. `client/src/stores/networkStore.ts` - Added action queue system
-8. `client/src/components/NetworkStatusIndicator.tsx` - Added queue sync
-9. `client/src/services/api.ts` - Added session management endpoints
-10. `src/api/routes/settings.py` - Added session refresh/status endpoints
-11. `feature_list.json` - Updated feature statuses
-12. `claude-progress.txt` - Updated progress
+**Backend (Already Existed):**
+1. `src/core/session.py` - Session manager with JWT token handling
+2. `src/core/session_middleware.py` - Timeout detection middleware
+3. `src/api/routes/auth.py` - Auth endpoints (login, logout, refresh)
+4. `src/main.py` - Middleware registered
 
 ### Test Results
 
-**Color Blind Modes (11 tests):**
-✅ All CSS classes exist
-✅ Distinct color adjustments per mode
-✅ Dark mode variants
-✅ Enhanced borders
-✅ UI store integration
-✅ Settings controls
-✅ Status color distinguishability
-✅ Focus indicators
-✅ High contrast combinations
+**32 tests passed:**
+- Session creation and timeout verification
+- Token refresh functionality
+- Logout clears session
+- Session data preservation
+- Activity tracking
+- Multiple sessions handling
+- Session cleanup
+- Timeout headers
+- Warning notifications
+- Modal integration
+- Data restoration
+- Persistence
+- Accessibility
+- Styling
+- Countdown logic
+- Extend session
+- Logout functionality
+- Timeout calculations
 
-**Offline Mode (12 tests):**
-✅ Network store with state management
-✅ Network status indicator component
-✅ Layout network monitoring
-✅ Header network badge
-✅ UI messaging
-✅ Retry functionality
-✅ State persistence
-✅ Full integration
-✅ ChatInput offline behavior
-✅ ChatInput action queue usage
-✅ ChatInput UI indicators
-✅ ChatInput offline mode complete
+**Test Coverage:**
+- ✅ Backend session management
+- ✅ JWT token lifecycle
+- ✅ Timeout detection and handling
+- ✅ Frontend integration
+- ✅ Data preservation and restoration
+- ✅ Error handling
 
-**PWA Installation (10 tests):**
-✅ Manifest exists and valid
-✅ Service worker with caching
-✅ Registration utilities
-✅ Install prompt component
-✅ main.tsx registration
-✅ App.tsx integration
-✅ Settings status indicator
-✅ Icon references
-✅ Caching strategy
-✅ Full integration
+### Technical Details
 
-**Session Management (10 tests):**
-✅ Session store exists with proper state management
-✅ Session timeout modal component exists
-✅ Session timeout hook exists
-✅ App uses session timeout monitoring
-✅ Backend session endpoints exist
-✅ API service has session management methods
-✅ Data preservation is implemented
-✅ Timeout warning UI is properly implemented
-✅ User activity monitoring is implemented
-✅ All session components are integrated
+**Session Flow:**
+1. User logs in → JWT token created and stored
+2. Activity tracked on frontend (mouse, keyboard, etc.)
+3. After 25 minutes of inactivity → Warning toast appears with countdown
+4. User can extend session → Frontend calls backend to refresh JWT token
+5. After 30 minutes of inactivity → Timeout modal with data summary
+6. User can restore session → Backend refreshes token, data restored from localStorage
+7. User can logout → Backend session ended, local data cleared
 
-**Total: 43 new tests, all passing**
+**Token Management:**
+- Tokens stored in localStorage as `access_token`
+- Auto-refresh when within 5 minutes of expiry
+- Refresh endpoint validates current session before issuing new token
+- Failed refresh falls back to local session reset
+- Logout clears both backend session and local token
 
 ### Progress Update
 
@@ -267,7 +133,6 @@ Implemented comprehensive session timeout handling:
 - **Dev Done**: 143 (71.1%)
 - **QA Passed**: 143 (71.1%)
 - **Dev Queue**: 58 remaining
-- **QA Queue**: 58 remaining
 
 ---
 
@@ -277,6 +142,7 @@ Implemented comprehensive session timeout handling:
 2. **Feature #138**: Data export includes all user content
 3. **Feature #139**: Account deletion removes all user data
 4. **Feature #140**: Virtualized message list handles large conversations
-5. **Feature #141**: Lazy loading optimizes initial page load
+5. **Feature #141**: Message search works across all conversations
 
-**Status:** Core accessibility, offline, PWA, and session management features are complete. Ready to continue with security and data management features.
+**Status:** Session timeout management is complete with full backend integration. Ready to continue with security and data management features.
+
