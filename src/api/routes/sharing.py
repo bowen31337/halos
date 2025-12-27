@@ -99,7 +99,7 @@ async def create_share_link(
     )
 
 
-@router.get("/share/{share_token}")
+@router.get("/share/{share_token}", response_model=SharedConversationView)
 async def view_shared_conversation(
     share_token: str,
     db: AsyncSession = Depends(get_db),
@@ -141,6 +141,13 @@ async def view_shared_conversation(
             .order_by(MessageModel.created_at)
         )
         messages_result = result.scalars().all()
+
+        # DEBUG
+        import sys
+        print(f"DEBUG sharing.py: share_token={share_token}, conversation_id={shared.conversation_id}, access_level={shared.access_level}", file=sys.stderr)
+        print(f"DEBUG sharing.py: messages_found={len(messages_result)}", file=sys.stderr)
+        for m in messages_result:
+            print(f"DEBUG: message id={m.id}, content={m.content[:50]}", file=sys.stderr)
 
         messages = [
             {

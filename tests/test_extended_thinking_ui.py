@@ -4,7 +4,7 @@ import json
 import time
 from urllib.request import Request, urlopen
 
-BACKEND_URL = "http://localhost:8000"
+BACKEND_URL = "http://localhost:8003"
 
 
 def test_ui_store_has_extended_thinking():

@@ -1530,6 +1530,114 @@ class APIService {
       throw new Error(`Failed to delete comment: ${response.status}`)
     }
   }
+
+  // Saved Searches APIs
+  async listSavedSearches(searchType?: string): Promise<Array<{
+    id: string
+    user_id: string
+    name: string
+    query: string
+    filters: Record<string, any>
+    search_type: string
+    description: string | null
+    is_active: boolean
+    usage_count: number
+    display_order: number
+    created_at: string
+    updated_at: string
+    last_used_at: string | null
+  }>> {
+    const url = searchType
+      ? `${API_BASE}/saved-searches?search_type=${searchType}`
+      : `${API_BASE}/saved-searches`
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`Failed to list saved searches: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async createSavedSearch(data: {
+    name: string
+    query: string
+    filters?: Record<string, any>
+    search_type?: string
+    description?: string
+  }): Promise<any> {
+    const response = await fetch(`${API_BASE}/saved-searches`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to create saved search: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async getSavedSearch(searchId: string): Promise<any> {
+    const response = await fetch(`${API_BASE}/saved-searches/${searchId}`)
+    if (!response.ok) {
+      throw new Error(`Failed to get saved search: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async updateSavedSearch(searchId: string, data: {
+    name?: string
+    query?: string
+    filters?: Record<string, any>
+    search_type?: string
+    description?: string
+    display_order?: number
+  }): Promise<any> {
+    const response = await fetch(`${API_BASE}/saved-searches/${searchId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to update saved search: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async deleteSavedSearch(searchId: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/saved-searches/${searchId}`, {
+      method: 'DELETE',
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to delete saved search: ${response.status}`)
+    }
+  }
+
+  async runSavedSearch(searchId: string): Promise<{
+    search_id: string
+    query: string
+    filters: Record<string, any>
+    search_type: string
+    name: string
+  }> {
+    const response = await fetch(`${API_BASE}/saved-searches/${searchId}/run`, {
+      method: 'POST',
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to run saved search: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async reorderSavedSearch(searchId: string, newOrder: number): Promise<{ message: string; new_order: number }> {
+    const response = await fetch(`${API_BASE}/saved-searches/${searchId}/reorder`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ new_order: newOrder }),
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to reorder saved search: ${response.status}`)
+    }
+    return response.json()
+  }
 }
 
 export const api = new APIService()

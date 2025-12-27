@@ -6,7 +6,7 @@ import uuid
 from urllib.request import Request, urlopen
 
 # Configuration
-BACKEND_URL = "http://localhost:8000"
+BACKEND_URL = "http://localhost:8003"
 FRONTEND_URL = "http://localhost:5173"
 
 
@@ -215,7 +215,7 @@ def test_message_with_thinking_content(conversation_id: str):
         }
 
         req = Request(
-            f"{BACKEND_URL}/api/messages/conversations/{conversation_id}/messages",
+            f"{BACKEND_URL}/api/conversations/{conversation_id}/messages",
             data=json.dumps(message_data).encode(),
             headers={"Content-Type": "application/json"},
             method="POST",
@@ -231,7 +231,7 @@ def test_message_with_thinking_content(conversation_id: str):
 
         # Retrieve the message
         req = Request(
-            f"{BACKEND_URL}/api/messages/conversations/{conversation_id}/messages",
+            f"{BACKEND_URL}/api/conversations/{conversation_id}/messages",
             method="GET",
         )
 
