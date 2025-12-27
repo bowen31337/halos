@@ -15,6 +15,7 @@ from src.api.routes import (
     projects,
     search,
     settings,
+    shares,
     sharing,
     subagents,
     usage,

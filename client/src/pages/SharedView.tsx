@@ -138,11 +138,6 @@ export function SharedView() {
                   attachments: message.attachments,
                   thinkingContent: message.thinkingContent,
                 }}
-                isStreaming={false}
-                onEdit={() => {}}
-                onRegenerate={() => {}}
-                onBranch={() => {}}
-                readOnly={true}
               />
             ))}
           </div>

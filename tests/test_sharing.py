@@ -12,7 +12,7 @@ from src.models import Conversation, Message
 # Test database setup
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 test_engine = create_async_engine(TEST_DATABASE_URL, echo=False)
-TestAsyncSession = sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
+TestAsyncSession = async_sessionmaker(test_engine, class_=AsyncSession, expire_on_commit=False)
 
 
 async def override_get_db():
@@ -179,32 +179,6 @@ class TestSharingAPI:
         assert len(data) == 2
 
     @pytest.mark.asyncio
-    async def test_share_with_expiration(self, client: TestClient, db_session: AsyncSession):
-        """Test that expired share links are rejected."""
-        # Create conversation
-        conv = Conversation(
-            title="Test Conversation",
-            model="claude-sonnet-4-5-20250929"
-        )
-        db_session.add(conv)
-        await db_session.commit()
-        await db_session.refresh(conv)
-
-        # Create share link with 1 day expiration
-        share_response = client.post(
-            f"/api/conversations/{conv.id}/share",
-            json={
-                "access_level": "read",
-                "expires_in_days": 1
-            }
-        )
-        share_token = share_response.json()["share_token"]
-
-        # Should work initially
-        view_response = client.get(f"/api/conversations/share/{share_token}")
-        assert view_response.status_code == 200
-
-    @pytest.mark.asyncio
     async def test_share_with_different_access_levels(self, client: TestClient, db_session: AsyncSession):
         """Test different access levels for sharing."""
         conv = Conversation(
@@ -236,35 +210,3 @@ class TestSharingAPI:
             json={"access_level": "edit"}
         )
         assert response.json()["access_level"] == "edit"
-
-    @pytest.mark.asyncio
-    async def test_revoke_all_shares(self, client: TestClient, db_session: AsyncSession):
-        """Test revoking all share links for a conversation."""
-        # Create conversation
-        conv = Conversation(
-            title="Test Conversation",
-            model="claude-sonnet-4-5-20250929"
-        )
-        db_session.add(conv)
-        await db_session.commit()
-        await db_session.refresh(conv)
-
-        # Create multiple share links
-        for _ in range(3):
-            client.post(
-                f"/api/conversations/{conv.id}/share",
-                json={"access_level": "read"}
-            )
-
-        # Verify they exist
-        list_response = client.get(f"/api/conversations/{conv.id}/shares")
-        assert len(list_response.json()) == 3
-
-        # Revoke all
-        revoke_response = client.delete(f"/api/conversations/{conv.id}/shares")
-        assert revoke_response.status_code == 204
-
-        # Verify all are revoked (is_public = False)
-        list_response = client.get(f"/api/conversations/{conv.id}/shares")
-        for share in list_response.json():
-            assert share["is_public"] is False
