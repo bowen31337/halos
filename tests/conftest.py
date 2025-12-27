@@ -9,6 +9,7 @@ import pytest_asyncio
 from httpx import AsyncClient
 from httpx import ASGITransport
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from playwright.sync_api import Page, BrowserContext
 
 from src.main import app
 from src.core.database import Base, get_db
@@ -105,3 +106,27 @@ async def client(test_db: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
         yield ac
 
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(scope="function")
+def browser_context():
+    """Create a browser context for testing."""
+    from playwright.sync_api import sync_playwright
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        context = browser.new_context(
+            viewport={"width": 1280, "height": 720},
+            locale="en-US",
+            timezone_id="America/New_York"
+        )
+        page = context.new_page()
+        yield page
+        context.close()
+        browser.close()
+
+
+@pytest.fixture(scope="function")
+def page(browser_context):
+    """Provide a page fixture from browser context."""
+    return browser_context

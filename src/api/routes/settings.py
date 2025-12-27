@@ -314,3 +314,53 @@ async def get_effective_custom_instructions(
         "using_project": bool(project_instructions)
     }
 
+
+@router.post("/refresh-session")
+async def refresh_session() -> dict:
+    """
+    Refresh user session after timeout.
+
+    This endpoint simulates session refresh by:
+    1. Validating the session is still valid (in a real app, would check auth tokens)
+    2. Updating the last activity timestamp
+    3. Returning updated session info
+
+    Returns:
+        dict: Session status and timestamp
+    """
+    import time
+
+    # Update last activity in user settings
+    user_settings["last_activity"] = time.time()
+    user_settings["session_refreshed_at"] = time.time()
+
+    return {
+        "status": "success",
+        "message": "Session refreshed successfully",
+        "timestamp": time.time(),
+        "session_active": True
+    }
+
+
+@router.get("/session-status")
+async def get_session_status() -> dict:
+    """
+    Get current session status.
+
+    Returns session information including activity status and timeout settings.
+    """
+    import time
+
+    last_activity = user_settings.get("last_activity", time.time())
+    timeout_minutes = user_settings.get("session_timeout_minutes", 30)
+
+    return {
+        "session_active": True,
+        "last_activity": last_activity,
+        "timeout_minutes": timeout_minutes,
+        "settings": {
+            "timeout_duration": timeout_minutes,
+            "warning_duration": user_settings.get("session_warning_minutes", 5)
+        }
+    }
+

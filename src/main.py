@@ -15,6 +15,7 @@ import os
 from src.core.config import settings
 from src.core.database import init_db
 from src.core.rate_limiter import RateLimitMiddleware
+from src.core.session_middleware import SessionTimeoutMiddleware
 from src.api import router as api_router
 
 # Configure logging
@@ -39,6 +40,12 @@ app = FastAPI(
     redoc_url="/redoc",
     openapi_url="/openapi.json",
     lifespan=lifespan,
+)
+
+# Add session timeout middleware
+app.add_middleware(
+    SessionTimeoutMiddleware,
+    refresh_endpoint="/api/auth/refresh"
 )
 
 # Add CORS middleware

@@ -1039,6 +1039,138 @@ class APIService {
     }
     return response.json()
   }
+
+  // Session Management APIs
+  async refreshSession(): Promise<{
+    status: string
+    message: string
+    timestamp: number
+    session_active: boolean
+  }> {
+    const response = await fetch(`${API_BASE}/settings/refresh-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to refresh session: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async getSessionStatus(): Promise<{
+    session_active: boolean
+    last_activity: number
+    timeout_minutes: number
+    settings: {
+      timeout_duration: number
+      warning_duration: number
+    }
+  }> {
+    const response = await fetch(`${API_BASE}/settings/session-status`)
+    if (!response.ok) {
+      throw new Error(`Failed to get session status: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  // Auth APIs
+  async login(username: string, password: string): Promise<{
+    access_token: string
+    token_type: string
+    username: string
+    expires_in: number
+  }> {
+    const formData = new FormData()
+    formData.append('username', username)
+    formData.append('password', password)
+
+    const response = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      body: formData,
+    })
+
+    if (!response.ok) {
+      throw new Error(`Login failed: ${response.status}`)
+    }
+
+    const data = await response.json()
+    // Store token in localStorage
+    localStorage.setItem('access_token', data.access_token)
+    return data
+  }
+
+  async refreshToken(currentToken: string): Promise<{
+    access_token: string
+    token_type: string
+    expires_in: number
+  }> {
+    const response = await fetch(`${API_BASE}/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${currentToken}`,
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`Token refresh failed: ${response.status}`)
+    }
+
+    const data = await response.json()
+    // Update token in localStorage
+    localStorage.setItem('access_token', data.access_token)
+    return data
+  }
+
+  async logout(): Promise<void> {
+    const token = localStorage.getItem('access_token')
+    if (token) {
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+    }
+    // Clear token from localStorage
+    localStorage.removeItem('access_token')
+  }
+
+  async getSessionInfo(): Promise<{
+    username: string
+    session_id: string
+    session_info: any
+  }> {
+    const token = localStorage.getItem('access_token')
+    if (!token) {
+      throw new Error('No access token found')
+    }
+
+    const response = await fetch(`${API_BASE}/auth/session-info`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`Failed to get session info: ${response.status}`)
+    }
+
+    return response.json()
+  }
+
+  getAccessToken(): string | null {
+    return localStorage.getItem('access_token')
+  }
+
+  setAccessToken(token: string): void {
+    localStorage.setItem('access_token', token)
+  }
+
+  clearAccessToken(): void {
+    localStorage.removeItem('access_token')
+  }
 }
 
 export const api = new APIService()
