@@ -310,10 +310,12 @@ def test_dropdown_styling():
     header_path = Path("/media/DATA/projects/autonomous-coding-clone-cc/talos/client/src/components/Header.tsx")
     header_content = header_path.read_text()
 
-    # Check for dropdown patterns
-    assert 'bg-[var(--bg-primary)]' in header_content, "Dropdown should use bg-primary"
+    # Check for dropdown patterns - dropdowns use surface-elevated for buttons and bg-primary for menus
+    assert 'bg-[var(--surface-elevated)]' in header_content, "Dropdown buttons should use surface-elevated"
+    assert 'bg-[var(--bg-primary)]' in header_content, "Dropdown menus should use bg-primary"
     assert 'border-[var(--border-primary)]' in header_content, "Dropdown should use border variable"
     assert 'text-[var(--text-primary)]' in header_content, "Dropdown should use text-primary"
+    assert 'hover:bg-[var(--surface-elevated)]' in header_content, "Dropdown items should have hover state"
 
     print("✅ Feature #111: Dropdown styling is consistent")
 
