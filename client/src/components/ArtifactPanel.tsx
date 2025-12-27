@@ -7,6 +7,7 @@ import katex from 'katex'
 import 'katex/dist/katex.min.css'
 import { ResizableHandle } from './ResizableHandle'
 import { JsonViewer } from './JsonViewer'
+import { CsvViewer } from './CsvViewer'
 
 export function ArtifactPanel() {
   const { setPanelType, setPanelOpen, panelWidth, setPanelWidth } = useUIStore()
@@ -297,6 +298,38 @@ export function ArtifactPanel() {
           </div>
         )
       }
+    }
+
+    // JSON Viewer (Feature #143)
+    if (artifact_type === 'json' || language === 'json') {
+      try {
+        const jsonData = typeof content === 'string' ? JSON.parse(content) : content
+        return <JsonViewer data={jsonData} expanded={true} />
+      } catch (err) {
+        console.error('JSON parse error:', err)
+        return (
+          <div className="flex-1 overflow-auto bg-[var(--bg-primary)]">
+            <SyntaxHighlighter
+              language="json"
+              style={oneDark}
+              customStyle={{
+                margin: 0,
+                padding: '1rem',
+                background: 'var(--bg-primary)',
+                fontSize: '0.875rem',
+                lineHeight: '1.5',
+              }}
+            >
+              {content}
+            </SyntaxHighlighter>
+          </div>
+        )
+      }
+    }
+
+    // CSV Viewer (Feature #144)
+    if (artifact_type === 'csv' || language === 'csv') {
+      return <CsvViewer data={content} editable={false} />
     }
 
     // Code Display (default)
