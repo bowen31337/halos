@@ -43,6 +43,11 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const [activeTab, setActiveTab] = useState<SettingsTab>('appearance')
   const [memoryModalOpen, setMemoryModalOpen] = useState(false)
 
+  // Data & Account tab state
+  const [exporting, setExporting] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
+
   // Save settings to backend
   const saveSettings = async (settings: any) => {
     try {
@@ -486,10 +491,6 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
   // Data & Account Tab
   const renderDataTab = () => {
-    const [exporting, setExporting] = useState(false)
-    const [deleting, setDeleting] = useState(false)
-    const [deleteConfirmText, setDeleteConfirmText] = useState('')
-
     const handleExportAll = async () => {
       setExporting(true)
       try {
@@ -538,8 +539,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
       <div className="space-y-6">
         {/* Data Export Section */}
         <div>
-          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3\">Data Export</h3>
-          <p className="text-xs text-[var(--text-secondary)] mb-3\">
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Data Export</h3>
+          <p className="text-xs text-[var(--text-secondary)] mb-3">
             Export all your data including conversations, messages, memories, prompts, artifacts, and settings.
             This is useful for backups or data portability.
           </p>
@@ -554,8 +555,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
         {/* Account Deletion Section */}
         <div className="pt-6 border-t border-[var(--border-primary)]">
-          <h3 className="text-sm font-semibold text-[var(--text-danger)] mb-3\">Danger Zone</h3>
-          <p className="text-xs text-[var(--text-secondary)] mb-3\">
+          <h3 className="text-sm font-semibold text-[var(--text-danger)] mb-3">Danger Zone</h3>
+          <p className="text-xs text-[var(--text-secondary)] mb-3">
             Delete your account and all associated data. This action is permanent and cannot be undone.
           </p>
 
@@ -658,6 +659,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             { id: 'privacy' as SettingsTab, label: 'Privacy & Safety' },
             { id: 'advanced' as SettingsTab, label: 'Advanced' },
             { id: 'api' as SettingsTab, label: 'API' },
+            { id: 'data' as SettingsTab, label: 'Data & Account' },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -680,6 +682,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           {activeTab === 'privacy' && renderPrivacyTab()}
           {activeTab === 'advanced' && renderAdvancedTab()}
           {activeTab === 'api' && renderAPITab()}
+          {activeTab === 'data' && renderDataTab()}
         </div>
       </div>
 

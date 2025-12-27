@@ -7,7 +7,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_db
@@ -618,13 +618,13 @@ async def delete_account(
         )
 
     # Get all data for audit
-    conv_count = (await db.execute(select(Conversation).where(Conversation.is_deleted == False))).scalar_count()
-    msg_count = (await db.execute(select(Message))).scalar_count()
-    memory_count = (await db.execute(select(Memory).where(Memory.is_active == True))).scalar_count()
-    prompt_count = (await db.execute(select(Prompt).where(Prompt.is_active == True))).scalar_count()
-    artifact_count = (await db.execute(select(Artifact))).scalar_count()
-    checkpoint_count = (await db.execute(select(Checkpoint))).scalar_count()
-    project_count = (await db.execute(select(Project))).scalar_count()
+    conv_count = (await db.execute(select(func.count(Conversation.id)).where(Conversation.is_deleted == False))).scalar_one()
+    msg_count = (await db.execute(select(func.count(Message.id)))).scalar_one()
+    memory_count = (await db.execute(select(func.count(Memory.id)).where(Memory.is_active == True))).scalar_one()
+    prompt_count = (await db.execute(select(func.count(Prompt.id)).where(Prompt.is_active == True))).scalar_one()
+    artifact_count = (await db.execute(select(func.count(Artifact.id)))).scalar_one()
+    checkpoint_count = (await db.execute(select(func.count(Checkpoint.id)))).scalar_one()
+    project_count = (await db.execute(select(func.count(Project.id)))).scalar_one()
 
     total_items = conv_count + msg_count + memory_count + prompt_count + artifact_count + checkpoint_count + project_count
 
