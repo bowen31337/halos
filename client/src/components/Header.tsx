@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useUIStore } from '../stores/uiStore'
+import { SettingsModal } from './SettingsModal'
 
 const MODELS = [
   { id: 'claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5', description: 'Balanced' },
@@ -9,10 +10,11 @@ const MODELS = [
 ]
 
 export function Header() {
-  const { toggleSidebar, selectedModel, setSelectedModel } = useUIStore()
+  const { toggleSidebar, selectedModel, setSelectedModel, extendedThinkingEnabled, toggleExtendedThinking } = useUIStore()
   const { conversationId } = useParams()
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false)
   const [exportMenuOpen, setExportMenuOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
 
   const handleExport = async (format: 'json' | 'markdown') => {
@@ -75,7 +77,7 @@ export function Header() {
         </button>
       </div>
 
-      {/* Center: Model selector dropdown */}
+      {/* Center: Model selector dropdown and thinking toggle */}
       <div className="flex items-center gap-2 relative">
         <button
           onClick={() => setModelDropdownOpen(!modelDropdownOpen)}
@@ -87,6 +89,22 @@ export function Header() {
           <svg className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${modelDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
+        </button>
+
+        {/* Extended Thinking Toggle */}
+        <button
+          onClick={toggleExtendedThinking}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors border ${
+            extendedThinkingEnabled
+              ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
+              : 'bg-[var(--surface-elevated)] hover:bg-[var(--bg-primary)] border-[var(--border-primary)] text-[var(--text-secondary)]'
+          }`}
+          title="Toggle extended thinking mode"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          </svg>
+          <span>Thinking</span>
         </button>
 
         {/* Dropdown menu */}
@@ -181,6 +199,7 @@ export function Header() {
         )}
 
         <button
+          onClick={() => setSettingsOpen(true)}
           className="p-2 hover:bg-[var(--surface-elevated)] rounded-lg transition-colors"
           title="Settings"
         >
@@ -191,5 +210,8 @@ export function Header() {
         </button>
       </div>
     </div>
-  )
+
+    {/* Settings Modal */}
+    {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
+  </>)
 }

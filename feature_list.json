@@ -428,9 +428,9 @@
       "Step 6: Verify the thinking process is shown (collapsible)",
       "Step 7: Verify the final response includes deeper analysis"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -445,9 +445,9 @@
       "Step 7: Click to expand",
       "Step 8: Verify thinking content reappears"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -461,9 +461,9 @@
       "Step 6: Close the modal with X button",
       "Step 7: Verify modal closes smoothly"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -478,9 +478,9 @@
       "Step 7: Select 'Auto' theme",
       "Step 8: Verify theme matches system preference"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",

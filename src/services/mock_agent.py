@@ -108,13 +108,19 @@ console.log(greet("World"));
         content = last_message.content if last_message else ""
         thread_id = config.get("configurable", {}).get("thread_id", str(uuid4()))
 
+        # Check if extended thinking is enabled (from config or input_data)
+        extended_thinking = (
+            config.get("configurable", {}).get("extended_thinking", False) or
+            input_data.get("extended_thinking", False)
+        )
+
         # Check if we should simulate tool usage
         if any(word in content.lower() for word in ["read", "file", "write", "edit"]):
             # Tool start - matches LangGraph format
             yield {
                 "event": "on_tool_start",
                 "name": "read_file",
-                "data": {"input": {"path": "/example/file.txt"}},
+                "data": {"input": {"/example/file.txt": "example"}},
             }
             await asyncio.sleep(0.1)
 
@@ -139,6 +145,28 @@ console.log(greet("World"));
             response_text += "\n\nI'll help you with this. Let me break it down:\n\n"
             response_text += "1. Analyze the requirements\n2. Plan the implementation\n3. Execute the tasks\n\n"
             response_text += "I've created a todo list to track progress."
+
+        # If extended thinking is enabled, emit thinking events first
+        if extended_thinking:
+            thinking_phrases = [
+                "Let me think about this step by step...",
+                "Analyzing the requirements carefully...",
+                "Considering different approaches...",
+                "Evaluating the best solution...",
+                "Synthesizing my thoughts...",
+            ]
+
+            for phrase in thinking_phrases:
+                await asyncio.sleep(0.05)
+                yield {
+                    "event": "on_chain_stream",
+                    "data": {
+                        "chunk": AIMessage(content=phrase + "\n"),
+                    },
+                    "name": "think_step",
+                }
+
+            await asyncio.sleep(0.1)
 
         # Stream response word by word - matches LangGraph event structure
         words = response_text.split()

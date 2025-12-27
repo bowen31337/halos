@@ -15,10 +15,13 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
   const isUser = message.role === 'user'
   const isTool = message.role === 'tool'
   const isStreaming = message.isStreaming
+  const isThinking = message.isThinking
+  const hasThinkingContent = !!message.thinkingContent
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
   const [showActions, setShowActions] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editedContent, setEditedContent] = useState(message.content)
+  const [thinkingExpanded, setThinkingExpanded] = useState(false)
 
   const copyToClipboard = async (text: string, language: string) => {
     try {
@@ -70,6 +73,13 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
             <span className="text-sm font-medium text-[var(--text-secondary)]">
               Claude
             </span>
+            {/* Thinking indicator badge */}
+            {isThinking && (
+              <span className="text-xs px-2 py-0.5 bg-[var(--bg-secondary)] rounded-full text-[var(--text-secondary)] flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-[var(--text-secondary)] rounded-full animate-pulse"></span>
+                Thinking...
+              </span>
+            )}
             {/* Action buttons for assistant messages */}
             {showActions && !isStreaming && !isEditing && (
               <div className="flex gap-1 ml-2">
@@ -98,6 +108,34 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
                 className="max-w-md max-h-64 rounded-lg object-contain border border-[var(--border-primary)]"
               />
             ))}
+          </div>
+        )}
+
+        {/* Collapsible thinking content */}
+        {!isUser && hasThinkingContent && (
+          <div className="mb-3">
+            <button
+              onClick={() => setThinkingExpanded(!thinkingExpanded)}
+              className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] flex items-center gap-1 transition-colors"
+            >
+              <svg
+                className={`w-3 h-3 transition-transform ${thinkingExpanded ? 'rotate-90' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              {thinkingExpanded ? 'Hide thinking' : 'Show thinking'} process
+            </button>
+            {thinkingExpanded && (
+              <div className="mt-2 p-3 bg-[var(--bg-secondary)] rounded-lg border border-[var(--border-primary)]">
+                <div className="text-xs font-medium text-[var(--text-secondary)] mb-2">Thinking Process:</div>
+                <div className="text-xs text-[var(--text-secondary)] whitespace-pre-wrap font-mono leading-relaxed">
+                  {message.thinkingContent}
+                </div>
+              </div>
+            )}
           </div>
         )}
 

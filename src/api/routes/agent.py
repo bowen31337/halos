@@ -95,6 +95,7 @@ async def stream_agent(request: Request) -> EventSourceResponse:
     thread_id = data.get("thread_id") or str(uuid4())
     model = data.get("model", "claude-sonnet-4-5-20250929")
     permission_mode = data.get("permission_mode", "default")
+    extended_thinking = data.get("extended_thinking", False)
 
     async def event_generator():
         """Generate SSE events for agent response."""
@@ -126,8 +127,23 @@ async def stream_agent(request: Request) -> EventSourceResponse:
                 }
                 return
 
-            # Stream agent response
-            config = {"configurable": {"thread_id": thread_id}}
+            # Stream agent response with extended thinking support
+            config = {
+                "configurable": {
+                    "thread_id": thread_id,
+                    "extended_thinking": extended_thinking,
+                }
+            }
+
+            # Track thinking content when extended thinking is enabled
+            thinking_content = ""
+
+            # Send thinking status indicator first
+            if extended_thinking:
+                yield {
+                    "event": "thinking",
+                    "data": json.dumps({"status": "thinking"}),
+                }
 
             async for event in agent.astream_events(
                 {"messages": [HumanMessage(content=message)]},
@@ -135,6 +151,18 @@ async def stream_agent(request: Request) -> EventSourceResponse:
                 version="v2",
             ):
                 event_kind = event.get("event", "")
+
+                # Handle thinking events from mock agent
+                if extended_thinking and event_kind == "on_chain_stream" and event.get("name") == "think_step":
+                    chunk = event.get("data", {}).get("chunk", {})
+                    content = chunk.content if hasattr(chunk, 'content') else ""
+                    if content:
+                        thinking_content += content
+                        yield {
+                            "event": "thinking",
+                            "data": json.dumps({"content": content}),
+                        }
+                    continue
 
                 # Stream message content
                 if event_kind == "on_chat_model_stream":
@@ -166,10 +194,13 @@ async def stream_agent(request: Request) -> EventSourceResponse:
                         "data": json.dumps({"output": str(tool_output)[:500]}),  # Limit output size
                     }
 
-            # Done event
+            # Done event with thinking content if extended thinking was enabled
+            done_data = {"thread_id": thread_id}
+            if extended_thinking and thinking_content:
+                done_data["thinking_content"] = thinking_content
             yield {
                 "event": "done",
-                "data": json.dumps({"thread_id": thread_id}),
+                "data": json.dumps(done_data),
             }
 
         except Exception as e:

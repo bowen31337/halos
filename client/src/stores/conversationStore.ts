@@ -11,6 +11,8 @@ export interface Message {
   toolOutput?: string
   isStreaming?: boolean
   attachments?: string[]  // URLs to uploaded images/files
+  thinkingContent?: string  // Extended thinking content
+  isThinking?: boolean  // Whether thinking is in progress
 }
 
 export interface Conversation {
@@ -64,6 +66,8 @@ interface ConversationState {
   addMessage: (message: Message) => void
   updateMessage: (id: string, updates: Partial<Message>) => void
   appendToLastMessage: (content: string) => void
+  appendToLastThinking: (content: string) => void
+  markThinkingComplete: () => void
   regenerateLastResponse: (messageId: string) => Promise<void>
   editAndResend: (messageId: string, newContent: string) => Promise<void>
 
@@ -99,6 +103,21 @@ const transformConversation = (apiConv: any): Conversation => ({
   messageCount: apiConv.message_count,
   createdAt: apiConv.created_at,
   updatedAt: apiConv.updated_at,
+})
+
+const transformMessage = (apiMsg: any): Message => ({
+  id: apiMsg.id,
+  conversationId: apiMsg.conversationId || apiMsg.conversation_id,
+  role: apiMsg.role,
+  content: apiMsg.content,
+  createdAt: apiMsg.createdAt || apiMsg.created_at,
+  toolName: apiMsg.toolName || apiMsg.tool_name,
+  toolInput: apiMsg.toolInput || apiMsg.tool_input,
+  toolOutput: apiMsg.toolOutput || apiMsg.tool_output,
+  isStreaming: apiMsg.isStreaming,
+  attachments: apiMsg.attachments,
+  thinkingContent: apiMsg.thinkingContent || apiMsg.thinking_content,
+  isThinking: apiMsg.isThinking,
 })
 
 export const useConversationStore = create<ConversationState>((set) => ({
@@ -146,7 +165,8 @@ export const useConversationStore = create<ConversationState>((set) => ({
       const response = await fetch(`/api/messages/conversations/${conversationId}/messages`)
       if (response.ok) {
         const data = await response.json()
-        set({ messages: data })
+        const transformed = data.map(transformMessage)
+        set({ messages: transformed })
       }
     } catch (error) {
       console.error('Failed to load messages:', error)
@@ -215,6 +235,33 @@ export const useConversationStore = create<ConversationState>((set) => ({
         messages[messages.length - 1] = {
           ...lastMessage,
           content: lastMessage.content + content,
+        }
+      }
+      return { messages }
+    }),
+
+  appendToLastThinking: (content) =>
+    set((state) => {
+      const messages = [...state.messages]
+      const lastMessage = messages[messages.length - 1]
+      if (lastMessage && lastMessage.role === 'assistant') {
+        messages[messages.length - 1] = {
+          ...lastMessage,
+          thinkingContent: (lastMessage.thinkingContent || '') + content,
+          isThinking: true,
+        }
+      }
+      return { messages }
+    }),
+
+  markThinkingComplete: () =>
+    set((state) => {
+      const messages = [...state.messages]
+      const lastMessage = messages[messages.length - 1]
+      if (lastMessage && lastMessage.role === 'assistant') {
+        messages[messages.length - 1] = {
+          ...lastMessage,
+          isThinking: false,
         }
       }
       return { messages }

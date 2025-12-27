@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useConversationStore } from '../stores/conversationStore'
+import { useUIStore } from '../stores/uiStore'
 import { api } from '../services/api'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -23,6 +24,8 @@ export function ChatInput() {
     inputMessage: storeInputMessage,
     setInputMessage
   } = useConversationStore()
+
+  const { extendedThinkingEnabled } = useUIStore()
 
   // Use local state for immediate UI feedback, sync with store
   const [inputValue, setInputValue] = useState(storeInputMessage)
@@ -139,7 +142,8 @@ export function ChatInput() {
         body: JSON.stringify({
           message: messageToSend,
           conversationId: convId,
-          thread_id: convId
+          thread_id: convId,
+          extended_thinking: extendedThinkingEnabled
         }),
         signal: abortController.signal,
       })
@@ -156,6 +160,7 @@ export function ChatInput() {
       const decoder = new TextDecoder()
       let buffer = ''
       let fullAssistantContent = ''
+      let fullThinkingContent = ''
 
       while (true) {
         const { done, value } = await reader.read()
@@ -190,6 +195,37 @@ export function ChatInput() {
                       fullAssistantContent += eventData.content
                     }
                     break
+                  case 'thinking':
+                    // Handle thinking events
+                    if (eventData.status === 'thinking') {
+                      // Show thinking indicator
+                      const { messages } = useConversationStore.getState()
+                      const currentIndex = messages.findIndex(m => m.id === assistantMessageId)
+                      if (currentIndex >= 0) {
+                        const updatedMessages = [...messages]
+                        updatedMessages[currentIndex] = {
+                          ...updatedMessages[currentIndex],
+                          isThinking: true
+                        }
+                        useConversationStore.setState({ messages: updatedMessages })
+                      }
+                    }
+                    if (eventData.content) {
+                      fullThinkingContent += eventData.content
+                      // Update thinking content in real-time with isThinking flag
+                      const { messages } = useConversationStore.getState()
+                      const currentIndex = messages.findIndex(m => m.id === assistantMessageId)
+                      if (currentIndex >= 0) {
+                        const updatedMessages = [...messages]
+                        updatedMessages[currentIndex] = {
+                          ...updatedMessages[currentIndex],
+                          thinkingContent: fullThinkingContent,
+                          isThinking: true
+                        }
+                        useConversationStore.setState({ messages: updatedMessages })
+                      }
+                    }
+                    break
                   case 'tool_start':
                     console.log('Tool started:', eventData.tool, eventData.input)
                     break
@@ -198,6 +234,10 @@ export function ChatInput() {
                     break
                   case 'done':
                     console.log('Stream completed')
+                    // Store thinking content if present
+                    if (eventData.thinking_content) {
+                      fullThinkingContent = eventData.thinking_content
+                    }
                     break
                   case 'error':
                     console.error('Stream error:', eventData.error)
@@ -235,13 +275,22 @@ export function ChatInput() {
       const currentIndex = messages.findIndex(m => m.id === assistantMessageId)
       if (currentIndex >= 0) {
         const updatedMessages = [...messages]
-        updatedMessages[currentIndex] = { ...updatedMessages[currentIndex], isStreaming: false }
+        updatedMessages[currentIndex] = {
+          ...updatedMessages[currentIndex],
+          isStreaming: false,
+          isThinking: false,
+          thinkingContent: fullThinkingContent || undefined
+        }
         useConversationStore.setState({ messages: updatedMessages })
       }
 
       // Persist assistant message to backend
       try {
-        await api.createMessage(convId, { content: fullAssistantContent, role: 'assistant' })
+        await api.createMessage(convId, {
+          content: fullAssistantContent,
+          role: 'assistant',
+          thinkingContent: fullThinkingContent || undefined
+        })
       } catch (e) {
         console.warn('Failed to persist assistant message:', e)
       }

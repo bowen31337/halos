@@ -23,7 +23,7 @@ export interface AgentResponse {
 }
 
 export interface SSEEvent {
-  event: 'start' | 'message' | 'tool_start' | 'tool_end' | 'done' | 'error'
+  event: 'start' | 'message' | 'tool_start' | 'tool_end' | 'done' | 'error' | 'thinking'
   data: string
 }
 
@@ -101,7 +101,7 @@ class APIService {
 
   async createMessage(
     conversationId: string,
-    data: { content: string; role: 'user' | 'assistant'; attachments?: string[] }
+    data: { content: string; role: 'user' | 'assistant'; attachments?: string[]; thinkingContent?: string }
   ): Promise<Message> {
     const response = await fetch(`${API_BASE}/messages/conversations/${conversationId}/messages`, {
       method: 'POST',
@@ -126,8 +126,9 @@ class APIService {
     onMessage: (content: string) => void,
     onToolStart?: (tool: string, input: any) => void,
     onToolEnd?: (output: string) => void,
-    onDone?: () => void,
-    onError?: (error: string) => void
+    onDone?: (thinkingContent?: string) => void,
+    onError?: (error: string) => void,
+    onThinking?: (content: string, status?: string) => void
   ): Promise<void> {
     const response = await fetch(`${API_BASE}/agent/stream`, {
       method: 'POST',
@@ -180,6 +181,9 @@ class APIService {
                   case 'message':
                     if (eventData.content) onMessage(eventData.content)
                     break
+                  case 'thinking':
+                    onThinking?.(eventData.content || '', eventData.status)
+                    break
                   case 'tool_start':
                     onToolStart?.(eventData.tool, eventData.input)
                     break
@@ -187,7 +191,7 @@ class APIService {
                     onToolEnd?.(eventData.output)
                     break
                   case 'done':
-                    onDone?.()
+                    onDone?.(eventData.thinking_content)
                     break
                   case 'error':
                     onError?.(eventData.error)
