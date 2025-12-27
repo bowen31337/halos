@@ -19,7 +19,4 @@ export default defineConfig({
       },
     },
   },
-  esbuild: {
-    binary: '/tmp/esbuild27',
-  },
 })

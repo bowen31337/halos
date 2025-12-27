@@ -167,7 +167,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           value={customInstructions}
           onChange={(e) => setCustomInstructions(e.target.value)}
           onBlur={async (e) => {
-            await saveSettings({ custom_instructions: e.target.value })
+            await api.updateCustomInstructions(e.target.value)
           }}
         />
         <p className="text-xs text-[var(--text-secondary)] mt-2">

@@ -272,6 +272,15 @@ class APIService {
     })
     return response.json()
   }
+
+  async updateCustomInstructions(instructions: string): Promise<any> {
+    const response = await fetch(`${API_BASE}/settings/custom-instructions`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ instructions }),
+    })
+    return response.json()
+  }
 }
 
 export const api = new APIService()
