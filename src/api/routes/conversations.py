@@ -970,6 +970,7 @@ async def update_conversation_tags(
     # Verify conversation exists
     result = await db.execute(
         select(ConversationModel)
+        .options(selectinload(ConversationModel.tags))
         .where(ConversationModel.id == conversation_id)
         .where(ConversationModel.is_deleted == False)
     )
@@ -1000,7 +1001,7 @@ async def update_conversation_tags(
         conversation.tags = []
 
     await db.commit()
-    await db.refresh(conversation)
+    await db.refresh(conversation, attribute_names=["tags"])
 
     # Audit log
     ip_address, user_agent = get_request_info(request)
@@ -1039,6 +1040,7 @@ async def filter_conversations_by_tags(
     # Query conversations that have all the specified tags
     query = (
         select(ConversationModel)
+        .options(selectinload(ConversationModel.tags))
         .join(conversation_tags)
         .join(Tag)
         .where(conversation_tags.c.tag_id.in_(tag_id_list))
