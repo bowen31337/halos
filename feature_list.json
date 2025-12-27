@@ -2179,7 +2179,7 @@
       "Step 6: Verify all content remains readable"
     ],
     "passes": false,
-    "is_dev_done": false,
+    "is_dev_done": true,
     "is_qa_passed": false
   },
   {
@@ -2231,7 +2231,7 @@
       "Step 6: Verify skip link for artifacts panel exists"
     ],
     "passes": false,
-    "is_dev_done": false,
+    "is_dev_done": true,
     "is_qa_passed": false
   },
   {
@@ -2246,7 +2246,7 @@
       "Step 6: Verify transitions are instant"
     ],
     "passes": false,
-    "is_dev_done": false,
+    "is_dev_done": true,
     "is_qa_passed": false
   },
   {

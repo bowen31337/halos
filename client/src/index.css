@@ -63,6 +63,43 @@
   --border-light: #333333;
 }
 
+/* High contrast mode - works with both light and dark themes */
+.high-contrast {
+  /* Increased text contrast */
+  --text-primary: #000000;
+  --text-secondary: #1A1A1A;
+  --text-muted: #333333;
+
+  /* Stronger borders */
+  --border: #000000;
+  --border-primary: #000000;
+  --border-light: #333333;
+
+  /* Enhanced status colors for better visibility */
+  --success: #006400;
+  --warning: #B8860B;
+  --error: #8B0000;
+  --info: #00008B;
+}
+
+/* High contrast dark mode */
+.dark.high-contrast {
+  --text-primary: #FFFFFF;
+  --text-secondary: #E5E5E5;
+  --text-muted: #CCCCCC;
+
+  /* Stronger borders in dark mode */
+  --border: #FFFFFF;
+  --border-primary: #FFFFFF;
+  --border-light: #CCCCCC;
+
+  /* Enhanced status colors for dark mode */
+  --success: #00FF00;
+  --warning: #FFD700;
+  --error: #FF4444;
+  --info: #00BFFF;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

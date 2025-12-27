@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware'
 interface UIState {
   // Theme
   theme: 'light' | 'dark' | 'system'
+  highContrast: boolean
 
   // Sidebar
   sidebarOpen: boolean
@@ -38,6 +39,8 @@ interface UIState {
 
   // Actions
   setTheme: (theme: 'light' | 'dark' | 'system') => void
+  setHighContrast: (enabled: boolean) => void
+  toggleHighContrast: () => void
   toggleSidebar: () => void
   setSidebarOpen: (open: boolean) => void
   setSidebarWidth: (width: number) => void
@@ -61,6 +64,7 @@ export const useUIStore = create<UIState>()(
     (set) => ({
       // Initial state
       theme: 'light',
+      highContrast: false,
       sidebarOpen: true,
       sidebarWidth: 260,
       panelOpen: false,
@@ -89,6 +93,27 @@ export const useUIStore = create<UIState>()(
           document.documentElement.classList.toggle('dark', prefersDark)
         }
       },
+
+      setHighContrast: (enabled) => {
+        set({ highContrast: enabled })
+        // Apply high contrast class to document
+        if (enabled) {
+          document.documentElement.classList.add('high-contrast')
+        } else {
+          document.documentElement.classList.remove('high-contrast')
+        }
+      },
+
+      toggleHighContrast: () => set((state) => {
+        const newState = !state.highContrast
+        // Apply to document
+        if (newState) {
+          document.documentElement.classList.add('high-contrast')
+        } else {
+          document.documentElement.classList.remove('high-contrast')
+        }
+        return { highContrast: newState }
+      }),
 
       toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
@@ -121,6 +146,7 @@ export const useUIStore = create<UIState>()(
       name: 'claude-ui-settings',
       partialize: (state) => ({
         theme: state.theme,
+        highContrast: state.highContrast,
         sidebarWidth: state.sidebarWidth,
         panelWidth: state.panelWidth,
         selectedModel: state.selectedModel,

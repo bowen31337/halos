@@ -6,7 +6,7 @@ import { SharedView } from './pages/SharedView'
 import { useUIStore } from './stores/uiStore'
 
 function App() {
-  const { theme, setTheme, fontSize, setFontSize } = useUIStore()
+  const { theme, setTheme, fontSize, setFontSize, highContrast, setHighContrast } = useUIStore()
 
   // Initialize theme on mount
   useEffect(() => {
@@ -17,6 +17,11 @@ function App() {
   useEffect(() => {
     setFontSize(fontSize)
   }, [fontSize, setFontSize])
+
+  // Initialize high contrast on mount
+  useEffect(() => {
+    setHighContrast(highContrast)
+  }, [highContrast, setHighContrast])
 
   return (
     <Routes>
