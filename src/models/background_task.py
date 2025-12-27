@@ -7,7 +7,7 @@ from uuid import UUID, uuid4
 from sqlalchemy import Column, String, Integer, DateTime, JSON, ForeignKey, Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.models import Base
+from src.core.database import Base
 import enum
 
 

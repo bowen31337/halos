@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 import os
 
-from fastapi import APIRouter, HTTPException, status, Depends, UploadFile, File
+from fastapi import APIRouter, HTTPException, status, Depends, UploadFile, File, Request
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -16,6 +16,8 @@ from fastapi import HTTPException
 
 from src.core.database import get_db
 from src.models import Conversation as ConversationModel, Message as MessageModel
+from src.utils.audit import log_audit, get_request_info
+from src.models.audit_log import AuditActionType as AuditAction
 
 router = APIRouter()
 
@@ -107,6 +109,8 @@ async def list_conversations(
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def create_conversation(
     data: ConversationCreate,
+    request: Request,
+    format: str = "json",
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Create a new conversation."""
@@ -119,6 +123,19 @@ async def create_conversation(
     db.add(conversation)
     await db.commit()
     await db.refresh(conversation)
+
+    # Audit log
+    ip_address, user_agent = get_request_info(request)
+    await log_audit(
+        db=db,
+        user_id="default-user",
+        action=AuditAction.CONVERSATION_CREATE,
+        resource_type="conversation",
+        resource_id=conversation.id,
+        details={"title": conversation.title, "model": conversation.model},
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
 
     return {
         "id": conversation.id,
@@ -166,6 +183,8 @@ async def get_conversation(
 async def update_conversation(
     conversation_id: str,
     data: ConversationUpdate,
+    request: Request,
+    format: str = "json",
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Update a conversation."""
@@ -179,16 +198,34 @@ async def update_conversation(
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
 
+    changes = {}
     if data.title is not None:
+        changes["title"] = {"from": conversation.title, "to": data.title}
         conversation.title = data.title
     if data.is_archived is not None:
+        changes["is_archived"] = {"from": conversation.is_archived, "to": data.is_archived}
         conversation.is_archived = data.is_archived
     if data.is_pinned is not None:
+        changes["is_pinned"] = {"from": conversation.is_pinned, "to": data.is_pinned}
         conversation.is_pinned = data.is_pinned
 
     conversation.updated_at = datetime.utcnow()
     await db.commit()
     await db.refresh(conversation)
+
+    # Audit log
+    if changes:
+        ip_address, user_agent = get_request_info(request)
+        await log_audit(
+            db=db,
+            user_id="default-user",
+            action=AuditAction.CONVERSATION_UPDATE,
+            resource_type="conversation",
+            resource_id=conversation.id,
+            details={"changes": changes},
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
 
     return {
         "id": conversation.id,
@@ -206,6 +243,8 @@ async def update_conversation(
 @router.delete("/{conversation_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_conversation(
     conversation_id: str,
+    request: Request,
+    format: str = "json",
     db: AsyncSession = Depends(get_db),
 ) -> None:
     """Delete a conversation (soft delete)."""
@@ -222,10 +261,25 @@ async def delete_conversation(
     conversation.is_deleted = True
     await db.commit()
 
+    # Audit log
+    ip_address, user_agent = get_request_info(request)
+    await log_audit(
+        db=db,
+        user_id="default-user",
+        action=AuditAction.CONVERSATION_DELETE,
+        resource_type="conversation",
+        resource_id=conversation.id,
+        details={"title": conversation.title},
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+
 
 @router.post("/{conversation_id}/duplicate")
 async def duplicate_conversation(
     conversation_id: str,
+    request: Request,
+    format: str = "json",
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Duplicate a conversation."""
@@ -254,6 +308,19 @@ async def duplicate_conversation(
     await db.commit()
     await db.refresh(duplicate)
 
+    # Audit log
+    ip_address, user_agent = get_request_info(request)
+    await log_audit(
+        db=db,
+        user_id="default-user",
+        action=AuditAction.CONVERSATION_CREATE,
+        resource_type="conversation",
+        resource_id=duplicate.id,
+        details={"title": duplicate.title, "original_id": original.id},
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+
     return {
         "id": duplicate.id,
         "title": duplicate.title,
@@ -271,6 +338,8 @@ async def duplicate_conversation(
 async def move_conversation(
     conversation_id: str,
     data: MoveConversationRequest,
+    request: Request,
+    format: str = "json",
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Move a conversation to a different project (or remove from project)."""
@@ -285,10 +354,24 @@ async def move_conversation(
         raise HTTPException(status_code=404, detail="Conversation not found")
 
     # Update project_id (can be None to remove from project)
+    old_project_id = conversation.project_id
     conversation.project_id = data.project_id
     conversation.updated_at = datetime.utcnow()
     await db.commit()
     await db.refresh(conversation)
+
+    # Audit log
+    ip_address, user_agent = get_request_info(request)
+    await log_audit(
+        db=db,
+        user_id="default-user",
+        action=AuditAction.CONVERSATION_UPDATE,
+        resource_type="conversation",
+        resource_id=conversation.id,
+        details={"project_id": {"from": old_project_id, "to": data.project_id}},
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
 
     return {
         "id": conversation.id,
@@ -306,6 +389,7 @@ async def move_conversation(
 @router.post("/{conversation_id}/export")
 async def export_conversation(
     conversation_id: str,
+    request: Request,
     format: str = "json",
     db: AsyncSession = Depends(get_db),
 ) -> Response:
@@ -365,6 +449,19 @@ async def export_conversation(
 
         json_str = json.dumps(export_data, indent=2, ensure_ascii=False)
         filename = f"{conversation.title.replace(' ', '_').replace('/', '_')}_export.json"
+
+        # Audit log
+        ip_address, user_agent = get_request_info(request)
+        await log_audit(
+            db=db,
+            user_id="default-user",
+            action=AuditAction.CONVERSATION_EXPORT,
+            resource_type="conversation",
+            resource_id=conversation.id,
+            details={"format": "json"},
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
 
         return Response(
             content=json_str,
@@ -443,6 +540,19 @@ async def export_conversation(
         md_content = "\n".join(md_lines)
         filename = f"{conversation.title.replace(' ', '_').replace('/', '_')}_export.md"
 
+        # Audit log
+        ip_address, user_agent = get_request_info(request)
+        await log_audit(
+            db=db,
+            user_id="default-user",
+            action=AuditAction.CONVERSATION_EXPORT,
+            resource_type="conversation",
+            resource_id=conversation.id,
+            details={"format": "markdown"},
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
+
         return Response(
             content=md_content,
             media_type="text/markdown",
@@ -462,6 +572,8 @@ async def export_conversation(
 async def create_branch(
     conversation_id: str,
     data: BranchConversationRequest,
+    request: Request,
+    format: str = "json",
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Create a new branch from a conversation at a specific message."""
@@ -545,6 +657,19 @@ async def create_branch(
 
     await db.commit()
     await db.refresh(branch_conversation)
+
+    # Audit log
+    ip_address, user_agent = get_request_info(request)
+    await log_audit(
+        db=db,
+        user_id="default-user",
+        action=AuditAction.CONVERSATION_BRANCH,
+        resource_type="conversation",
+        resource_id=branch_conversation.id,
+        details={"parent_id": conversation_id, "branch_name": branch_name},
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
 
     return {
         "id": branch_conversation.id,

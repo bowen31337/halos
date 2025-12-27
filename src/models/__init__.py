@@ -19,5 +19,6 @@ from src.models.prompt import Prompt
 from src.models.mcp_server import MCPServer
 from src.models.folder import Folder, FolderItem
 from src.models.background_task import BackgroundTask, TaskStatus
+from src.models.audit_log import AuditLog, AuditActionType, AuditAction
 
-__all__ = ["Base", "Conversation", "Message", "Project", "ProjectFile", "Artifact", "Checkpoint", "Memory", "SharedConversation", "Prompt", "MCPServer", "Folder", "FolderItem", "BackgroundTask", "TaskStatus"]
+__all__ = ["Base", "Conversation", "Message", "Project", "ProjectFile", "Artifact", "Checkpoint", "Memory", "SharedConversation", "Prompt", "MCPServer", "Folder", "FolderItem", "BackgroundTask", "TaskStatus", "AuditLog", "AuditActionType", "AuditAction"]

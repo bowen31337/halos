@@ -18,6 +18,7 @@ from src.services.agent_service import agent_service
 from src.models.artifact import Artifact
 from src.models.conversation import Conversation
 from src.models.memory import Memory
+from src.utils.audit import log_agent_invocation, get_request_info
 
 router = APIRouter()
 
@@ -521,6 +522,30 @@ async def stream_agent(
     custom_instructions = data.get("custom_instructions", "")
     conversation_id = data.get("conversation_id")
 
+    # Log agent invocation for audit trail
+    ip_address, user_agent = get_request_info(request)
+    try:
+        await log_agent_invocation(
+            db=db,
+            user_id="default",  # In production, this would come from auth
+            conversation_id=conversation_id,
+            model=model,
+            details={
+                "thread_id": thread_id,
+                "permission_mode": permission_mode,
+                "extended_thinking": extended_thinking,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+                "has_custom_instructions": bool(custom_instructions and custom_instructions.strip()),
+                "message_length": len(message),
+            },
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
+    except Exception as e:
+        # Don't fail the request if audit logging fails
+        print(f"Audit logging error: {e}")
+
     async def event_generator():
         """Generate SSE events for agent response."""
         try:
@@ -940,7 +965,11 @@ async def get_pending_approval(thread_id: str) -> dict:
 
 
 @router.post("/interrupt")
-async def handle_interrupt(data: InterruptDecision) -> dict:
+async def handle_interrupt(
+    request: Request,
+    data: InterruptDecision,
+    db: AsyncSession = Depends(get_db)
+) -> dict:
     """Handle human-in-the-loop interrupt decisions."""
     thread_id = data.thread_id
 
@@ -952,6 +981,27 @@ async def handle_interrupt(data: InterruptDecision) -> dict:
 
     if decision not in ["approve", "edit", "reject"]:
         raise HTTPException(status_code=400, detail="Invalid decision. Must be approve, edit, or reject")
+
+    # Log the tool decision for audit trail
+    ip_address, user_agent = get_request_info(request)
+    try:
+        from src.utils.audit import log_tool_decision
+        await log_tool_decision(
+            db=db,
+            user_id="default",  # In production, this would come from auth
+            tool_name=approval.get("tool", "unknown"),
+            decision=decision,
+            details={
+                "thread_id": thread_id,
+                "status": "resumed" if decision in ["approve", "edit"] else "rejected",
+                "has_edited_input": bool(data.edited_input),
+            },
+            ip_address=ip_address,
+            user_agent=user_agent,
+        )
+    except Exception as e:
+        # Don't fail the request if audit logging fails
+        print(f"Audit logging error: {e}")
 
     # Process the decision
     result = {
