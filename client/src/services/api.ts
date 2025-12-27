@@ -1247,6 +1247,40 @@ class APIService {
     localStorage.removeItem('refresh_token')
     localStorage.removeItem('session_id')
   }
+
+  // Data Export & Account Management APIs
+
+  /**
+   * Export all user data including conversations, messages, settings, memories, etc.
+   * Returns a JSON file download.
+   */
+  async exportAllUserData(): Promise<Blob> {
+    const response = await fetch(`${API_BASE}/settings/export-all`)
+    if (!response.ok) {
+      throw new Error(`Failed to export data: ${response.status}`)
+    }
+    return response.blob()
+  }
+
+  /**
+   * Delete user account and all associated data.
+   * Requires confirmation string "DELETE_ACCOUNT".
+   */
+  async deleteAccount(confirm: string): Promise<{
+    status: string
+    message: string
+    deleted_items: Record<string, number>
+    total_deleted: number
+  }> {
+    const response = await fetch(`${API_BASE}/settings/account?confirm=${encodeURIComponent(confirm)}`, {
+      method: 'DELETE',
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Unknown error' }))
+      throw new Error(error.detail || `Failed to delete account: ${response.status}`)
+    }
+    return response.json()
+  }
 }
 
 export const api = new APIService()

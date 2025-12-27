@@ -4,7 +4,7 @@ import { MemoryModal } from './MemoryModal'
 import { api } from '../services/api'
 import { PWAStatusIndicator } from './PWAInstallPrompt'
 
-type SettingsTab = 'general' | 'appearance' | 'privacy' | 'advanced' | 'api'
+type SettingsTab = 'general' | 'appearance' | 'privacy' | 'advanced' | 'api' | 'data'
 
 interface SettingsModalProps {
   onClose: () => void
@@ -477,6 +477,126 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
               <div className="text-xs text-[var(--text-secondary)] mt-1">
                 Content filtering helps prevent inappropriate responses. Higher levels may filter more content but could also limit legitimate responses. Your preferences are saved locally and synchronized with your account.
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Data & Account Tab
+  const renderDataTab = () => {
+    const [exporting, setExporting] = useState(false)
+    const [deleting, setDeleting] = useState(false)
+    const [deleteConfirmText, setDeleteConfirmText] = useState('')
+
+    const handleExportAll = async () => {
+      setExporting(true)
+      try {
+        const blob = await api.exportAllUserData()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `user_data_export_${new Date().toISOString().split('T')[0]}.json`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+      } catch (error) {
+        console.error('Export failed:', error)
+        alert(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      } finally {
+        setExporting(false)
+      }
+    }
+
+    const handleDeleteAccount = async () => {
+      if (deleteConfirmText !== 'DELETE_ACCOUNT') {
+        alert('Please type DELETE_ACCOUNT exactly to confirm account deletion.')
+        return
+      }
+
+      if (!confirm('WARNING: This will permanently delete ALL your data including conversations, messages, memories, prompts, artifacts, and projects. This action CANNOT be undone!\n\nAre you absolutely sure you want to delete your account?')) {
+        return
+      }
+
+      setDeleting(true)
+      try {
+        const result = await api.deleteAccount('DELETE_ACCOUNT')
+        alert(`Account deleted successfully.\n\nDeleted items:\n${Object.entries(result.deleted_items).map(([k, v]) => `  - ${k}: ${v}`).join('\n')}\n\nTotal: ${result.total_deleted} items`)
+        // Redirect to home page
+        window.location.href = '/'
+      } catch (error) {
+        console.error('Account deletion failed:', error)
+        alert(`Deletion failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      } finally {
+        setDeleting(false)
+      }
+    }
+
+    return (
+      <div className="space-y-6">
+        {/* Data Export Section */}
+        <div>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3\">Data Export</h3>
+          <p className="text-xs text-[var(--text-secondary)] mb-3\">
+            Export all your data including conversations, messages, memories, prompts, artifacts, and settings.
+            This is useful for backups or data portability.
+          </p>
+          <button
+            onClick={handleExportAll}
+            disabled={exporting}
+            className="w-full px-4 py-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {exporting ? 'Exporting...' : 'Export All Data (JSON)'}
+          </button>
+        </div>
+
+        {/* Account Deletion Section */}
+        <div className="pt-6 border-t border-[var(--border-primary)]">
+          <h3 className="text-sm font-semibold text-[var(--text-danger)] mb-3\">Danger Zone</h3>
+          <p className="text-xs text-[var(--text-secondary)] mb-3\">
+            Delete your account and all associated data. This action is permanent and cannot be undone.
+          </p>
+
+          <div className="space-y-3">
+            <div className="p-3 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border-primary)]">
+              <label className="block text-xs text-[var(--text-secondary)] mb-2">
+                Type <code className="bg-[var(--bg-primary)] px-1 py-0.5 rounded text-[var(--text-primary)]">DELETE_ACCOUNT</code> to confirm
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder="DELETE_ACCOUNT"
+                className="w-full px-3 py-2 rounded border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--danger)]"
+              />
+            </div>
+
+            <button
+              onClick={handleDeleteAccount}
+              disabled={deleting || deleteConfirmText !== 'DELETE_ACCOUNT'}
+              className="w-full px-4 py-2 bg-[var(--danger)] hover:bg-[var(--danger-hover)] text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {deleting ? 'Deleting...' : 'Delete Account Permanently'}
+            </button>
+          </div>
+        </div>
+
+        {/* Info Box */}
+        <div className="p-4 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border-primary)]">
+          <div className="flex items-start gap-3">
+            <svg className="w-5 h-5 text-[var(--text-secondary)] mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+            <div className="flex-1 text-xs text-[var(--text-secondary)]">
+              <strong className="text-[var(--text-primary)]">About Data Export & Account Deletion</strong>
+              <ul className="mt-2 space-y-1 list-disc list-inside">
+                <li>Exports include all conversations, messages, memories, prompts, artifacts, checkpoints, and projects</li>
+                <li>Account deletion is permanent and removes all data from our servers</li>
+                <li>Conversations are soft-deleted (can be recovered by admins if needed)</li>
+                <li>All other data is permanently deleted</li>
+              </ul>
             </div>
           </div>
         </div>
