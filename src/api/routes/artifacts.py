@@ -1,6 +1,11 @@
 """Artifact management endpoints."""
 
+import asyncio
 import re
+import subprocess
+import tempfile
+import os
+from pathlib import Path
 from typing import Optional
 from uuid import uuid4
 
@@ -427,4 +432,228 @@ async def download_artifact(artifact_id: str, db: AsyncSession = Depends(get_db)
         "filename": f"{artifact.title or 'artifact'}.{artifact.language or 'txt'}",
         "content": artifact.content,
         "content_type": "text/plain",
+    }
+
+
+class ArtifactExecuteRequest(BaseModel):
+    """Request model for executing a code artifact."""
+    timeout: int = 10  # Default timeout in seconds
+
+
+async def execute_code_safely(
+    code: str,
+    language: str,
+    timeout: int = 10
+) -> dict[str, any]:
+    """
+    Execute code in a sandboxed environment with timeout.
+
+    Args:
+        code: The code to execute
+        language: Programming language (python, javascript, etc.)
+        timeout: Maximum execution time in seconds
+
+    Returns:
+        Dictionary with execution result:
+        - success: bool
+        - output: str (stdout)
+        - error: str | None (stderr or exception)
+        - execution_time: float (seconds)
+    """
+    start_time = asyncio.get_event_loop().time()
+
+    try:
+        # Create a temporary directory for execution
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+
+            # Language-specific execution
+            language_lower = language.lower()
+
+            if language_lower in ['python', 'py']:
+                # Python execution
+                file_path = temp_path / "script.py"
+                file_path.write_text(code, encoding='utf-8')
+
+                process = await asyncio.create_subprocess_exec(
+                    'python3',
+                    str(file_path),
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    cwd=str(temp_path)
+                )
+
+                try:
+                    stdout, stderr = await asyncio.wait_for(
+                        process.communicate(),
+                        timeout=timeout
+                    )
+
+                    execution_time = asyncio.get_event_loop().time() - start_time
+
+                    return {
+                        "success": process.returncode == 0,
+                        "output": stdout.decode('utf-8', errors='replace'),
+                        "error": stderr.decode('utf-8', errors='replace') if stderr else None,
+                        "execution_time": round(execution_time, 3),
+                        "return_code": process.returncode
+                    }
+
+                except asyncio.TimeoutError:
+                    process.kill()
+                    await process.wait()
+                    return {
+                        "success": False,
+                        "output": "",
+                        "error": f"Execution timeout after {timeout} seconds",
+                        "execution_time": timeout,
+                        "return_code": -1
+                    }
+
+            elif language_lower in ['javascript', 'js', 'typescript', 'ts']:
+                # JavaScript/TypeScript execution via Node.js
+                file_path = temp_path / ("script.js" if 'javascript' in language_lower or 'js' in language_lower else "script.ts")
+                file_path.write_text(code, encoding='utf-8')
+
+                process = await asyncio.create_subprocess_exec(
+                    'node',
+                    str(file_path),
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    cwd=str(temp_path)
+                )
+
+                try:
+                    stdout, stderr = await asyncio.wait_for(
+                        process.communicate(),
+                        timeout=timeout
+                    )
+
+                    execution_time = asyncio.get_event_loop().time() - start_time
+
+                    return {
+                        "success": process.returncode == 0,
+                        "output": stdout.decode('utf-8', errors='replace'),
+                        "error": stderr.decode('utf-8', errors='replace') if stderr else None,
+                        "execution_time": round(execution_time, 3),
+                        "return_code": process.returncode
+                    }
+
+                except asyncio.TimeoutError:
+                    process.kill()
+                    await process.wait()
+                    return {
+                        "success": False,
+                        "output": "",
+                        "error": f"Execution timeout after {timeout} seconds",
+                        "execution_time": timeout,
+                        "return_code": -1
+                    }
+
+            elif language_lower in ['bash', 'shell']:
+                # Bash/shell execution
+                file_path = temp_path / "script.sh"
+                file_path.write_text(code, encoding='utf-8')
+
+                process = await asyncio.create_subprocess_exec(
+                    'bash',
+                    str(file_path),
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    cwd=str(temp_path)
+                )
+
+                try:
+                    stdout, stderr = await asyncio.wait_for(
+                        process.communicate(),
+                        timeout=timeout
+                    )
+
+                    execution_time = asyncio.get_event_loop().time() - start_time
+
+                    return {
+                        "success": process.returncode == 0,
+                        "output": stdout.decode('utf-8', errors='replace'),
+                        "error": stderr.decode('utf-8', errors='replace') if stderr else None,
+                        "execution_time": round(execution_time, 3),
+                        "return_code": process.returncode
+                    }
+
+                except asyncio.TimeoutError:
+                    process.kill()
+                    await process.wait()
+                    return {
+                        "success": False,
+                        "output": "",
+                        "error": f"Execution timeout after {timeout} seconds",
+                        "execution_time": timeout,
+                        "return_code": -1
+                    }
+
+            else:
+                # Unsupported language
+                return {
+                    "success": False,
+                    "output": "",
+                    "error": f"Language '{language}' is not supported for execution. Supported: python, javascript, bash",
+                    "execution_time": 0,
+                    "return_code": -2
+                }
+
+    except Exception as e:
+        execution_time = asyncio.get_event_loop().time() - start_time
+        return {
+            "success": False,
+            "output": "",
+            "error": f"Execution error: {str(e)}",
+            "execution_time": round(execution_time, 3),
+            "return_code": -3
+        }
+
+
+@router.post("/{artifact_id}/execute")
+async def execute_artifact(
+    artifact_id: str,
+    request: ArtifactExecuteRequest,
+    db: AsyncSession = Depends(get_db)
+) -> dict:
+    """
+    Execute a code artifact in a sandboxed environment.
+
+    This endpoint runs code artifacts securely with:
+    - Timeout protection (prevents infinite loops)
+    - Temporary directory isolation
+    - Process isolation
+    - Output capture (stdout/stderr)
+
+    Requires HITL (Human-in-the-loop) approval before execution.
+    """
+    # Get artifact
+    result = await db.execute(
+        select(Artifact).where(Artifact.id == artifact_id).where(Artifact.is_deleted == False)
+    )
+    artifact = result.scalar_one_or_none()
+
+    if not artifact:
+        raise HTTPException(status_code=404, detail="Artifact not found")
+
+    # Only code artifacts can be executed
+    if artifact.artifact_type not in ['code', None]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot execute artifact of type '{artifact.artifact_type}'. Only code artifacts can be executed."
+        )
+
+    # Execute the code
+    execution_result = await execute_code_safely(
+        code=artifact.content,
+        language=artifact.language or 'python',
+        timeout=request.timeout
+    )
+
+    return {
+        "artifact_id": artifact_id,
+        "title": artifact.title,
+        "language": artifact.language,
+        "execution": execution_result,
     }

@@ -18,6 +18,7 @@ interface ArtifactState {
   isDetecting: boolean
   versions: Artifact[] // For version history
   isLoadingVersions: boolean
+  executionResults: Record<string, { success: boolean; output?: string; error?: string; execution_time: number; return_code: number }> // Execution results by artifact ID
 
   // Actions
   setArtifacts: (artifacts: Artifact[]) => void
@@ -26,6 +27,8 @@ interface ArtifactState {
   setCurrentArtifactId: (id: string | null) => void
   clearArtifacts: () => void
   setVersions: (versions: Artifact[]) => void
+  setExecutionResult: (artifactId: string, result: { success: boolean; output?: string; error?: string; execution_time: number; return_code: number }) => void
+  clearExecutionResult: (artifactId: string) => void
 
   // API Actions
   detectArtifacts: (content: string, conversationId?: string) => Promise<Artifact[]>
@@ -36,6 +39,7 @@ interface ArtifactState {
   forkArtifact: (artifactId: string) => Promise<Artifact>
   getArtifactVersions: (artifactId: string) => Promise<Artifact[]>
   downloadArtifact: (artifactId: string) => Promise<{ filename: string; content: string; content_type: string }>
+  executeArtifact: (artifactId: string, timeout?: number) => Promise<{ success: boolean; output?: string; error?: string; execution_time: number; return_code: number }>
 }
 
 export const useArtifactStore = create<ArtifactState>((set) => ({
@@ -44,6 +48,7 @@ export const useArtifactStore = create<ArtifactState>((set) => ({
   isDetecting: false,
   versions: [],
   isLoadingVersions: false,
+  executionResults: {},
 
   setArtifacts: (artifacts) => set({ artifacts }),
 
@@ -61,14 +66,25 @@ export const useArtifactStore = create<ArtifactState>((set) => ({
 
   removeArtifact: (id) => set((state) => ({
     artifacts: state.artifacts.filter(a => a.id !== id),
-    currentArtifactId: state.currentArtifactId === id ? null : state.currentArtifactId
+    currentArtifactId: state.currentArtifactId === id ? null : state.currentArtifactId,
+    executionResults: state.executionResults // Keep execution results
   })),
 
   setCurrentArtifactId: (id) => set({ currentArtifactId: id }),
 
-  clearArtifacts: () => set({ artifacts: [], currentArtifactId: null, versions: [] }),
+  clearArtifacts: () => set({ artifacts: [], currentArtifactId: null, versions: [], executionResults: {} }),
 
   setVersions: (versions) => set({ versions }),
+
+  setExecutionResult: (artifactId, result) => set((state) => ({
+    executionResults: { ...state.executionResults, [artifactId]: result }
+  })),
+
+  clearExecutionResult: (artifactId) => set((state) => {
+    const newResults = { ...state.executionResults }
+    delete newResults[artifactId]
+    return { executionResults: newResults }
+  }),
 
   detectArtifacts: async (content: string, conversationId?: string): Promise<Artifact[]> => {
     set({ isDetecting: true })
@@ -315,6 +331,34 @@ export const useArtifactStore = create<ArtifactState>((set) => ({
       return await response.json()
     } catch (error) {
       console.error('Download artifact error:', error)
+      throw error
+    }
+  },
+
+  executeArtifact: async (artifactId: string, timeout: number = 10): Promise<{ success: boolean; output?: string; error?: string; execution_time: number; return_code: number }> => {
+    try {
+      const response = await fetch(`/api/artifacts/${artifactId}/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timeout }),
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(`Execution failed (${response.status}): ${errorText}`)
+      }
+
+      const data = await response.json()
+      const result = data.execution
+
+      // Store the result in state
+      set((state) => ({
+        executionResults: { ...state.executionResults, [artifactId]: result }
+      }))
+
+      return result
+    } catch (error) {
+      console.error('Execute artifact error:', error)
       throw error
     }
   },

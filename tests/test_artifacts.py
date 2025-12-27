@@ -523,3 +523,167 @@ if __name__ == "__main__":
         print("=" * 70 + "\n")
 
     asyncio.run(run_all_tests())
+
+
+@pytest.mark.asyncio
+async def test_execute_code_artifact(client: AsyncClient, test_conversation):
+    """Test executing a code artifact in sandboxed environment (Feature #147)."""
+    print("\n" + "=" * 60)
+    print("TEST: Execute code artifact in sandbox")
+    print("=" * 60)
+
+    conv_id = test_conversation["id"]
+
+    # Step 1: Create a Python code artifact
+    print("\n1. Creating Python code artifact...")
+    create_response = await client.post("/api/artifacts/create", json={
+        "conversation_id": conv_id,
+        "content": "def hello():\n    return 'Hello, World!'\n\nprint(hello())",
+        "title": "HelloFunction",
+        "language": "python"
+    })
+    assert create_response.status_code == 201
+    artifact = create_response.json()
+    artifact_id = artifact["id"]
+    print(f"   ✓ Created artifact: {artifact['title']}")
+
+    # Step 2: Execute the artifact
+    print("\n2. Executing the artifact...")
+    execute_response = await client.post(
+        f"/api/artifacts/{artifact_id}/execute",
+        json={"timeout": 10}
+    )
+    assert execute_response.status_code == 200
+    result = execute_response.json()
+    print(f"   ✓ Execution completed")
+    print(f"     - Artifact ID: {result['artifact_id']}")
+    print(f"     - Language: {result['language']}")
+    print(f"     - Success: {result['execution']['success']}")
+    print(f"     - Execution time: {result['execution']['execution_time']}s")
+    print(f"     - Return code: {result['execution']['return_code']}")
+
+    # Step 3: Verify execution result
+    assert result["artifact_id"] == artifact_id
+    assert result["execution"]["success"] == True
+    assert result["execution"]["return_code"] == 0
+    assert "Hello, World!" in result["execution"]["output"]
+    print("\n✓ Code execution works correctly")
+
+
+@pytest.mark.asyncio
+async def test_execute_artifact_with_error(client: AsyncClient, test_conversation):
+    """Test that execution errors are properly captured and returned."""
+    print("\n" + "=" * 60)
+    print("TEST: Execute artifact with error")
+    print("=" * 60)
+
+    conv_id = test_conversation["id"]
+
+    # Create artifact with code that will fail
+    print("\n1. Creating code artifact with error...")
+    create_response = await client.post("/api/artifacts/create", json={
+        "conversation_id": conv_id,
+        "content": "print('before error')\nraise ValueError('This is a test error')\nprint('after error')",
+        "title": "ErrorFunction",
+        "language": "python"
+    })
+    artifact = create_response.json()
+    artifact_id = artifact["id"]
+    print(f"   ✓ Created artifact: {artifact['title']}")
+
+    # Execute and expect failure
+    print("\n2. Executing (expecting error)...")
+    execute_response = await client.post(
+        f"/api/artifacts/{artifact_id}/execute",
+        json={"timeout": 10}
+    )
+    assert execute_response.status_code == 200
+    result = execute_response.json()
+
+    print(f"   ✓ Execution completed")
+    print(f"     - Success: {result['execution']['success']}")
+    print(f"     - Return code: {result['execution']['return_code']}")
+    print(f"     - Error: {result['execution']['error']}")
+
+    # Verify error was captured
+    assert result["execution"]["success"] == False
+    assert result["execution"]["return_code"] != 0
+    assert "ValueError" in result["execution"]["error"] or "test error" in result["execution"]["error"]
+    assert "before error" in result["execution"]["output"]
+    print("\n✓ Error handling works correctly")
+
+
+@pytest.mark.asyncio
+async def test_execute_artifact_timeout(client: AsyncClient, test_conversation):
+    """Test that execution timeout prevents infinite loops."""
+    print("\n" + "=" * 60)
+    print("TEST: Execute artifact with timeout")
+    print("=" * 60)
+
+    conv_id = test_conversation["id"]
+
+    # Create artifact with infinite loop
+    print("\n1. Creating code artifact with infinite loop...")
+    create_response = await client.post("/api/artifacts/create", json={
+        "conversation_id": conv_id,
+        "content": "while True:\n    pass  # Infinite loop",
+        "title": "InfiniteLoop",
+        "language": "python"
+    })
+    artifact = create_response.json()
+    artifact_id = artifact["id"]
+    print(f"   ✓ Created artifact: {artifact['title']}")
+
+    # Execute with short timeout
+    print("\n2. Executing with 2 second timeout...")
+    execute_response = await client.post(
+        f"/api/artifacts/{artifact_id}/execute",
+        json={"timeout": 2}
+    )
+    assert execute_response.status_code == 200
+    result = execute_response.json()
+
+    print(f"   ✓ Execution completed")
+    print(f"     - Success: {result['execution']['success']}")
+    print(f"     - Execution time: {result['execution']['execution_time']}s")
+    print(f"     - Error: {result['execution']['error']}")
+
+    # Verify timeout occurred
+    assert result["execution"]["success"] == False
+    assert "timeout" in result["execution"]["error"].lower()
+    print("\n✓ Timeout protection works correctly")
+
+
+@pytest.mark.asyncio
+async def test_execute_non_code_artifact(client: AsyncClient, test_conversation):
+    """Test that non-code artifacts cannot be executed."""
+    print("\n" + "=" * 60)
+    print("TEST: Execute non-code artifact (should fail)")
+    print("=" * 60)
+
+    conv_id = test_conversation["id"]
+
+    # Create HTML artifact
+    print("\n1. Creating HTML artifact...")
+    create_response = await client.post("/api/artifacts/create", json={
+        "conversation_id": conv_id,
+        "content": "<div>Hello World</div>",
+        "title": "HTMLComponent",
+        "language": "html"
+    })
+    artifact = create_response.json()
+    artifact_id = artifact["id"]
+    print(f"   ✓ Created artifact: {artifact['title']} (type: {artifact['artifact_type']})")
+
+    # Try to execute
+    print("\n2. Attempting to execute HTML artifact...")
+    execute_response = await client.post(
+        f"/api/artifacts/{artifact_id}/execute",
+        json={"timeout": 10}
+    )
+
+    # Should return 400 error
+    assert execute_response.status_code == 400
+    error = execute_response.json()
+    print(f"   ✓ Correctly rejected: {error['detail']}")
+    print("\n✓ Non-code artifact rejection works correctly")

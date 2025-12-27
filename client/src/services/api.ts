@@ -514,6 +514,30 @@ class APIService {
     return response.json()
   }
 
+  async executeArtifact(artifactId: string, timeout: number = 10): Promise<{
+    artifact_id: string
+    title: string
+    language: string
+    execution: {
+      success: boolean
+      output: string
+      error: string | null
+      execution_time: number
+      return_code: number
+    }
+  }> {
+    const response = await fetch(`${API_BASE}/artifacts/${artifactId}/execute`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ timeout }),
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Unknown error' }))
+      throw new Error(error.detail || `Failed to execute artifact: ${response.status}`)
+    }
+    return response.json()
+  }
+
   async detectArtifacts(content: string): Promise<any[]> {
     const response = await fetch(`${API_BASE}/artifacts/detect`, {
       method: 'POST',
