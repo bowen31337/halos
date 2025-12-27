@@ -3,7 +3,7 @@
     "category": "functional",
     "description": "ARCHITECTURE: Application uses LangChain DeepAgents framework (langchain-ai/deepagents) as the core agent harness with planning, filesystem backend, and sub-agent delegation",
     "steps": [
-      "Step 1: Verify deepagents package is installed (pip install deepagents)",
+      "Step 1: Verify deepagents package is installed (uv add deepagents)",
       "Step 2: Verify create_deep_agent is imported from deepagents module",
       "Step 3: Verify agent is created using create_deep_agent() with custom tools",
       "Step 4: Verify TodoListMiddleware provides write_todos and read_todos tools",
@@ -18,9 +18,9 @@
       "Step 13: Verify custom subagents can be registered using subagents parameter",
       "Step 14: Verify long-term memory works via CompositeBackend with StoreBackend routes"
     ],
-    "passes": true,
-    "is_dev_done": true,
-    "is_qa_passed": true
+    "passes": false,
+    "is_dev_done": false,
+    "is_qa_passed": false
   },
   {
     "category": "functional",
@@ -564,8 +564,8 @@
       "Step 7: Select the project",
       "Step 8: Verify conversations filter to project scope"
     ],
-    "passes": false,
-    "is_dev_done": false,
+    "passes": true,
+    "is_dev_done": true,
     "is_qa_passed": false
   },
   {

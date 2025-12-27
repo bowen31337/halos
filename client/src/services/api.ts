@@ -14,6 +14,7 @@ export interface AgentRequest {
   permissionMode?: string
   extendedThinking?: boolean
   customInstructions?: string
+  systemPromptOverride?: string
   temperature?: number
   maxTokens?: number
 }
@@ -278,6 +279,15 @@ class APIService {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ instructions }),
+    })
+    return response.json()
+  }
+
+  async updateSystemPrompt(prompt: string): Promise<any> {
+    const response = await fetch(`${API_BASE}/settings/system-prompt`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt }),
     })
     return response.json()
   }

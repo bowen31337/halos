@@ -9,5 +9,6 @@ class Base(DeclarativeBase):
 
 from src.models.conversation import Conversation
 from src.models.message import Message
+from src.models.project import Project
 
-__all__ = ["Base", "Conversation", "Message"]
+__all__ = ["Base", "Conversation", "Message", "Project"]

@@ -62,13 +62,15 @@ class MockAgent:
         """Extract custom instructions from message.
 
         Custom instructions are prepended in format:
-        [System Instructions: <instructions>]\n\n<actual_message>
+        [System Instructions: <instructions>]
+
+<actual_message>
 
         Returns:
             tuple: (custom_instructions, actual_message)
         """
         # Pattern: [System Instructions: ...] followed by newlines
-        pattern = r"^\[System Instructions:\s*([^\]]+)\]\s*\n\n(.*)$"
+        pattern = r'^\[System Instructions:\s*([^\]]+)\]\s*\n\n(.*)$'
         match = re.match(pattern, message, re.DOTALL)
 
         if match:
@@ -79,36 +81,42 @@ class MockAgent:
         return "", message
 
     def _generate_mock_response(self, user_message: str, custom_instructions: str = "") -> str:
-        """Generate a mock response with markdown formatting for testing.
-
-        Args:
-            user_message: The actual user message (without custom instructions)
-            custom_instructions: Custom instructions that affect response behavior
-        """
+        """Generate a mock response with markdown formatting for testing."""
         user_lower = user_message.lower()
 
-        # Check if custom instructions specify language or style
-        instruction_lower = custom_instructions.lower()
+        # Handle custom instructions
+        if custom_instructions:
+            ci_lower = custom_instructions.lower()
 
-        # Handle custom instruction: "Always respond in Spanish"
-        if "spanish" in instruction_lower or "español" in instruction_lower:
-            return self._generate_spanish_response(user_message)
+            # Spanish instruction
+            if "spanish" in ci_lower or "español" in ci_lower:
+                return f"¡Hola! {user_message} - Responding in Spanish as requested. ¿Cómo puedo ayudarte hoy?"
 
-        # Handle custom instruction: "Be formal"
-        if "formal" in instruction_lower:
-            return self._generate_formal_response(user_message)
+            # French instruction
+            elif "french" in ci_lower or "français" in ci_lower:
+                return f"Bonjour! {user_message} - Réponse en français comme demandé. Comment puis-je vous aider?"
 
-        # Handle custom instruction: "Be casual and fun"
-        if "casual" in instruction_lower or "fun" in instruction_lower:
-            return self._generate_casual_response(user_message)
+            # Short/concise instruction
+            elif "short" in ci_lower or "concise" in ci_lower or "brief" in ci_lower:
+                return f"Answer: {user_message} - Short response as requested."
 
-        # Handle custom instruction: "Be concise"
-        if "concise" in instruction_lower or "brief" in instruction_lower:
-            return self._generate_concise_response(user_message)
+            # Verbose/detailed instruction
+            elif "verbose" in ci_lower or "detailed" in ci_lower or "long" in ci_lower:
+                return f"Detailed response to: {user_message}. I will provide a comprehensive answer with multiple points and explanations, ensuring thorough coverage of the topic."
 
-        # Handle custom instruction: "Use markdown"
-        if "markdown" in instruction_lower:
-            return self._generate_markdown_response(user_message)
+            # Custom format instruction
+            elif "format" in ci_lower:
+                return f"""[FORMATTED RESPONSE]
+
+{user_message}
+
+(Formatted as requested in custom instructions)"""
+
+            # Generic custom instruction
+            else:
+                return f"""[Following custom instructions: {custom_instructions}]
+
+Response to: {user_message}"""
 
         # Check for markdown test requests
         if any(word in user_lower for word in ["markdown", "format", "heading", "bold"]):
@@ -137,12 +145,10 @@ And a [link](https://example.com)"""
             return """Here's a Python code example:
 
 ```python
-def hello_world():
-    print("Hello, World!")
-    return True
+def greet(name: str) -> str:
+    return f"Hello, {name}!"
 
-# Call the function
-hello_world()
+print(greet("World"))
 ```
 
 And here's some JavaScript:
@@ -156,33 +162,7 @@ console.log(greet("World"));
 ```"""
 
         # Default response
-        response = f"Mock response to: {user_message}"
-
-        # Append note about custom instructions if present
-        if custom_instructions:
-            response += f"\n\n[System instructions applied: {custom_instructions}]"
-
-        return response
-
-    def _generate_spanish_response(self, user_message: str) -> str:
-        """Generate response in Spanish."""
-        return f"¡Hola! Como asistente de IA, mi respuesta en español a tu mensaje es:\n\nHe recibido tu mensaje: '{user_message}'\n\n¿En qué más puedo ayudarte hoy? Estoy aquí para asistirte con cualquier pregunta o tarea que tengas."
-
-    def _generate_formal_response(self, user_message: str) -> str:
-        """Generate formal response."""
-        return f"Dear User,\n\nI have received your message: '{user_message}'.\n\nI shall provide you with a comprehensive and professional response. Please let me know if I can be of further assistance.\n\nSincerely,\nYour AI Assistant"
-
-    def _generate_casual_response(self, user_message: str) -> str:
-        """Generate casual and fun response."""
-        return f"Hey there! 😊\n\nGot your message: '{user_message}'\n\nThat's super cool! I'd love to help you out with that. Let's have some fun while we're at it! 🎉\n\nWhat's next?"
-
-    def _generate_concise_response(self, user_message: str) -> str:
-        """Generate concise response."""
-        return f"Message: {user_message}\n\nResponse: Acknowledged. Ready to assist."
-
-    def _generate_markdown_response(self, user_message: str) -> str:
-        """Generate response with markdown formatting."""
-        return f"# Response\n\n**Received:** {user_message}\n\n*Formatted as requested.*\n\n- Point 1\n- Point 2\n- Point 3"
+        return f"Mock response to: {user_message}"
 
     async def astream_events(
         self, input_data: Dict[str, Any], config: Optional[Dict[str, Any]] = None, version: str = "v2"
@@ -240,17 +220,31 @@ console.log(greet("World"));
                 {"id": str(uuid4()), "content": "Plan implementation", "status": "in_progress"},
                 {"id": str(uuid4()), "content": "Execute tasks", "status": "pending"},
             ]
-            response_text += "\n\nI'll help you with this. Let me break it down:\n\n"
-            response_text += "1. Analyze the requirements\n2. Plan the implementation\n3. Execute the tasks\n\n"
+            response_text += """
+
+I'll help you with this. Let me break it down:
+
+"""
+            response_text += """1. Analyze the requirements
+2. Plan the implementation
+3. Execute the tasks
+
+"""
             response_text += "I've created a todo list to track progress."
 
         # Apply temperature effect (higher temp = more creative/varied responses)
+        # For mock purposes, we'll add some variation based on temperature
         if temperature > 0.8:
-            response_text = f"(Creative mode - temp {temperature})\n\n{response_text}"
+            response_text = f"""(Creative mode - temp {temperature})
+
+{response_text}"""
         elif temperature < 0.3:
-            response_text = f"(Focused mode - temp {temperature})\n\n{response_text}"
+            response_text = f"""(Focused mode - temp {temperature})
+
+{response_text}"""
 
         # Apply max_tokens limit (truncate if needed)
+        # Rough estimate: 1 token ≈ 4 characters
         max_chars = max_tokens * 4
         if len(response_text) > max_chars:
             response_text = response_text[:max_chars] + "... [truncated due to max_tokens limit]"
@@ -300,4 +294,3 @@ class MockChunk:
 
     def __init__(self, content: str):
         self.content = content
-

@@ -9,6 +9,7 @@ from deepagents.backends import StateBackend, StoreBackend, CompositeBackend
 from langchain_anthropic import ChatAnthropic
 from langgraph.store.memory import InMemoryStore
 
+# Import mock agent as fallback
 from src.services.mock_agent import MockAgent
 
 
@@ -101,11 +102,40 @@ You have access to powerful tools that enable you to help with complex tasks:
 
 You are helping build a Claude.ai clone application. Be professional, friendly, and helpful."""
 
-        # Use mock agent for testing
-        # Note: Real API is disabled due to compatibility issues with custom base URL
-        # The langchain-anthropic library expects standard Anthropic API format
-        # but the custom proxy returns a different format
-        return MockAgent(system_prompt=system_prompt)
+        # Try to create real DeepAgent with LangChain Anthropic
+        try:
+            if not self.api_key:
+                print("No API key available, using MockAgent for testing")
+                return MockAgent(system_prompt=system_prompt)
+
+            # Create the LLM with API key
+            llm = ChatAnthropic(
+                model_name=model,
+                anthropic_api_key=self.api_key,
+                max_tokens=20000,
+            )
+
+            # Create StateBackend for file storage
+            from langgraph.checkpoint.memory import MemorySaver
+            runtime = MemorySaver()
+            backend = StateBackend(runtime=runtime)
+
+            # Create the DeepAgent
+            agent = create_deep_agent(
+                model=llm,
+                system_prompt=system_prompt,
+                interrupt_on=interrupt_config if interrupt_config else None,
+                backend=backend,
+                store=self.memory_store,
+            )
+
+            print(f"✓ Created DeepAgent with model: {model}")
+            return agent
+
+        except Exception as e:
+            print(f"Failed to create real DeepAgent: {e}")
+            print("Falling back to MockAgent for testing")
+            return MockAgent(system_prompt=system_prompt)
 
     def get_or_create_agent(
         self,

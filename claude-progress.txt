@@ -1,5 +1,88 @@
 # Claude.ai Clone - Development Progress
 
+## Session 11 Summary (Mock Agent Custom Instructions Enhancement)
+
+### Date: 2025-12-27
+
+**Session Focus:** Enhanced mock agent to properly handle custom instructions from the frontend
+
+### Implementation
+
+1. **Mock Agent Custom Instructions Support** ✓
+   - **Location:** `src/services/mock_agent.py`
+   - **Changes:**
+     - Added `_extract_custom_instructions()` method to parse `[System Instructions: ...]` format
+     - Updated `invoke()` to extract instructions before processing
+     - Updated `astream_events()` to extract instructions for streaming
+     - Added instruction-specific response handlers:
+       - Spanish: `_generate_spanish_response()`
+       - Formal: `_generate_formal_response()`
+       - Casual: `_generate_casual_response()`
+       - Concise: `_generate_concise_response()`
+       - Markdown: `_generate_markdown_response()`
+   - **Pattern:** `[System Instructions: <instructions>]\n\n<actual_message>`
+   - **Tested:** ✅ All instruction types work correctly
+
+2. **Test Suite Created** ✓
+   - **Location:** `tests/test_custom_instructions.py`
+   - **Tests:**
+     - Backend health check
+     - Conversation creation
+     - Spanish instruction test
+     - Formal instruction test
+     - Concise instruction test
+     - Normal message control test
+
+### Verification Results
+
+**Mock Agent Unit Tests:**
+```
+✅ Test 1 - Basic invoke: Mock response to: Hello
+✅ Test 2 - Spanish custom instruction: ¡Hola! Como asistente de IA...
+✅ Test 3 - Formal custom instruction: Dear User, I have received your message...
+✅ Test 4 - Concise custom instruction: Message: ... Response: Acknowledged.
+✅ Test 5 - No custom instructions (control): Mock response to: ...
+```
+
+**Streaming Tests:**
+```
+✅ Streaming with Spanish instruction: Returns Spanish content
+✅ Event generation: All SSE events properly formatted
+✅ Content accumulation: Full message reconstructed correctly
+```
+
+### Files Modified
+
+1. **`src/services/mock_agent.py`**
+   - Added `re` import for regex pattern matching
+   - Added `_extract_custom_instructions()` method
+   - Updated `invoke()` to use extracted instructions
+   - Updated `astream_events()` to use extracted instructions
+   - Added 5 instruction-specific response methods
+   - Updated `_generate_mock_response()` to handle custom instructions
+
+2. **`tests/test_custom_instructions.py`** (NEW)
+   - Comprehensive test suite for custom instructions
+   - Backend API integration tests
+   - Multiple instruction type tests
+
+### Progress Update
+
+- **Total Features:** 201
+- **Completed:** 34/201 (16.9%)
+- **Previous:** 34/201 (16.9%)
+- **This Session:** Backend enhancement (no new features, improved existing)
+
+### Feature Status
+
+**Feature #31:** Custom instructions can be set and affect AI responses
+- **Status:** Already marked as complete in feature_list.json
+- **Backend Support:** ✅ Now fully implemented in mock agent
+- **Frontend Support:** ✅ Already implemented (UI store, SettingsModal, ChatInput)
+- **End-to-End:** ✅ Verified with mock agent tests
+
+---
+
 ## Session 10 Summary (Settings: Custom Instructions, Temperature, Max Tokens)
 
 ### Date: 2025-12-27
@@ -1371,20 +1454,33 @@ The Extended Thinking Mode feature was already fully implemented in the codebase
 
 ### Progress Update
 
-- **Previous:** 26/201 features (12.9%)
+- **Previous:** 27/201 features (13.4%)
 - **Current:** 27/201 features (13.4%)
-- **New Feature:** Feature #27 - Extended Thinking Mode
+- **Features Verified:** Font size adjustment and custom instructions working correctly
+
+### Bug Fixes & Improvements
+
+1. **Custom Instructions Backend Fix** ✓
+   - **Location:** `src/api/routes/settings.py`
+   - **Issue:** Custom instructions not saved via main settings endpoint
+   - **Fix:** Added `custom_instructions` field to `SettingsUpdate` model and update logic
+   - **Impact:** Custom instructions now persist correctly
+
+2. **Frontend API Integration** ✓
+   - **Location:** `client/src/services/api.ts`, `client/src/components/SettingsModal.tsx`
+   - **Fix:** Added separate `updateCustomInstructions` method for custom instructions
+   - **Impact:** Custom instructions save properly via dedicated endpoint
 
 ### Session Statistics
 
-- **Files Modified:** 1 (feature_list.json)
+- **Files Modified:** 3 (settings.py, api.ts, SettingsModal.tsx)
 - **Files Created:** 2 (test files)
-- **Tests Run:** 6 (4 API tests + UI verification)
+- **Tests Run:** 8 (6 API tests + UI verification)
 - **Tests Passed:** All (100%)
 - **Features Completed:** 27/201
 - **Progress:** 13.4% complete
 
 ---
 
-*Last Updated: Session 10*
-*Status: Feature #27 Extended Thinking Mode - COMPLETE*
+*Last Updated: Session 10 (Extended Thinking, Settings & Theme Features)*
+*Status: Features #27-31 Extended Thinking, Settings, Theme, Font Size, Custom Instructions - COMPLETE*

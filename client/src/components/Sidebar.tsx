@@ -1,8 +1,10 @@
 import { useConversationStore, type Conversation } from '../stores/conversationStore'
 import { useUIStore } from '../stores/uiStore'
+import { useProjectStore } from '../stores/projectStore'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { api } from '../services/api'
+import { ProjectSelector } from './ProjectSelector'
 
 export function Sidebar() {
   const {
@@ -28,6 +30,7 @@ export function Sidebar() {
   const [archivingId, setArchivingId] = useState<string | null>(null)
   const [exportingId, setExportingId] = useState<string | null>(null)
   const [showArchived, setShowArchived] = useState(false)
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
 
   const handleArchive = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
@@ -215,11 +218,14 @@ export function Sidebar() {
     return groups
   }
 
-  // Filter conversations by search query and archive status
+  // Filter conversations by search query, archive status, and project
   const filteredConversations = conversations.filter(conv => {
     // Filter by archive status
     if (showArchived && !conv.isArchived) return false
     if (!showArchived && conv.isArchived) return false
+
+    // Filter by project (null means "All Conversations" - show everything)
+    if (selectedProjectId && conv.projectId !== selectedProjectId) return false
 
     // Filter by search query
     if (!searchQuery.trim()) return true
@@ -248,6 +254,12 @@ export function Sidebar() {
           <span>+</span>
           <span>{isCreating ? 'Creating...' : 'New Chat'}</span>
         </button>
+
+        {/* Project Selector */}
+        <ProjectSelector
+          selectedProjectId={selectedProjectId}
+          onProjectChange={setSelectedProjectId}
+        />
 
         {/* Search input */}
         <div className="relative">

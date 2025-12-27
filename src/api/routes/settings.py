@@ -18,6 +18,7 @@ class SettingsUpdate(BaseModel):
     code_theme: Optional[str] = None
     permission_mode: Optional[str] = None
     custom_instructions: Optional[str] = None
+    system_prompt_override: Optional[str] = None
     temperature: Optional[float] = None
     max_tokens: Optional[int] = None
     extended_thinking_enabled: Optional[bool] = None
@@ -38,6 +39,7 @@ user_settings: dict = {
     "code_theme": "one-dark",
     "permission_mode": "default",
     "custom_instructions": "",
+    "system_prompt_override": "",
     "memory_enabled": True,
     "extended_thinking_enabled": True,
     "temperature": 0.7,
@@ -68,6 +70,8 @@ async def update_settings(data: SettingsUpdate) -> dict:
         user_settings["permission_mode"] = data.permission_mode
     if data.custom_instructions is not None:
         user_settings["custom_instructions"] = data.custom_instructions
+    if data.system_prompt_override is not None:
+        user_settings["system_prompt_override"] = data.system_prompt_override
     if data.temperature is not None:
         user_settings["temperature"] = data.temperature
     if data.max_tokens is not None:
@@ -89,6 +93,25 @@ async def update_custom_instructions(data: CustomInstructionsUpdate) -> dict:
     """Update custom instructions."""
     user_settings["custom_instructions"] = data.instructions
     return {"instructions": data.instructions}
+
+
+class SystemPromptUpdate(BaseModel):
+    """Request model for updating system prompt override."""
+
+    prompt: str
+
+
+@router.get("/system-prompt")
+async def get_system_prompt() -> dict:
+    """Get system prompt override."""
+    return {"prompt": user_settings.get("system_prompt_override", "")}
+
+
+@router.put("/system-prompt")
+async def update_system_prompt(data: SystemPromptUpdate) -> dict:
+    """Update system prompt override."""
+    user_settings["system_prompt_override"] = data.prompt
+    return {"prompt": data.prompt}
 
 
 @router.put("/permission-mode")

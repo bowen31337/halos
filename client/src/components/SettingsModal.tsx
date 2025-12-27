@@ -18,6 +18,8 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     setFontSize,
     customInstructions,
     setCustomInstructions,
+    systemPromptOverride,
+    setSystemPromptOverride,
     temperature,
     setTemperature,
     maxTokens,
@@ -38,6 +40,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         if (settings.theme) setTheme(settings.theme as any)
         if (settings.fontSize) setFontSize(settings.fontSize)
         if (settings.customInstructions !== undefined) setCustomInstructions(settings.customInstructions)
+        if (settings.system_prompt_override !== undefined) setSystemPromptOverride(settings.system_prompt_override)
         if (settings.temperature !== undefined) {
           setTemperature(settings.temperature)
           setTempValue(settings.temperature)
@@ -54,7 +57,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
       }
     }
     loadSettings()
-  }, [setTheme, setFontSize, setCustomInstructions, setTemperature, setMaxTokens, toggleExtendedThinking, extendedThinkingEnabled])
+  }, [setTheme, setFontSize, setCustomInstructions, setSystemPromptOverride, setTemperature, setMaxTokens, toggleExtendedThinking, extendedThinkingEnabled])
 
   // Save settings to backend helper
   const saveSettings = async (updates: any) => {
@@ -172,6 +175,22 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
         />
         <p className="text-xs text-[var(--text-secondary)] mt-2">
           These instructions will affect how the AI responds to your messages.
+        </p>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">System Prompt Override</h3>
+        <textarea
+          placeholder="Override the AI's system prompt (leave empty to use default)..."
+          className="w-full min-h-[120px] p-3 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-primary)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+          value={systemPromptOverride}
+          onChange={(e) => setSystemPromptOverride(e.target.value)}
+          onBlur={async (e) => {
+            await api.updateSystemPrompt(e.target.value)
+          }}
+        />
+        <p className="text-xs text-[var(--text-secondary)] mt-2">
+          This will completely replace the AI's default system prompt. Use with caution.
         </p>
       </div>
 

@@ -27,6 +27,7 @@ class AgentRequest(BaseModel):
     temperature: Optional[float] = 0.7
     max_tokens: Optional[int] = 4096
     custom_instructions: Optional[str] = None
+    system_prompt_override: Optional[str] = None
 
 
 class InterruptDecision(BaseModel):
@@ -76,6 +77,8 @@ async def invoke_agent(data: AgentRequest) -> dict:
                 "thread_id": thread_id,
                 "temperature": data.temperature,
                 "max_tokens": data.max_tokens,
+                "custom_instructions": data.custom_instructions,
+                "system_prompt_override": data.system_prompt_override,
             }
         }
         result = agent.invoke({"messages": [HumanMessage(content=message_content)]}, config=config)
@@ -145,7 +148,7 @@ async def stream_agent(request: Request) -> EventSourceResponse:
                 return
 
             # Stream agent response with extended thinking support
-            # Pass temperature, max_tokens, and custom_instructions in config for mock agent to use
+            # Pass temperature, max_tokens, custom_instructions, and system_prompt_override in config for mock agent to use
             config = {
                 "configurable": {
                     "thread_id": thread_id,
