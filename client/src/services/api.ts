@@ -1638,6 +1638,108 @@ class APIService {
     }
     return response.json()
   }
+
+  // Activity Feed APIs
+  async logActivity(data: {
+    action_type: string
+    resource_type?: string
+    resource_id?: string
+    resource_name?: string
+    details?: Record<string, any>
+    user_id?: string
+    user_name?: string
+  }): Promise<{ id: string }> {
+    const params = new URLSearchParams()
+    if (data.user_id) params.append('user_id', data.user_id)
+    if (data.user_name) params.append('user_name', data.user_name)
+
+    const response = await fetch(`${API_BASE}/activity?${params.toString()}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action_type: data.action_type,
+        resource_type: data.resource_type,
+        resource_id: data.resource_id,
+        resource_name: data.resource_name,
+        details: data.details,
+      }),
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to log activity: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async getActivities(filters?: {
+    action_type?: string
+    resource_type?: string
+    user_id?: string
+    time_range?: string
+    limit?: number
+    offset?: number
+  }): Promise<{
+    activities: Array<{
+      id: string
+      user_id: string
+      user_name: string
+      action_type: string
+      resource_type?: string
+      resource_id?: string
+      resource_name?: string
+      details?: any
+      created_at: string
+    }>
+    total: number
+    has_more: boolean
+  }> {
+    const params = new URLSearchParams()
+    if (filters?.action_type) params.append('action_type', filters.action_type)
+    if (filters?.resource_type) params.append('resource_type', filters.resource_type)
+    if (filters?.user_id) params.append('user_id', filters.user_id)
+    if (filters?.time_range) params.append('time_range', filters.time_range)
+    if (filters?.limit) params.append('limit', filters.limit.toString())
+    if (filters?.offset) params.append('offset', filters.offset.toString())
+
+    const url = `${API_BASE}/activity${params.toString() ? '?' + params.toString() : ''}`
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch activities: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async getActivityTypes(): Promise<{
+    action_types: Array<{ type: string; count: number }>
+    resource_types: Array<{ type: string; count: number }>
+  }> {
+    const response = await fetch(`${API_BASE}/activity/types`)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch activity types: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async getActivitySummary(days: number = 7): Promise<{
+    total: number
+    by_user: Record<string, number>
+    by_type: Record<string, number>
+    by_resource: Record<string, number>
+  }> {
+    const response = await fetch(`${API_BASE}/activity/summary?days=${days}`)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch activity summary: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async deleteActivity(activityId: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/activity/${activityId}`, {
+      method: 'DELETE',
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to delete activity: ${response.status}`)
+    }
+  }
 }
 
 export const api = new APIService()

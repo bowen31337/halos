@@ -216,6 +216,61 @@ async def stream_task_updates(
     return EventSourceResponse(event_generator())
 
 
+@router.post("/{task_id}/retry")
+async def retry_task(
+    task_id: UUID,
+    db: AsyncSession = Depends(get_db)
+) -> dict:
+    """Retry a failed task.
+
+    Creates a new task with the same parameters, incrementing the retry count.
+    Implements exponential backoff for retry delays.
+
+    Returns:
+        New task details
+    """
+    # Get original task
+    result = await db.execute(
+        select(BackgroundTask).where(BackgroundTask.id == task_id)
+    )
+    original_task = result.scalar_one_or_none()
+
+    if not original_task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    # Check if task can be retried
+    if not original_task.can_retry():
+        raise HTTPException(
+            status_code=400,
+            detail=f"Task cannot be retried. Status: {original_task.status.value}, Retries: {original_task.retry_count}/{original_task.max_retries}"
+        )
+
+    # Create retry task
+    retry_task = original_task.create_retry_task()
+    db.add(retry_task)
+    await db.commit()
+    await db.refresh(retry_task)
+
+    # Calculate delay with exponential backoff
+    delay = original_task.retry_delay_seconds * (2 ** original_task.retry_count)
+
+    # Start task execution after delay
+    async def delayed_execution():
+        await asyncio.sleep(delay)
+        asyncio.create_task(simulate_task_execution(retry_task.id, db))
+
+    asyncio.create_task(delayed_execution())
+
+    return {
+        "original_task_id": str(original_task.id),
+        "retry_task_id": str(retry_task.id),
+        "retry_attempt": retry_task.retry_count,
+        "max_retries": retry_task.max_retries,
+        "delay_seconds": delay,
+        "task": retry_task.to_dict()
+    }
+
+
 async def simulate_task_execution(task_id: UUID, db: AsyncSession):
     """Simulate a long-running task with progress updates.
 

@@ -5,6 +5,7 @@ from fastapi import APIRouter
 from src.api.routes import (
     activity,
     agent,
+    analytics,
     artifacts,
     audit,
     auth,
@@ -70,3 +71,4 @@ router.include_router(tags.router, prefix="/tags", tags=["Tags"])
 router.include_router(batch.router, tags=["Batch Operations"])
 router.include_router(collaboration.router, prefix="/collaboration", tags=["Collaboration"])
 router.include_router(activity.router, prefix="/activity", tags=["Activity Feed"])
+router.include_router(analytics.router, prefix="/analytics", tags=["Analytics"])
