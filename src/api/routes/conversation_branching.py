@@ -6,14 +6,12 @@ from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete
+from datetime import datetime
 
 from src.core.database import get_db
 from src.models.conversation import Conversation
 from src.models.message import Message
-from src.schemas.conversation import ConversationResponse, ConversationCreate, ConversationUpdate
-from src.schemas.message import MessageResponse
-from src.core.config import settings
-from src.services.conversation_service import ConversationService
+from src.utils import generate_thread_id
 
 router = APIRouter(prefix="/api/conversations", tags=["conversation-branching"])
 
@@ -84,7 +82,7 @@ async def create_conversation_branch(
         branch_point_message_id=branch_point_message_id,
         branch_name=branch_name,
         branch_color=branch_color,
-        thread_id=ConversationService.generate_thread_id(),
+        thread_id=generate_thread_id(),
         extended_thinking_enabled=parent_conversation.extended_thinking_enabled
     )
 
@@ -123,7 +121,15 @@ async def create_conversation_branch(
 
     return {
         "message": "Conversation branch created successfully",
-        "conversation": new_conversation,
+        "conversation": {
+            "id": new_conversation.id,
+            "title": new_conversation.title,
+            "branch_name": new_conversation.branch_name,
+            "branch_color": new_conversation.branch_color,
+            "parent_conversation_id": new_conversation.parent_conversation_id,
+            "branch_point_message_id": new_conversation.branch_point_message_id,
+            "created_at": new_conversation.created_at.isoformat() if new_conversation.created_at else None,
+        },
         "branch_point_message_id": branch_point_message_id
     }
 
@@ -344,7 +350,14 @@ async def switch_to_branch(
 
     return {
         "message": "Switched to branch successfully",
-        "target_conversation": target_conversation,
+        "target_conversation": {
+            "id": target_conversation.id,
+            "title": target_conversation.title,
+            "branch_name": target_conversation.branch_name,
+            "branch_color": target_conversation.branch_color,
+            "parent_conversation_id": target_conversation.parent_conversation_id,
+            "branch_point_message_id": target_conversation.branch_point_message_id,
+        },
         "switched_from": conversation_id,
         "switched_to": target_conversation_id
     }
