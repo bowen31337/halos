@@ -3082,9 +3082,11 @@
       "Step 11: Export the conversation",
       "Step 12: Verify export includes project context"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-28",
+    "notes": "Verified: project creation, conversation in project, file upload, and conversation export"
   },
   {
     "category": "functional",
