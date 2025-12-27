@@ -674,150 +674,150 @@ async def stream_agent(
                         tool_input = event_data.get("input", {})
                         reason = event_data.get("reason", "Tool execution requires approval")
 
-                    # Store in pending approvals
-                    pending_approvals[thread_id] = {
-                        "tool": tool_name,
-                        "input": tool_input,
-                        "reason": reason,
-                    }
-
-                    # Emit interrupt event to frontend
-                    yield {
-                        "event": "interrupt",
-                        "data": json.dumps({
+                        # Store in pending approvals
+                        pending_approvals[thread_id] = {
                             "tool": tool_name,
                             "input": tool_input,
                             "reason": reason,
-                        }),
-                    }
-                    # Stop streaming - will be resumed after approval
-                    return
+                        }
 
-                # Handle on_chain_end event (end of streaming with token info)
-                elif event_kind == "on_chain_end":
-                    event_data = event.get("data", {})
-                    # Extract token information if available
-                    input_tokens = event_data.get("input_tokens", 0)
-                    output_tokens = event_data.get("output_tokens", 0)
-                    cache_read_tokens = event_data.get("cache_read_tokens", 0)
-                    cache_write_tokens = event_data.get("cache_write_tokens", 0)
-
-                    # Store token information in thread state for the done event
-                    thread_states[thread_id] = thread_states.get(thread_id, {})
-                    thread_states[thread_id]["tokens"] = {
-                        "input_tokens": input_tokens,
-                        "output_tokens": output_tokens,
-                        "cache_read_tokens": cache_read_tokens,
-                        "cache_write_tokens": cache_write_tokens,
-                    }
-
-                # Handle custom events (e.g., todos from mock agent)
-                elif event_kind == "on_custom_event":
-                    event_name = event.get("name", "")
-                    if event_name == "todo_update":
-                        event_data = event.get("data", {})
-                        if "todos" in event_data:
-                            todos = event_data["todos"]
-                            # Store in thread state
-                            thread_states[thread_id] = thread_states.get(thread_id, {})
-                            thread_states[thread_id]["todos"] = todos
-                            # Emit todos event
-                            yield {
-                                "event": "todos",
-                                "data": json.dumps({"todos": todos}),
-                            }
-                    elif event_name == "subagent_start":
-                        # Handle sub-agent delegation start
-                        event_data = event.get("data", {})
-                        subagent = event_data.get("subagent", "")
-                        reason = event_data.get("reason", "")
+                        # Emit interrupt event to frontend
                         yield {
-                            "event": "subagent_start",
+                            "event": "interrupt",
                             "data": json.dumps({
-                                "subagent": subagent,
+                                "tool": tool_name,
+                                "input": tool_input,
                                 "reason": reason,
                             }),
                         }
-                    elif event_name == "subagent_progress":
-                        # Handle sub-agent progress update
-                        event_data = event.get("data", {})
-                        subagent = event_data.get("subagent", "")
-                        progress = event_data.get("progress", 0)
-                        yield {
-                            "event": "subagent_progress",
-                            "data": json.dumps({
-                                "subagent": subagent,
-                                "progress": progress,
-                            }),
-                        }
-                    elif event_name == "subagent_end":
-                        # Handle sub-agent completion
-                        event_data = event.get("data", {})
-                        subagent = event_data.get("subagent", "")
-                        output = event_data.get("output", "")
-                        yield {
-                            "event": "subagent_end",
-                            "data": json.dumps({
-                                "subagent": subagent,
-                                "output": output,
-                            }),
-                        }
-                    elif event_name == "memory_save":
-                        # Handle memory save - save to database
-                        event_data = event.get("data", {})
-                        memory_content = event_data.get("content", "")
-                        category = event_data.get("category", "fact")
-                        source_conversation_id = event_data.get("source_conversation_id")
+                        # Stop streaming - will be resumed after approval
+                        return
 
-                        if memory_content:
-                            try:
-                                memory = Memory(
-                                    content=memory_content,
-                                    category=category,
-                                    source_conversation_id=source_conversation_id,
-                                )
-                                db.add(memory)
-                                await db.commit()
+                    # Handle on_chain_end event (end of streaming with token info)
+                    elif event_kind == "on_chain_end":
+                        event_data = event.get("data", {})
+                        # Extract token information if available
+                        input_tokens = event_data.get("input_tokens", 0)
+                        output_tokens = event_data.get("output_tokens", 0)
+                        cache_read_tokens = event_data.get("cache_read_tokens", 0)
+                        cache_write_tokens = event_data.get("cache_write_tokens", 0)
 
-                                # Notify frontend of successful save
+                        # Store token information in thread state for the done event
+                        thread_states[thread_id] = thread_states.get(thread_id, {})
+                        thread_states[thread_id]["tokens"] = {
+                            "input_tokens": input_tokens,
+                            "output_tokens": output_tokens,
+                            "cache_read_tokens": cache_read_tokens,
+                            "cache_write_tokens": cache_write_tokens,
+                        }
+
+                    # Handle custom events (e.g., todos from mock agent)
+                    elif event_kind == "on_custom_event":
+                        event_name = event.get("name", "")
+                        if event_name == "todo_update":
+                            event_data = event.get("data", {})
+                            if "todos" in event_data:
+                                todos = event_data["todos"]
+                                # Store in thread state
+                                thread_states[thread_id] = thread_states.get(thread_id, {})
+                                thread_states[thread_id]["todos"] = todos
+                                # Emit todos event
                                 yield {
-                                    "event": "memory_saved",
-                                    "data": json.dumps({
-                                        "content": memory_content,
-                                        "category": category,
-                                    }),
+                                    "event": "todos",
+                                    "data": json.dumps({"todos": todos}),
                                 }
-                            except Exception as e:
-                                # Log error but don't fail the stream
-                                print(f"Failed to save memory: {e}")
-                    elif event_name == "memory_retrieve":
-                        # Handle memory retrieval - search and return relevant memories
-                        event_data = event.get("data", {})
-                        query = event_data.get("query", "")
+                        elif event_name == "subagent_start":
+                            # Handle sub-agent delegation start
+                            event_data = event.get("data", {})
+                            subagent = event_data.get("subagent", "")
+                            reason = event_data.get("reason", "")
+                            yield {
+                                "event": "subagent_start",
+                                "data": json.dumps({
+                                    "subagent": subagent,
+                                    "reason": reason,
+                                }),
+                            }
+                        elif event_name == "subagent_progress":
+                            # Handle sub-agent progress update
+                            event_data = event.get("data", {})
+                            subagent = event_data.get("subagent", "")
+                            progress = event_data.get("progress", 0)
+                            yield {
+                                "event": "subagent_progress",
+                                "data": json.dumps({
+                                    "subagent": subagent,
+                                    "progress": progress,
+                                }),
+                            }
+                        elif event_name == "subagent_end":
+                            # Handle sub-agent completion
+                            event_data = event.get("data", {})
+                            subagent = event_data.get("subagent", "")
+                            output = event_data.get("output", "")
+                            yield {
+                                "event": "subagent_end",
+                                "data": json.dumps({
+                                    "subagent": subagent,
+                                    "output": output,
+                                }),
+                            }
+                        elif event_name == "memory_save":
+                            # Handle memory save - save to database
+                            event_data = event.get("data", {})
+                            memory_content = event_data.get("content", "")
+                            category = event_data.get("category", "fact")
+                            source_conversation_id = event_data.get("source_conversation_id")
 
-                        if query:
-                            try:
-                                # Search memories by content
-                                result = await db.execute(
-                                    select(Memory)
-                                    .where(Memory.content.ilike(f"%{query}%"))
-                                    .where(Memory.is_active == True)
-                                    .order_by(Memory.created_at.desc())
-                                    .limit(5)
-                                )
-                                memories = result.scalars().all()
+                            if memory_content:
+                                try:
+                                    memory = Memory(
+                                        content=memory_content,
+                                        category=category,
+                                        source_conversation_id=source_conversation_id,
+                                    )
+                                    db.add(memory)
+                                    await db.commit()
 
-                                if memories:
-                                    # Emit memories to frontend
+                                    # Notify frontend of successful save
                                     yield {
-                                        "event": "memories",
+                                        "event": "memory_saved",
                                         "data": json.dumps({
-                                            "memories": [m.to_dict() for m in memories],
+                                            "content": memory_content,
+                                            "category": category,
                                         }),
                                     }
-                            except Exception as e:
-                                # Log error but don't fail the stream
-                                print(f"Failed to retrieve memories: {e}")
+                                except Exception as e:
+                                    # Log error but don't fail the stream
+                                    print(f"Failed to save memory: {e}")
+                        elif event_name == "memory_retrieve":
+                            # Handle memory retrieval - search and return relevant memories
+                            event_data = event.get("data", {})
+                            query = event_data.get("query", "")
+
+                            if query:
+                                try:
+                                    # Search memories by content
+                                    result = await db.execute(
+                                        select(Memory)
+                                        .where(Memory.content.ilike(f"%{query}%"))
+                                        .where(Memory.is_active == True)
+                                        .order_by(Memory.created_at.desc())
+                                        .limit(5)
+                                    )
+                                    memories = result.scalars().all()
+
+                                    if memories:
+                                        # Emit memories to frontend
+                                        yield {
+                                            "event": "memories",
+                                            "data": json.dumps({
+                                                "memories": [m.to_dict() for m in memories],
+                                            }),
+                                        }
+                                except Exception as e:
+                                    # Log error but don't fail the stream
+                                    print(f"Failed to retrieve memories: {e}")
 
                 # Check for todos in agent state during streaming
                 if hasattr(agent, '_thread_state') and 'todos' in agent._thread_state:
