@@ -206,10 +206,24 @@ def extract_code_blocks(content: str) -> list[dict]:
         language = detect_language(code, language_hint)
         title = extract_title_from_code(code, language)
 
+        # Auto-detect artifact type from language
+        language_lower = language.lower()
+        if language_lower in ["html", "htm"]:
+            artifact_type = "html"
+        elif language_lower in ["svg"]:
+            artifact_type = "svg"
+        elif language_lower in ["mermaid"]:
+            artifact_type = "mermaid"
+        elif language_lower in ["latex", "tex"]:
+            artifact_type = "latex"
+        else:
+            artifact_type = "code"
+
         artifacts.append({
             "content": code,
             "language": language,
             "title": title,
+            "artifact_type": artifact_type,
         })
 
     return artifacts
@@ -235,25 +249,12 @@ async def create_artifacts_from_response(
     created_artifacts = []
 
     for artifact_data in artifacts_data:
-        # Auto-detect artifact type
-        language_lower = artifact_data["language"].lower()
-        if language_lower in ["html", "htm"]:
-            artifact_type = "html"
-        elif language_lower in ["svg"]:
-            artifact_type = "svg"
-        elif language_lower in ["mermaid"]:
-            artifact_type = "mermaid"
-        elif language_lower in ["latex", "tex"]:
-            artifact_type = "latex"
-        else:
-            artifact_type = "code"
-
         artifact = Artifact(
             conversation_id=conversation_id,
             content=artifact_data["content"],
             title=artifact_data["title"],
             language=artifact_data["language"],
-            artifact_type=artifact_type,
+            artifact_type=artifact_data["artifact_type"],
         )
 
         db.add(artifact)

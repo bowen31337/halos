@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { api } from '../services/api'
 
 export interface Artifact {
   id: string
@@ -39,7 +38,7 @@ interface ArtifactState {
   downloadArtifact: (artifactId: string) => Promise<{ filename: string; content: string; content_type: string }>
 }
 
-export const useArtifactStore = create<ArtifactState>((set, get) => ({
+export const useArtifactStore = create<ArtifactState>((set) => ({
   artifacts: [],
   currentArtifactId: null,
   isDetecting: false,

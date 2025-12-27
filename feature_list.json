@@ -752,8 +752,8 @@
       "Step 5: Click exit full-screen or press Escape",
       "Step 6: Verify returns to normal panel view"
     ],
-    "passes": false,
-    "is_dev_done": false,
+    "passes": true,
+    "is_dev_done": true,
     "is_qa_passed": false
   },
   {
@@ -767,8 +767,8 @@
       "Step 5: Close a tab",
       "Step 6: Verify tab disappears and another becomes active"
     ],
-    "passes": false,
-    "is_dev_done": false,
+    "passes": true,
+    "is_dev_done": true,
     "is_qa_passed": false
   },
   {
@@ -782,8 +782,8 @@
       "Step 5: Verify display-mode equations are centered",
       "Step 6: Verify complex equations like integrals render"
     ],
-    "passes": false,
-    "is_dev_done": false,
+    "passes": true,
+    "is_dev_done": true,
     "is_qa_passed": false
   },
   {
