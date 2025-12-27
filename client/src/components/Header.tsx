@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useUIStore } from '../stores/uiStore'
 import { useProjectStore } from '../stores/projectStore'
+import { useConversationStore } from '../stores/conversationStore'
 import { SettingsModal } from './SettingsModal'
 import { ProjectModal } from './ProjectModal'
 import { ProjectFilesModal } from './ProjectFilesModal'
+import { BranchSelector } from './BranchSelector'
 
 const MODELS = [
   { id: 'claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5', description: 'Balanced' },
@@ -22,6 +24,7 @@ export function Header() {
     fetchProjects,
     isLoading: projectsLoading
   } = useProjectStore()
+  const { currentConversationId } = useConversationStore()
 
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false)
   const [exportMenuOpen, setExportMenuOpen] = useState(false)
@@ -307,6 +310,9 @@ export function Header() {
           </svg>
           <span>Thinking</span>
         </button>
+
+        {/* Branch Selector - only show when in a conversation */}
+        {currentConversationId && <BranchSelector conversationId={currentConversationId} />}
 
         {/* Dropdown menu */}
         {modelDropdownOpen && (

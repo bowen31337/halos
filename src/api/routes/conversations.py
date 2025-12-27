@@ -42,6 +42,14 @@ class MoveConversationRequest(BaseModel):
     project_id: Optional[str] = None
 
 
+class BranchConversationRequest(BaseModel):
+    """Request model for creating a branch from a conversation."""
+
+    branch_name: str = Field(..., min_length=1, max_length=100)
+    branch_color: Optional[str] = Field(None, max_length=20)
+    message_id: str = Field(..., description="The message ID to branch from")
+
+
 class ConversationResponse(BaseModel):
     """Response model for a conversation."""
 
@@ -428,6 +436,229 @@ async def export_conversation(
             status_code=400,
             detail=f"Unsupported format: {format}. Supported formats: json, markdown"
         )
+
+
+@router.post("/{conversation_id}/branch")
+async def create_branch(
+    conversation_id: str,
+    data: BranchConversationRequest,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Create a new branch from a conversation at a specific message."""
+    from uuid import uuid4
+    from datetime import datetime
+
+    # Check if parent conversation exists
+    result = await db.execute(
+        select(ConversationModel).where(ConversationModel.id == conversation_id)
+    )
+    parent_conversation = result.scalar_one_or_none()
+
+    if not parent_conversation:
+        raise HTTPException(status_code=404, detail="Parent conversation not found")
+
+    # Check if the branch point message exists
+    result = await db.execute(
+        select(MessageModel).where(MessageModel.id == data.message_id)
+    )
+    branch_point_message = result.scalar_one_or_none()
+
+    if not branch_point_message:
+        raise HTTPException(status_code=404, detail="Branch point message not found")
+
+    # Validate that the message belongs to this conversation
+    if branch_point_message.conversation_id != conversation_id:
+        raise HTTPException(status_code=400, detail="Branch point message does not belong to this conversation")
+
+    # Create branch conversation
+    now = datetime.utcnow()
+    branch_name = data.branch_name or f"Branch from {parent_conversation.title}"
+
+    branch_conversation = ConversationModel(
+        title=f"{parent_conversation.title} - {branch_name}",
+        model=parent_conversation.model,
+        project_id=parent_conversation.project_id,
+        parent_conversation_id=parent_conversation.id,
+        branch_point_message_id=data.message_id,
+        branch_name=branch_name,
+        branch_color=data.branch_color,
+        created_at=now,
+        updated_at=now,
+        last_message_at=now,
+    )
+
+    db.add(branch_conversation)
+    await db.commit()
+    await db.refresh(branch_conversation)
+
+    # Copy messages up to and including the branch point
+    result = await db.execute(
+        select(MessageModel)
+        .where(MessageModel.conversation_id == conversation_id)
+        .where(MessageModel.created_at <= branch_point_message.created_at)
+        .order_by(MessageModel.created_at)
+    )
+    messages_to_copy = result.scalars().all()
+
+    for msg in messages_to_copy:
+        new_message = MessageModel(
+            conversation_id=branch_conversation.id,
+            role=msg.role,
+            content=msg.content,
+            attachments=msg.attachments,
+            tool_calls=msg.tool_calls,
+            tool_results=msg.tool_results,
+            thinking_content=msg.thinking_content,
+            input_tokens=msg.input_tokens,
+            output_tokens=msg.output_tokens,
+            cache_read_tokens=msg.cache_read_tokens,
+            cache_write_tokens=msg.cache_write_tokens,
+            created_at=msg.created_at,
+            edited_at=msg.edited_at,
+        )
+        db.add(new_message)
+
+    # Mark the branch point message as a branch point in the original conversation
+    branch_point_message.is_branch_point = True
+    branch_conversation.message_count = len(messages_to_copy)
+    branch_conversation.token_count = sum(msg.input_tokens + msg.output_tokens for msg in messages_to_copy)
+
+    await db.commit()
+    await db.refresh(branch_conversation)
+
+    return {
+        "id": branch_conversation.id,
+        "title": branch_conversation.title,
+        "model": branch_conversation.model,
+        "project_id": branch_conversation.project_id,
+        "parent_conversation_id": branch_conversation.parent_conversation_id,
+        "branch_point_message_id": branch_conversation.branch_point_message_id,
+        "branch_name": branch_conversation.branch_name,
+        "branch_color": branch_conversation.branch_color,
+        "is_archived": branch_conversation.is_archived,
+        "is_pinned": branch_conversation.is_pinned,
+        "message_count": branch_conversation.message_count,
+        "token_count": branch_conversation.token_count,
+        "created_at": branch_conversation.created_at.isoformat(),
+        "updated_at": branch_conversation.updated_at.isoformat(),
+    }
+
+
+@router.get("/{conversation_id}/branches")
+async def list_branches(
+    conversation_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> list[dict]:
+    """List all branches for a conversation."""
+    result = await db.execute(
+        select(ConversationModel)
+        .where(ConversationModel.parent_conversation_id == conversation_id)
+        .order_by(ConversationModel.created_at)
+    )
+    branches = result.scalars().all()
+
+    return [
+        {
+            "id": branch.id,
+            "title": branch.title,
+            "model": branch.model,
+            "project_id": branch.project_id,
+            "parent_conversation_id": branch.parent_conversation_id,
+            "branch_point_message_id": branch.branch_point_message_id,
+            "branch_name": branch.branch_name,
+            "branch_color": branch.branch_color,
+            "is_archived": branch.is_archived,
+            "is_pinned": branch.is_pinned,
+            "message_count": branch.message_count,
+            "token_count": branch.token_count,
+            "created_at": branch.created_at.isoformat(),
+            "updated_at": branch.updated_at.isoformat(),
+        }
+        for branch in branches
+    ]
+
+
+@router.get("/{conversation_id}/branch-tree")
+async def get_branch_tree(
+    conversation_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Get the branch tree structure for a conversation."""
+    # Get the conversation
+    result = await db.execute(
+        select(ConversationModel).where(ConversationModel.id == conversation_id)
+    )
+    conversation = result.scalar_one_or_none()
+
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # Get all related conversations (parent and children)
+    conversations_to_check = [conversation]
+    current = conversation
+
+    # Find root conversation
+    while current.parent_conversation_id:
+        result = await db.execute(
+            select(ConversationModel).where(ConversationModel.id == current.parent_conversation_id)
+        )
+        parent = result.scalar_one_or_none()
+        if parent:
+            conversations_to_check.append(parent)
+            current = parent
+        else:
+            break
+
+    # Get all branches from all conversations in the tree
+    all_conversations = []
+    for conv in conversations_to_check:
+        # Get branches for this conversation
+        result = await db.execute(
+            select(ConversationModel)
+            .where(ConversationModel.parent_conversation_id == conv.id)
+            .order_by(ConversationModel.created_at)
+        )
+        branches = result.scalars().all()
+        all_conversations.extend(branches)
+
+    # Build tree structure
+    tree = {
+        "root": {
+            "id": current.id,
+            "title": current.title,
+            "model": current.model,
+            "is_archived": current.is_archived,
+            "is_pinned": current.is_pinned,
+            "created_at": current.created_at.isoformat(),
+        },
+        "branches": [
+            {
+                "id": branch.id,
+                "title": branch.title,
+                "model": branch.model,
+                "parent_conversation_id": branch.parent_conversation_id,
+                "branch_point_message_id": branch.branch_point_message_id,
+                "branch_name": branch.branch_name,
+                "branch_color": branch.branch_color,
+                "is_archived": branch.is_archived,
+                "is_pinned": branch.is_pinned,
+                "created_at": branch.created_at.isoformat(),
+                "message_count": branch.message_count,
+                "token_count": branch.token_count,
+            }
+            for branch in all_conversations
+        ],
+        "current_conversation": {
+            "id": conversation.id,
+            "title": conversation.title,
+            "model": conversation.model,
+            "is_archived": conversation.is_archived,
+            "is_pinned": conversation.is_pinned,
+            "created_at": conversation.created_at.isoformat(),
+        }
+    }
+
+    return tree
 
 
 @router.post("/upload-image")

@@ -106,6 +106,50 @@ class APIService {
     return response.blob()
   }
 
+  async createConversationBranch(
+    conversationId: string,
+    branchPointMessageId: string,
+    branchName?: string,
+    branchColor?: string
+  ): Promise<any> {
+    const response = await fetch(`${API_BASE}/conversations/${conversationId}/branch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        branch_point_message_id: branchPointMessageId,
+        branch_name: branchName,
+        branch_color: branchColor
+      }),
+    })
+    if (!response.ok) {
+      throw new Error(`Branch creation failed: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async listConversationBranches(conversationId: string): Promise<any[]> {
+    const response = await fetch(`${API_BASE}/conversations/${conversationId}/branches`)
+    if (!response.ok) {
+      throw new Error(`Failed to get branches: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async getConversationBranchTree(conversationId: string): Promise<any> {
+    const response = await fetch(`${API_BASE}/conversations/${conversationId}/branch-tree`)
+    if (!response.ok) {
+      throw new Error(`Failed to get branch tree: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async switchToBranch(
+    conversationId: string,
+    targetConversationId: string
+  ): Promise<any> {
+    throw new Error("Switching branches should be handled by switching conversations in the frontend")
+  }
+
   // Message APIs
   async listMessages(conversationId: string): Promise<Message[]> {
     const response = await fetch(`${API_BASE}/messages/conversations/${conversationId}/messages`)

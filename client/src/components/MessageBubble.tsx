@@ -6,6 +6,8 @@ import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { useState } from 'react'
 import { useArtifactStore } from '../stores/artifactStore'
 import { useUIStore } from '../stores/uiStore'
+import { useConversationStore } from '../stores/conversationStore'
+import { useBranchingStore } from '../stores/branchingStore'
 
 interface MessageBubbleProps {
   message: Message
@@ -25,11 +27,16 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
   const [editedContent, setEditedContent] = useState(message.content)
   const [thinkingExpanded, setThinkingExpanded] = useState(false)
   const [isExtracting, setIsExtracting] = useState(false)
+  const [isBranching, setIsBranching] = useState(false)
 
   const { detectArtifacts } = useArtifactStore()
   const { setPanelType, setPanelOpen } = useUIStore()
+  const { messages, currentConversationId, setCurrentConversation, loadMessages } = useConversationStore()
+  const { createBranch, loadBranchPath } = useBranchingStore()
 
   const hasCodeBlocks = message.content && /```/.test(message.content)
+  const currentIndex = messages.findIndex(m => m.id === message.id)
+  const isLastMessage = currentIndex === messages.length - 1
 
   const copyToClipboard = async (text: string, language: string) => {
     try {
@@ -45,6 +52,35 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
     if (isUser && onEdit) {
       onEdit(message.id, editedContent)
       setIsEditing(false)
+    }
+  }
+
+  const handleBranch = async () => {
+    if (isBranching) return
+
+    // Branching works from user messages - clicking on a user message creates a branch from that point
+    // Or from assistant messages (but not the last one)
+    const canBranch = isUser || (!isUser && !isLastMessage)
+
+    if (!canBranch) {
+      console.log('Cannot branch from this message')
+      return
+    }
+
+    try {
+      setIsBranching(true)
+      const result = await createBranch(message.conversationId, message.id, undefined, '#ff6b6b')
+
+      // Switch to the new branch conversation
+      if (result?.conversation?.id) {
+        setCurrentConversation(result.conversation.id)
+        await loadMessages(result.conversation.id)
+        await loadBranchPath(result.conversation.id)
+      }
+    } catch (err) {
+      console.error('Failed to create branch:', err)
+    } finally {
+      setIsBranching(false)
     }
   }
 
@@ -123,6 +159,17 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
                     title="Regenerate response"
                   >
                     🔄
+                  </button>
+                )}
+                {/* Branch button - show for assistant messages that are not the last message */}
+                {!isLastMessage && (
+                  <button
+                    onClick={handleBranch}
+                    disabled={isBranching}
+                    className="p-1 hover:bg-[var(--bg-secondary)] rounded transition-colors"
+                    title="Create branch from this message"
+                  >
+                    {isBranching ? '⏳' : '🌳'}
                   </button>
                 )}
               </div>
@@ -271,6 +318,15 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
               title="Edit message"
             >
               ✏️
+            </button>
+            {/* Branch button for user messages */}
+            <button
+              onClick={handleBranch}
+              disabled={isBranching}
+              className="p-1 hover:bg-white/10 rounded transition-colors"
+              title="Create branch from this message"
+            >
+              {isBranching ? '⏳' : '🌳'}
             </button>
           </div>
         )}
