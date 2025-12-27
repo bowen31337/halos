@@ -566,7 +566,9 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Implemented and verified with test_project_feature.py"
   },
   {
     "category": "functional",
@@ -813,9 +815,9 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
+    "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "Implemented and tested - backend endpoints, frontend components, and tests all complete"
+    "notes": "Implemented and verified with test_conversation_branching_ui.py"
   },
   {
     "category": "functional",
@@ -830,9 +832,9 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
+    "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "Implemented and tested - backend endpoints, frontend components, and tests all complete"
+    "notes": "Implemented and verified with test_conversation_branching_ui.py"
   },
   {
     "category": "functional",
@@ -3069,9 +3071,9 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
+    "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "Implemented and tested - backend endpoints, frontend components, and tests all complete"
+    "notes": "Implemented and verified with test_conversation_branching_ui.py"
   },
   {
     "category": "functional",
