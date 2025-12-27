@@ -430,7 +430,8 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": true
+    "is_qa_passed": true,
+    "notes": "Implemented with toggle in Header, thinking events in backend, and collapsible display in MessageBubble"
   },
   {
     "category": "functional",
@@ -447,7 +448,8 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": true
+    "is_qa_passed": true,
+    "notes": "Thinking content is collapsible in MessageBubble with expand/collapse toggle"
   },
   {
     "category": "functional",
