@@ -40,6 +40,20 @@ export function ProjectModal({ isOpen, onClose, project }: ProjectModalProps) {
   const [customInstructions, setCustomInstructions] = useState(project?.custom_instructions || '')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Handle Escape key to close modal
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
+
   // Reset form when project prop changes or modal opens/closes
   useEffect(() => {
     if (isOpen) {

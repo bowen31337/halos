@@ -34,11 +34,15 @@
   --info: #3B82F6;
 
   /* Sidebar */
-  --sidebar-width: 260px;
+  --sidebar-width: 280px;
   --sidebar-collapsed-width: 0px;
 
-  /* Panel */
-  --panel-width: 400px;
+  /* Panel widths for right-side panels */
+  --panel-artifacts-width: 450px;
+  --panel-todos-width: 400px;
+  --panel-files-width: 500px;
+  --panel-diffs-width: 600px;
+  --panel-memory-width: 500px;
 
   /* Font size - customizable via settings */
   --base-font-size: 16px;
@@ -80,10 +84,116 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Three-column layout classes */
+.layout-three-column {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.layout-sidebar {
+  flex-shrink: 0;
+  width: var(--sidebar-width);
+  border-right: 1px solid var(--border-primary);
+  background-color: var(--bg-secondary);
+  transition: width 0.3s ease-out;
+}
+
+.layout-sidebar.collapsed {
+  width: 0;
+  overflow: hidden;
+}
+
+.layout-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* Prevent flex overflow */
+}
+
+.layout-header {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-primary);
+  background-color: var(--bg-primary);
+}
+
+.layout-content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.layout-input {
+  flex-shrink: 0;
+  border-top: 1px solid var(--border-primary);
+  background-color: var(--bg-primary);
+  transition: margin-right 0.3s ease-out;
+}
+
+/* Right panel overlay classes */
+.panel-overlay {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  background-color: var(--bg-primary);
+  border-left: 1px solid var(--border-primary);
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease-out;
+  transform: translateX(100%);
+}
+
+.panel-overlay.open {
+  transform: translateX(0);
+}
+
+.panel-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 40;
+  opacity: 0;
+  transition: opacity 0.3s ease-out;
+}
+
+.panel-overlay.open + .panel-backdrop {
+  opacity: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1023px) {
+  .panel-overlay {
+    width: 100%;
+  }
+  .layout-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 60;
+    transform: translateX(-100%);
+  }
+  .layout-sidebar.open {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 767px) {
+  .layout-sidebar {
+    width: 100%;
+  }
+}
+
 /* Scrollbar styling */
+/* WebKit browsers (Chrome, Safari, Edge) */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -92,11 +202,54 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: var(--border);
-  border-radius: 4px;
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-secondary);
+  cursor: pointer;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: var(--text-primary);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+/* Additional scrollbar styling for specific areas */
+.message-list {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.message-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.message-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.panel-content {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.panel-content::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.panel-content::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
 }
 
 /* Custom utility classes */
@@ -441,25 +594,93 @@ button:disabled.loading::after {
   color: var(--info);
 }
 
-/* Status ring (focus states) */
-.ring-success:focus-visible {
-  outline: 2px solid var(--success);
+/* Keyboard navigation focus states */
+/* Base focus styles for all interactive elements */
+*:focus-visible {
+  outline: 3px solid var(--primary);
   outline-offset: 2px;
+  box-shadow: 0 0 0 6px var(--primary)/20%;
+  transition: outline-color 0.2s ease, outline-offset 0.2s ease, box-shadow 0.2s ease;
 }
 
-.ring-warning:focus-visible {
-  outline: 2px solid var(--warning);
+/* Enhanced focus for buttons and controls */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--primary);
   outline-offset: 2px;
+  box-shadow: 0 0 0 6px var(--primary)/20%;
+  transition: all 0.2s ease;
 }
 
-.ring-error:focus-visible {
-  outline: 2px solid var(--error);
-  outline-offset: 2px;
+/* High contrast focus indicators */
+@media (prefers-contrast: high) {
+  *:focus-visible {
+    outline-width: 4px;
+    outline-offset: 3px;
+    box-shadow: none;
+  }
 }
 
-.ring-info:focus-visible {
-  outline: 2px solid var(--info);
+/* Keyboard-only focus indicators (hide focus for mouse users) */
+.js-focus-visible *:focus:not(.focus-visible) {
+  outline: none;
+}
+
+.js-focus-visible *:focus-visible {
+  outline: 3px solid var(--primary);
   outline-offset: 2px;
+  box-shadow: 0 0 0 6px var(--primary)/20%;
+}
+
+/* Enhanced focus for form controls */
+input[type="text"]:focus-visible,
+input[type="email"]:focus-visible,
+input[type="password"]:focus-visible,
+input[type="search"]:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary)/20%;
+}
+
+/* Focus states for navigation items */
+.nav-item:focus-visible,
+.conversation-item:focus-visible,
+.message-bubble:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  background-color: var(--bg-secondary);
+  transition: all 0.2s ease;
+}
+
+/* Focus states for modal close buttons */
+.modal-close:focus-visible {
+  outline: 3px solid var(--error);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px var(--error)/20%;
+}
+
+/* Focus states for panel controls */
+.panel-control:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  background-color: var(--surface-elevated);
+}
+
+/* Skip navigation link focus */
+.skip-nav:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 0;
+  background: var(--primary);
+  color: white;
+  padding: 1rem;
+  z-index: 9999;
+  position: fixed;
+  top: 0;
+  left: 0;
 }
 
 /* Legacy animation classes - kept for backward compatibility */

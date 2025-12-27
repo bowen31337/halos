@@ -45,6 +45,18 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
   const [isSavingKey, setIsSavingKey] = useState(false)
   const [showKey, setShowKey] = useState(false)
 
+  // Handle Escape key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
   // Load settings from backend on mount
   useEffect(() => {
     const loadSettings = async () => {
@@ -586,6 +598,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             onClick={onClose}
             className="p-2 hover:bg-[var(--surface-elevated)] rounded-lg transition-colors"
             title="Close"
+            aria-label="Close settings"
           >
             <svg className="w-5 h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

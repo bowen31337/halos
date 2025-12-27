@@ -5,9 +5,10 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import katex from 'katex'
 import 'katex/dist/katex.min.css'
+import { ResizableHandle } from './ResizableHandle'
 
 export function ArtifactPanel() {
-  const { setPanelType, setPanelOpen } = useUIStore()
+  const { setPanelType, setPanelOpen, panelWidth, setPanelWidth } = useUIStore()
   const {
     artifacts,
     currentArtifactId,
@@ -358,8 +359,9 @@ export function ArtifactPanel() {
         className={`fixed flex flex-col shadow-xl z-30 transition-all duration-300 ${
           isFullscreen
             ? 'inset-0 bg-[var(--bg-primary)]'
-            : 'right-0 top-[60px] bottom-0 w-[450px] bg-[var(--bg-primary)] border-l border-[var(--border-primary)] lg:w-[450px] md:w-full'
+            : 'right-0 top-[60px] bottom-0 bg-[var(--bg-primary)] border-l border-[var(--border-primary)] md:w-full'
         }`}
+        style={!isFullscreen ? { width: `${panelWidth}px` } : undefined}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-primary)] bg-[var(--bg-secondary)]">
@@ -396,6 +398,17 @@ export function ArtifactPanel() {
             </button>
           </div>
         </div>
+
+        {/* Resize handle - only on desktop when not fullscreen */}
+        {!isFullscreen && (
+          <ResizableHandle
+            direction="left"
+            onResize={setPanelWidth}
+            minWidth={350}
+            maxWidth={600}
+            className="left-0"
+          />
+        )}
 
         {/* Content */}
         <div className="flex flex-1 overflow-hidden">

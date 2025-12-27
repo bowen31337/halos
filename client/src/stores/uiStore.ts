@@ -12,6 +12,7 @@ interface UIState {
   // Panel
   panelOpen: boolean
   panelType: 'artifacts' | 'files' | 'todos' | 'diffs' | 'memory' | null
+  panelWidth: number
 
   // Model
   selectedModel: string
@@ -43,6 +44,7 @@ interface UIState {
   togglePanel: () => void
   setPanelOpen: (open: boolean) => void
   setPanelType: (type: 'artifacts' | 'files' | 'todos' | 'diffs' | 'memory' | null) => void
+  setPanelWidth: (width: number) => void
   setSelectedModel: (model: string) => void
   toggleExtendedThinking: () => void
   setFontSize: (size: number) => void
@@ -63,6 +65,7 @@ export const useUIStore = create<UIState>()(
       sidebarWidth: 260,
       panelOpen: false,
       panelType: null,
+      panelWidth: 450,
       selectedModel: 'claude-sonnet-4-5-20250929',
       extendedThinkingEnabled: false,
       fontSize: 16,
@@ -94,6 +97,7 @@ export const useUIStore = create<UIState>()(
       togglePanel: () => set((state) => ({ panelOpen: !state.panelOpen })),
       setPanelOpen: (open) => set({ panelOpen: open }),
       setPanelType: (type) => set({ panelType: type, panelOpen: type !== null }),
+      setPanelWidth: (width) => set({ panelWidth: width }),
 
       setSelectedModel: (model) => set({ selectedModel: model }),
       toggleExtendedThinking: () =>
@@ -118,6 +122,7 @@ export const useUIStore = create<UIState>()(
       partialize: (state) => ({
         theme: state.theme,
         sidebarWidth: state.sidebarWidth,
+        panelWidth: state.panelWidth,
         selectedModel: state.selectedModel,
         extendedThinkingEnabled: state.extendedThinkingEnabled,
         fontSize: state.fontSize,

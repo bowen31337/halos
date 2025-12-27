@@ -63,7 +63,7 @@ export function ChatPage() {
     return 'mr-[450px]'
   }
 
-  // On tablet/mobile, panels become overlays that don't affect main content width
+  // On desktop, panels should adjust main content width
   const shouldAdjustWidth = panelOpen && !isTablet && !isMobile
 
   return (

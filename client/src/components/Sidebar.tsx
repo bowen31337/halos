@@ -308,8 +308,27 @@ export function Sidebar() {
 
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {conversations.length === 0 ? (
-          <div className="text-center p-8 text-[var(--text-secondary)] text-sm">
-            No conversations yet
+          <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+            {/* Empty state illustration */}
+            <div className="text-6xl mb-4 opacity-50">💬</div>
+
+            {/* Empty state text */}
+            <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
+              No conversations yet
+            </h3>
+            <p className="text-sm text-[var(--text-secondary)] mb-6 max-w-xs">
+              Start a new conversation to begin chatting with Claude
+            </p>
+
+            {/* Call-to-action button */}
+            <button
+              onClick={handleNewConversation}
+              disabled={isCreating}
+              className="px-6 py-3 bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] text-white rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm hover:shadow-md"
+            >
+              <span className="text-lg">+</span>
+              <span>{isCreating ? 'Creating...' : 'Start Chatting'}</span>
+            </button>
           </div>
         ) : (
           <>

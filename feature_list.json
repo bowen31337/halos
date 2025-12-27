@@ -2094,9 +2094,12 @@
       "Step 5: Verify proportions feel balanced",
       "Step 6: Verify resize handles work"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "qa_date": "2025-12-27",
+    "notes": "Implemented resizable sidebar (260px) and artifacts panel (450px) with ResizableHandle component. Layout proportions are balanced at 13.5% sidebar, 63% main chat, 23.4% panel. Min/max constraints: sidebar 220-400px, panel 350-600px.",
+    "test_date": "2025-12-27"
   },
   {
     "category": "style",
@@ -2109,9 +2112,11 @@
       "Step 5: Verify scrollbar updates appropriately",
       "Step 6: Test smooth scrolling behavior"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "qa_date": "2025-12-27",
+    "notes": "QA verified on 2025-12-27 - All tests passing"
   },
   {
     "category": "style",
@@ -2124,9 +2129,11 @@
       "Step 5: Verify command list styling",
       "Step 6: Verify keyboard navigation highlighting"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "qa_date": "2025-12-27",
+    "notes": "QA verified on 2025-12-27 - All tests passing"
   },
   {
     "category": "style",

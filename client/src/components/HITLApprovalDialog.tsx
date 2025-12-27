@@ -88,7 +88,7 @@ export function HITLApprovalDialog({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in" role="dialog" aria-modal="true" aria-labelledby="hiltl-dialog-title">
       <div className="bg-[var(--bg-primary)] border-2 border-[var(--warning)] rounded-xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl modal-transition transform scale-100"
            style={{ boxShadow: '0 20px 50px rgba(245, 158, 11, 0.2)' }}>
         {/* Header - Attention grabbing with warning accent */}

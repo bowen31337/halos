@@ -200,9 +200,28 @@ export const MemoryManager: React.FC<MemoryManagerProps> = ({ onClose }) => {
         {/* Memories List */}
         <div className="p-4 overflow-y-auto" style={{ maxHeight: '400px' }}>
           {isLoading && memories.length === 0 ? (
-            <div className="text-center text-gray-400 py-8">Loading memories...</div>
+            <div className="text-center text-[var(--text-secondary)] py-8">
+              <div className="loading-spinner primary mb-2 mx-auto"></div>
+              Loading memories...
+            </div>
           ) : memories.length === 0 ? (
-            <div className="text-center text-gray-400 py-8">No memories yet. Create one above!</div>
+            <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+              {/* Empty state illustration */}
+              <div className="text-5xl mb-4 opacity-50">🧠</div>
+
+              {/* Empty state text */}
+              <h3 className="text-base font-semibold text-[var(--text-primary)] mb-2">
+                No memories yet
+              </h3>
+              <p className="text-sm text-[var(--text-secondary)] mb-4 max-w-xs">
+                Memories help the agent remember important information across conversations
+              </p>
+
+              {/* Call-to-action hint */}
+              <div className="text-xs text-[var(--text-muted)] bg-[var(--bg-secondary)] px-3 py-2 rounded-lg">
+                💡 Ask the agent to remember something, or create a memory manually above
+              </div>
+            </div>
           ) : (
             <div className="space-y-3">
               {memories.map((memory) => (

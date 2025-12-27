@@ -7,9 +7,11 @@ import { OnboardingTour } from './OnboardingTour'
 import { useUIStore } from '../stores/uiStore'
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
 import { useState, useEffect, useRef } from 'react'
+import { SkipNavigation } from './SkipNavigation'
+import { ResizableHandle } from './ResizableHandle'
 
 export function Layout() {
-  const { sidebarOpen, sidebarWidth, setSidebarOpen } = useUIStore()
+  const { sidebarOpen, sidebarWidth, setSidebarOpen, setSidebarWidth } = useUIStore()
   const [isMobile, setIsMobile] = useState(false)
   const [isTablet, setIsTablet] = useState(false)
   const location = useLocation()
@@ -103,33 +105,56 @@ export function Layout() {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      role="application"
+      aria-label="Claude AI Assistant"
     >
-      {/* Sidebar - overlay on mobile, collapsible on tablet */}
+      <SkipNavigation />
+
+      {/* Sidebar - proper three-column layout on desktop with resize handle */}
       <div
         className={`
-          flex-shrink-0 transition-all duration-300 ease-out
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          ${isMobile ? 'fixed inset-0 z-40 w-full max-w-[280px]' : ''}
-          ${isTablet ? 'fixed inset-y-0 left-0 z-30 w-[260px]' : ''}
+          relative flex-shrink-0 transition-all duration-300 ease-out
+          ${sidebarOpen ? 'translate-x-0' : 'w-0 overflow-hidden'}
+          ${isMobile ? 'fixed inset-0 z-40 max-w-[280px]' : ''}
+          ${isTablet ? 'fixed inset-y-0 left-0 z-30' : ''}
+          border-r border-[var(--border-primary)]
         `}
-        style={{
-          width: sidebarOpen && !isMobile ? sidebarWidth : (isMobile || (isTablet && sidebarOpen)) ? '260px' : 0
-        }}
+        style={{ width: sidebarOpen && !isMobile && !isTablet ? `${sidebarWidth}px` : undefined }}
+        role="navigation"
+        aria-label="Conversation sidebar"
+        aria-expanded={sidebarOpen}
+        aria-hidden={!sidebarOpen}
       >
+        {/* Resize handle - only on desktop */}
+        {sidebarOpen && !isMobile && !isTablet && (
+          <ResizableHandle
+            direction="right"
+            onResize={setSidebarWidth}
+            minWidth={220}
+            maxWidth={400}
+            className="right-0"
+          />
+        )}
         {/* Backdrop for mobile/tablet overlay */}
-        {(isMobile || isTablet) && sidebarOpen && (
+        {(isMobile || (isTablet && sidebarOpen)) && (
           <div
             className="fixed inset-0 bg-black/50 z-[-1]"
             onClick={() => setSidebarOpen(false)}
+            aria-hidden="true"
           />
         )}
         <Sidebar />
       </div>
 
-      {/* Main content */}
+      {/* Main content area - takes remaining space */}
       <div className="flex flex-1 flex-col min-w-0">
         <Header />
-        <main className="flex-1 overflow-hidden">
+        <main
+          className="flex-1 overflow-hidden"
+          role="main"
+          aria-label="Chat interface"
+          id="main-content"
+        >
           <Outlet />
         </main>
       </div>

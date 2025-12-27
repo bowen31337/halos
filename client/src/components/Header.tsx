@@ -185,8 +185,11 @@ export function Header() {
           onClick={toggleSidebar}
           className="p-2 hover:bg-[var(--surface-elevated)] rounded-lg transition-colors"
           title="Toggle sidebar"
+          aria-label="Toggle conversation sidebar"
+          aria-expanded={sidebarOpen}
+          aria-controls="sidebar"
         >
-          <svg className="w-5 h-5 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
@@ -197,16 +200,20 @@ export function Header() {
             onClick={() => setProjectMenuOpen(!projectMenuOpen)}
             className="flex items-center gap-2 px-3 py-1.5 bg-[var(--surface-elevated)] hover:bg-[var(--bg-primary)] rounded-full text-sm transition-colors"
             title="Select project"
+            aria-label="Select project"
+            aria-expanded={projectMenuOpen}
+            aria-haspopup="listbox"
+            aria-controls="project-dropdown"
           >
             {selectedProject ? (
               <>
-                <span className="text-lg">{selectedProject.icon || '📁'}</span>
+                <span className="text-lg" aria-hidden="true">{selectedProject.icon || '📁'}</span>
                 <span className="text-[var(--text-primary)] font-medium">{selectedProject.name}</span>
               </>
             ) : (
               <span className="text-[var(--text-secondary)]">All Conversations</span>
             )}
-            <svg className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${projectMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${projectMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
             </svg>
           </button>
@@ -217,8 +224,9 @@ export function Header() {
               <div
                 className="fixed inset-0 z-10"
                 onClick={() => setProjectMenuOpen(false)}
+                aria-hidden="true"
               />
-              <div className="absolute top-full left-0 mt-2 w-72 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg shadow-lg z-20 py-2">
+              <div className="absolute top-full left-0 mt-2 w-72 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg shadow-lg z-20 py-2" role="listbox" id="project-dropdown" aria-label="Project selection">
                 {/* All Conversations option */}
                 <button
                   onClick={() => {
