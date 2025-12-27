@@ -42,6 +42,9 @@ interface UIState {
   contentFilterLevel: 'off' | 'low' | 'medium' | 'high'
   contentFilterCategories: string[]
 
+  // Locale preference for timestamp formatting
+  locale: string
+
   // Actions
   setTheme: (theme: 'light' | 'dark' | 'system') => void
   setHighContrast: (enabled: boolean) => void
@@ -65,6 +68,7 @@ interface UIState {
   toggleMemoryEnabled: () => void
   setContentFilterLevel: (level: 'off' | 'low' | 'medium' | 'high') => void
   setContentFilterCategories: (categories: string[]) => void
+  setLocale: (locale: string) => void
 }
 
 export const useUIStore = create<UIState>()(
@@ -89,6 +93,7 @@ export const useUIStore = create<UIState>()(
       memoryEnabled: true,
       contentFilterLevel: 'low',
       contentFilterCategories: ['violence', 'hate', 'sexual', 'self-harm', 'illegal'],
+      locale: 'en-US',
 
       // Actions
       setTheme: (theme) => {
