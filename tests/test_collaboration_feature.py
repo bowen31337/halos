@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sess
 
 from src.core.database import Base, get_db
 from src.main import app
-from src.models import Conversation
+from src.models import Conversation, User
 
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
@@ -51,10 +51,20 @@ async def client(test_db: AsyncSession):
 @pytest.mark.asyncio
 async def test_collaboration_get_active_users(client: AsyncClient, test_db: AsyncSession):
     """Test getting active users in a conversation."""
+    # Create a test user first
+    user = User(
+        email="test@example.com",
+        name="Test User",
+        hashed_password="fake_hash"
+    )
+    test_db.add(user)
+    await test_db.commit()
+
     # Create a test conversation
     conv = Conversation(
         title="Test Collaboration Conversation",
-        model="claude-sonnet-4-5-20250929"
+        model="claude-sonnet-4-5-20250929",
+        user_id=user.id
     )
     test_db.add(conv)
     await test_db.commit()
@@ -79,10 +89,20 @@ async def test_collaboration_invalid_conversation(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_collaboration_api_structure(client: AsyncClient, test_db: AsyncSession):
     """Test that collaboration API is properly structured."""
+    # Create a test user
+    user = User(
+        email="test2@example.com",
+        name="Test User 2",
+        hashed_password="fake_hash"
+    )
+    test_db.add(user)
+    await test_db.commit()
+
     # Create a conversation
     conv = Conversation(
         title="API Structure Test",
-        model="claude-sonnet-4-5-20250929"
+        model="claude-sonnet-4-5-20250929",
+        user_id=user.id
     )
     test_db.add(conv)
     await test_db.commit()

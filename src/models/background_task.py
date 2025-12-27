@@ -38,6 +38,12 @@ class BackgroundTask(Base):
     result: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
     error_message: Mapped[Optional[str]] = mapped_column(String, nullable=True)
 
+    # Retry support
+    retry_count: Mapped[int] = mapped_column(Integer, default=0)
+    max_retries: Mapped[int] = mapped_column(Integer, default=3)
+    retry_delay_seconds: Mapped[int] = mapped_column(Integer, default=5)
+    parent_task_id: Mapped[Optional[UUID]] = mapped_column(ForeignKey("background_tasks.id"), nullable=True)
+
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     started_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
@@ -54,6 +60,9 @@ class BackgroundTask(Base):
             "subagent_name": self.subagent_name,
             "result": self.result,
             "error_message": self.error_message,
+            "retry_count": self.retry_count,
+            "max_retries": self.max_retries,
+            "parent_task_id": str(self.parent_task_id) if self.parent_task_id else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "started_at": self.started_at.isoformat() if self.started_at else None,
             "completed_at": self.completed_at.isoformat() if self.completed_at else None,
@@ -93,3 +102,22 @@ class BackgroundTask(Base):
         """Mark task as cancelled."""
         self.status = TaskStatus.CANCELLED
         self.completed_at = datetime.utcnow()
+
+    def can_retry(self) -> bool:
+        """Check if task can be retried."""
+        return self.status == TaskStatus.FAILED and self.retry_count < self.max_retries
+
+    def create_retry_task(self) -> 'BackgroundTask':
+        """Create a retry task from this failed task."""
+        retry_task = BackgroundTask(
+            user_id=self.user_id,
+            conversation_id=self.conversation_id,
+            task_type=self.task_type,
+            subagent_name=self.subagent_name,
+            status=TaskStatus.PENDING,
+            retry_count=self.retry_count + 1,
+            max_retries=self.max_retries,
+            retry_delay_seconds=self.retry_delay_seconds,
+            parent_task_id=self.id,
+        )
+        return retry_task
