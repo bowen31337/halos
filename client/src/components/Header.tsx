@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useParams } from 'react-router-dom'
 import { useUIStore } from '../stores/uiStore'
 
 const MODELS = [
@@ -9,7 +10,53 @@ const MODELS = [
 
 export function Header() {
   const { toggleSidebar, selectedModel, setSelectedModel } = useUIStore()
+  const { conversationId } = useParams()
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false)
+  const [exportMenuOpen, setExportMenuOpen] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+
+  const handleExport = async (format: 'json' | 'markdown') => {
+    if (!conversationId) return
+
+    setIsExporting(true)
+    try {
+      const response = await fetch(`/api/conversations/${conversationId}/export?format=${format}`, {
+        method: 'POST',
+      })
+
+      if (!response.ok) {
+        throw new Error('Export failed')
+      }
+
+      // Get filename from Content-Disposition header
+      const contentDisposition = response.headers.get('Content-Disposition')
+      let filename = `conversation_export.${format === 'json' ? 'json' : 'md'}`
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/)
+        if (filenameMatch) {
+          filename = filenameMatch[1]
+        }
+      }
+
+      // Download the file
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+
+      setExportMenuOpen(false)
+    } catch (error) {
+      console.error('Export failed:', error)
+      alert('Failed to export conversation')
+    } finally {
+      setIsExporting(false)
+    }
+  }
 
   const currentModel = MODELS.find(m => m.id === selectedModel) || MODELS[0]
 
@@ -81,6 +128,58 @@ export function Header() {
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2">
+        {/* Export button - only show when in a conversation */}
+        {conversationId && (
+          <div className="relative">
+            <button
+              onClick={() => setExportMenuOpen(!exportMenuOpen)}
+              disabled={isExporting}
+              className="p-2 hover:bg-[var(--surface-elevated)] rounded-lg transition-colors disabled:opacity-50"
+              title="Export conversation"
+            >
+              <svg className="w-5 h-5 text-[var(--text-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            </button>
+
+            {/* Export dropdown menu */}
+            {exportMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setExportMenuOpen(false)}
+                />
+                <div className="absolute top-full right-0 mt-2 w-48 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg shadow-lg z-20 py-2">
+                  <div className="px-3 py-2 text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                    Export as
+                  </div>
+                  <button
+                    onClick={() => handleExport('json')}
+                    disabled={isExporting}
+                    className="w-full px-4 py-2 text-left hover:bg-[var(--surface-elevated)] transition-colors flex items-center gap-2 disabled:opacity-50"
+                  >
+                    <span>📄</span>
+                    <span className="text-sm text-[var(--text-primary)]">JSON</span>
+                  </button>
+                  <button
+                    onClick={() => handleExport('markdown')}
+                    disabled={isExporting}
+                    className="w-full px-4 py-2 text-left hover:bg-[var(--surface-elevated)] transition-colors flex items-center gap-2 disabled:opacity-50"
+                  >
+                    <span>📝</span>
+                    <span className="text-sm text-[var(--text-primary)]">Markdown</span>
+                  </button>
+                  {isExporting && (
+                    <div className="px-4 py-2 text-xs text-[var(--text-secondary)]">
+                      Exporting...
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
         <button
           className="p-2 hover:bg-[var(--surface-elevated)] rounded-lg transition-colors"
           title="Settings"

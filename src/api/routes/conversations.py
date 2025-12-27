@@ -232,3 +232,156 @@ async def duplicate_conversation(
         "created_at": duplicate.created_at.isoformat(),
         "updated_at": duplicate.updated_at.isoformat(),
     }
+
+
+@router.post("/{conversation_id}/export")
+async def export_conversation(
+    conversation_id: str,
+    format: str = "json",
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    """Export a conversation in JSON or Markdown format."""
+    # Get conversation
+    result = await db.execute(
+        select(ConversationModel).where(ConversationModel.id == conversation_id)
+    )
+    conversation = result.scalar_one_or_none()
+
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # Get messages
+    messages_result = await db.execute(
+        select(MessageModel)
+        .where(MessageModel.conversation_id == conversation_id)
+        .order_by(MessageModel.created_at)
+    )
+    messages = messages_result.scalars().all()
+
+    if format.lower() == "json":
+        # Export as JSON
+        export_data = {
+            "id": conversation.id,
+            "title": conversation.title,
+            "model": conversation.model,
+            "created_at": conversation.created_at.isoformat(),
+            "updated_at": conversation.updated_at.isoformat(),
+            "messages": [
+                {
+                    "id": msg.id,
+                    "role": msg.role,
+                    "content": msg.content,
+                    "created_at": msg.created_at.isoformat(),
+                    "edited_at": msg.edited_at.isoformat() if msg.edited_at else None,
+                    "tool_calls": msg.tool_calls,
+                    "tool_results": msg.tool_results,
+                    "thinking_content": msg.thinking_content,
+                    "attachments": msg.attachments,
+                    "input_tokens": msg.input_tokens,
+                    "output_tokens": msg.output_tokens,
+                    "cache_read_tokens": msg.cache_read_tokens,
+                    "cache_write_tokens": msg.cache_write_tokens,
+                }
+                for msg in messages
+            ],
+            "metadata": {
+                "message_count": conversation.message_count,
+                "token_count": conversation.token_count,
+                "is_archived": conversation.is_archived,
+                "is_pinned": conversation.is_pinned,
+            }
+        }
+
+        json_str = json.dumps(export_data, indent=2, ensure_ascii=False)
+        filename = f"{conversation.title.replace(' ', '_').replace('/', '_')}_export.json"
+
+        return Response(
+            content=json_str,
+            media_type="application/json",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"'
+            }
+        )
+
+    elif format.lower() == "markdown":
+        # Export as Markdown
+        md_lines = [
+            f"# {conversation.title}",
+            "",
+            f"**Model:** {conversation.model}",
+            f"**Created:** {conversation.created_at.strftime('%Y-%m-%d %H:%M:%S')}",
+            f"**Updated:** {conversation.updated_at.strftime('%Y-%m-%d %H:%M:%S')}",
+            f"**Message Count:** {conversation.message_count}",
+            "",
+            "---",
+            "",
+        ]
+
+        for msg in messages:
+            if msg.role == "user":
+                md_lines.append("## 👤 User")
+            elif msg.role == "assistant":
+                md_lines.append("## 🤖 Assistant")
+            elif msg.role == "system":
+                md_lines.append("## ⚙️ System")
+            elif msg.role == "tool":
+                tool_name = "unknown"
+                if msg.tool_calls and "name" in msg.tool_calls:
+                    tool_name = msg.tool_calls["name"]
+                md_lines.append(f"## 🔧 Tool: {tool_name}")
+
+            md_lines.append("")
+            md_lines.append(msg.content)
+            md_lines.append("")
+
+            # Add thinking content if present
+            if msg.thinking_content:
+                md_lines.append("<details>")
+                md_lines.append("<summary>Thinking Process</summary>")
+                md_lines.append("")
+                md_lines.append(msg.thinking_content)
+                md_lines.append("")
+                md_lines.append("</details>")
+                md_lines.append("")
+
+            # Add tool results if present
+            if msg.tool_results:
+                md_lines.append("**Tool Results:**")
+                md_lines.append("```json")
+                md_lines.append(json.dumps(msg.tool_results, indent=2))
+                md_lines.append("```")
+                md_lines.append("")
+
+            # Add tool calls if present
+            if msg.tool_calls:
+                md_lines.append("**Tool Call:**")
+                md_lines.append("```json")
+                md_lines.append(json.dumps(msg.tool_calls, indent=2))
+                md_lines.append("```")
+                md_lines.append("")
+
+            # Add token info
+            if msg.input_tokens or msg.output_tokens:
+                total = msg.input_tokens + msg.output_tokens
+                md_lines.append(f"*Tokens: {msg.input_tokens} in, {msg.output_tokens} out, {total} total*")
+                md_lines.append("")
+
+            md_lines.append("---")
+            md_lines.append("")
+
+        md_content = "\n".join(md_lines)
+        filename = f"{conversation.title.replace(' ', '_').replace('/', '_')}_export.md"
+
+        return Response(
+            content=md_content,
+            media_type="text/markdown",
+            headers={
+                "Content-Disposition": f'attachment; filename="{filename}"'
+            }
+        )
+
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported format: {format}. Supported formats: json, markdown"
+        )

@@ -87,6 +87,19 @@ const initialState = {
   inputMessage: '',
 }
 
+// Helper to transform API response (snake_case) to frontend format (camelCase)
+const transformConversation = (apiConv: any): Conversation => ({
+  id: apiConv.id,
+  title: apiConv.title,
+  model: apiConv.model,
+  projectId: apiConv.project_id,
+  isArchived: apiConv.is_archived,
+  isPinned: apiConv.is_pinned,
+  messageCount: apiConv.message_count,
+  createdAt: apiConv.created_at,
+  updatedAt: apiConv.updated_at,
+})
+
 export const useConversationStore = create<ConversationState>((set) => ({
   ...initialState,
 
@@ -119,7 +132,8 @@ export const useConversationStore = create<ConversationState>((set) => ({
       const response = await fetch('/api/conversations')
       if (response.ok) {
         const data = await response.json()
-        set({ conversations: data })
+        const transformed = data.map(transformConversation)
+        set({ conversations: transformed })
       }
     } catch (error) {
       console.error('Failed to load conversations:', error)
@@ -146,7 +160,8 @@ export const useConversationStore = create<ConversationState>((set) => ({
     })
     if (!response.ok) throw new Error('Failed to create conversation')
 
-    const conv = await response.json()
+    const apiConv = await response.json()
+    const conv = transformConversation(apiConv)
     set((state) => ({ conversations: [conv, ...state.conversations] }))
     return conv
   },

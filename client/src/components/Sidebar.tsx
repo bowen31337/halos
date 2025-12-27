@@ -138,7 +138,19 @@ export function Sidebar() {
         method: 'POST',
       })
       if (response.ok) {
-        const duplicate = await response.json()
+        const apiDuplicate = await response.json()
+        // Transform API response to frontend format
+        const duplicate = {
+          id: apiDuplicate.id,
+          title: apiDuplicate.title,
+          model: apiDuplicate.model,
+          projectId: apiDuplicate.project_id,
+          isArchived: apiDuplicate.is_archived,
+          isPinned: apiDuplicate.is_pinned,
+          messageCount: apiDuplicate.message_count,
+          createdAt: apiDuplicate.created_at,
+          updatedAt: apiDuplicate.updated_at,
+        }
         // Add to local state
         const { addConversation } = useConversationStore.getState()
         addConversation(duplicate)
