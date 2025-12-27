@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Test Feature #139: Account deletion removes all user data.
+"""Test Feature #140: Account deletion removes all user data.
 
 This test verifies:
 1. Account deletion requires correct confirmation string
@@ -14,136 +14,151 @@ This test verifies:
 10. Returns proper confirmation with counts
 """
 
-import asyncio
-import json
-from pathlib import Path
-
-# Add src to path
-import sys
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
+import pytest
+from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy import select, func
+
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from src.core.database import Base, get_db
 from src.core.config import settings
-from src.core.database import Base
 from src.models import Conversation, Message, Memory, Prompt, Artifact, Checkpoint, Project, AuditLog
-from fastapi.testclient import TestClient
 from src.main import app
 
 
-async def test_account_deletion_removes_all_data():
-    """Test that account deletion removes all user data."""
-    print("Testing Feature #139: Account Deletion Removes All User Data...")
+# Test database
+TEST_DATABASE_URL = "sqlite+aiosqlite:///./test_account_deletion.db"
 
-    # Create engine
-    engine = create_async_engine(settings.database_url)
+
+@pytest.fixture
+async def test_db():
+    """Create a test database and override get_db dependency."""
+    engine = create_async_engine(TEST_DATABASE_URL, echo=False)
     async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
-    # Create tables if they don't exist
+    # Create tables
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    async with async_session() as db:
-        # Step 1-2: Create test data and open account settings
-        print("\n  Step 1-2: Creating test data...")
+    async with async_session() as session:
+        async def override_get_db():
+            yield session
 
-        # Create projects
-        project1 = Project(name="Project to Delete", description="Will be deleted")
-        project2 = Project(name="Another Project", description="Also deleted")
-        db.add(project1)
-        db.add(project2)
-        await db.commit()
-        await db.refresh(project1)
-        await db.refresh(project2)
+        app.dependency_overrides[get_db] = override_get_db
+        yield session
 
-        # Create conversations
-        conv1 = Conversation(title="Conversation 1", model="claude-sonnet", project_id=project1.id)
-        conv2 = Conversation(title="Conversation 2", model="claude-haiku", project_id=project2.id)
-        conv3 = Conversation(title="Conversation 3", model="claude-opus")
-        db.add(conv1)
-        db.add(conv2)
-        db.add(conv3)
-        await db.commit()
-        await db.refresh(conv1)
-        await db.refresh(conv2)
-        await db.refresh(conv3)
+    app.dependency_overrides.clear()
+    await engine.dispose()
 
-        # Create messages
-        messages = [
-            Message(conversation_id=conv1.id, role="user", content="Hello"),
-            Message(conversation_id=conv1.id, role="assistant", content="Hi"),
-            Message(conversation_id=conv2.id, role="user", content="Test"),
-            Message(conversation_id=conv3.id, role="user", content="Another"),
-        ]
-        for msg in messages:
-            db.add(msg)
-        await db.commit()
 
-        # Create memories
-        memory1 = Memory(content="Memory 1", category="test")
-        memory2 = Memory(content="Memory 2", category="test")
-        db.add(memory1)
-        db.add(memory2)
-        await db.commit()
+@pytest.mark.asyncio
+async def test_account_deletion_removes_all_data(test_db):
+    """Test that account deletion removes all user data."""
+    print("\nTesting Feature #140: Account Deletion Removes All User Data...")
 
-        # Create prompts
-        prompt1 = Prompt(title="Prompt 1", content="Content 1", category="test")
-        prompt2 = Prompt(title="Prompt 2", content="Content 2", category="test")
-        db.add(prompt1)
-        db.add(prompt2)
-        await db.commit()
+    # Step 1-2: Create test data
+    print("\n  Step 1-2: Creating test data...")
 
-        # Create artifacts
-        artifact1 = Artifact(conversation_id=conv1.id, title="Artifact 1", language="python", content="code")
-        artifact2 = Artifact(conversation_id=conv2.id, title="Artifact 2", language="js", content="code")
-        db.add(artifact1)
-        db.add(artifact2)
-        await db.commit()
+    # Create projects
+    project1 = Project(name="Project to Delete", description="Will be deleted")
+    project2 = Project(name="Another Project", description="Also deleted")
+    test_db.add(project1)
+    test_db.add(project2)
+    await test_db.commit()
+    await test_db.refresh(project1)
+    await test_db.refresh(project2)
 
-        # Create checkpoints
-        checkpoint1 = Checkpoint(conversation_id=conv1.id, name="CP1", state_snapshot={})
-        checkpoint2 = Checkpoint(conversation_id=conv2.id, name="CP2", state_snapshot={})
-        db.add(checkpoint1)
-        db.add(checkpoint2)
-        await db.commit()
+    # Create conversations
+    conv1 = Conversation(title="Conversation 1", model="claude-sonnet", project_id=project1.id)
+    conv2 = Conversation(title="Conversation 2", model="claude-haiku", project_id=project2.id)
+    conv3 = Conversation(title="Conversation 3", model="claude-opus")
+    test_db.add(conv1)
+    test_db.add(conv2)
+    test_db.add(conv3)
+    await test_db.commit()
+    await test_db.refresh(conv1)
+    await test_db.refresh(conv2)
+    await test_db.refresh(conv3)
 
-        # Verify initial state
-        initial_conv_count = (await db.execute(select(func.count(Conversation.id)).where(Conversation.is_deleted == False))).scalar_one()
-        initial_msg_count = (await db.execute(select(func.count(Message.id)))).scalar_one()
-        initial_memory_count = (await db.execute(select(func.count(Memory.id)).where(Memory.is_active == True))).scalar_one()
-        initial_prompt_count = (await db.execute(select(func.count(Prompt.id)).where(Prompt.is_active == True))).scalar_one()
-        initial_artifact_count = (await db.execute(select(func.count(Artifact.id)))).scalar_one()
-        initial_checkpoint_count = (await db.execute(select(func.count(Checkpoint.id)))).scalar_one()
-        initial_project_count = (await db.execute(select(func.count(Project.id)))).scalar_one()
+    # Create messages
+    messages = [
+        Message(conversation_id=conv1.id, role="user", content="Hello"),
+        Message(conversation_id=conv1.id, role="assistant", content="Hi"),
+        Message(conversation_id=conv2.id, role="user", content="Test"),
+        Message(conversation_id=conv3.id, role="user", content="Another"),
+    ]
+    for msg in messages:
+        test_db.add(msg)
+    await test_db.commit()
 
-        print(f"    ✓ Created {initial_conv_count} conversations")
-        print(f"    ✓ Created {initial_msg_count} messages")
-        print(f"    ✓ Created {initial_memory_count} memories")
-        print(f"    ✓ Created {initial_prompt_count} prompts")
-        print(f"    ✓ Created {initial_artifact_count} artifacts")
-        print(f"    ✓ Created {initial_checkpoint_count} checkpoints")
-        print(f"    ✓ Created {initial_project_count} projects")
+    # Create memories
+    memory1 = Memory(content="Memory 1", category="test")
+    memory2 = Memory(content="Memory 2", category="test")
+    test_db.add(memory1)
+    test_db.add(memory2)
+    await test_db.commit()
 
-        # Step 3: Initiate deletion process (without confirmation - should fail)
-        print("\n  Step 3: Testing deletion without confirmation...")
-        client = TestClient(app)
-        response = client.delete("/api/settings/account")
+    # Create prompts
+    prompt1 = Prompt(title="Prompt 1", content="Content 1", category="test")
+    prompt2 = Prompt(title="Prompt 2", content="Content 2", category="test")
+    test_db.add(prompt1)
+    test_db.add(prompt2)
+    await test_db.commit()
+
+    # Create artifacts
+    artifact1 = Artifact(conversation_id=conv1.id, title="Artifact 1", language="python", content="code")
+    artifact2 = Artifact(conversation_id=conv2.id, title="Artifact 2", language="js", content="code")
+    test_db.add(artifact1)
+    test_db.add(artifact2)
+    await test_db.commit()
+
+    # Create checkpoints
+    checkpoint1 = Checkpoint(conversation_id=conv1.id, name="CP1", state_snapshot={})
+    checkpoint2 = Checkpoint(conversation_id=conv2.id, name="CP2", state_snapshot={})
+    test_db.add(checkpoint1)
+    test_db.add(checkpoint2)
+    await test_db.commit()
+
+    # Verify initial state
+    initial_conv_count = (await test_db.execute(select(func.count(Conversation.id)).where(Conversation.is_deleted == False))).scalar_one()
+    initial_msg_count = (await test_db.execute(select(func.count(Message.id)))).scalar_one()
+    initial_memory_count = (await test_db.execute(select(func.count(Memory.id)).where(Memory.is_active == True))).scalar_one()
+    initial_prompt_count = (await test_db.execute(select(func.count(Prompt.id)).where(Prompt.is_active == True))).scalar_one()
+    initial_artifact_count = (await test_db.execute(select(func.count(Artifact.id)))).scalar_one()
+    initial_checkpoint_count = (await test_db.execute(select(func.count(Checkpoint.id)))).scalar_one()
+    initial_project_count = (await test_db.execute(select(func.count(Project.id)))).scalar_one()
+
+    print(f"    ✓ Created {initial_conv_count} conversations")
+    print(f"    ✓ Created {initial_msg_count} messages")
+    print(f"    ✓ Created {initial_memory_count} memories")
+    print(f"    ✓ Created {initial_prompt_count} prompts")
+    print(f"    ✓ Created {initial_artifact_count} artifacts")
+    print(f"    ✓ Created {initial_checkpoint_count} checkpoints")
+    print(f"    ✓ Created {initial_project_count} projects")
+
+    # Step 3: Initiate deletion process (without confirmation - should fail)
+    print("\n  Step 3: Testing deletion without confirmation...")
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.delete("/api/settings/account")
 
         assert response.status_code == 400
         error_data = response.json()
-        assert "DELETE_ACCOUNT" in error_data["detail"]
+        assert "DELETE_ACCOUNT" in (error_data.get("detail") or error_data.get("error") or "")
         print(f"    ✓ Deletion blocked without confirmation")
 
         # Step 4: Complete confirmation steps
         print("\n  Step 4: Testing deletion with wrong confirmation...")
-        response = client.delete("/api/settings/account?confirm=WRONG_STRING")
+        response = await client.delete("/api/settings/account?confirm=WRONG_STRING")
 
         assert response.status_code == 400
         print(f"    ✓ Deletion blocked with wrong confirmation")
 
         # Step 5: Verify account is deleted with correct confirmation
         print("\n  Step 5: Deleting account with correct confirmation...")
-        response = client.delete("/api/settings/account?confirm=DELETE_ACCOUNT")
+        response = await client.delete("/api/settings/account?confirm=DELETE_ACCOUNT")
 
         print(f"    ✓ Deletion response status: {response.status_code}")
         assert response.status_code == 200
@@ -169,83 +184,73 @@ async def test_account_deletion_removes_all_data():
         print(f"    ✓ Deletion returned correct counts")
         print(f"    ✓ Total deleted: {result['total_deleted']} items")
 
-        # Step 6: Verify data cannot be recovered (soft delete for conversations, hard delete for others)
-        print("\n  Step 6: Verifying data is removed...")
+    # Step 6: Verify data cannot be recovered (soft delete for conversations, hard delete for others)
+    print("\n  Step 6: Verifying data is removed...")
 
-        # Conversations should be soft-deleted (is_deleted=True)
-        remaining_convs = (await db.execute(
-            select(Conversation).where(Conversation.is_deleted == False)
-        )).scalar_count()
-        assert remaining_convs == 0
-        print(f"    ✓ All conversations soft-deleted (is_deleted=True)")
+    # Conversations should be soft-deleted (is_deleted=True)
+    remaining_convs = (await test_db.execute(
+        select(func.count(Conversation.id)).where(Conversation.is_deleted == False)
+    )).scalar_one()
+    assert remaining_convs == 0
+    print(f"    ✓ All conversations soft-deleted (is_deleted=True)")
 
-        # Messages should be permanently deleted
-        remaining_messages = (await db.execute(select(Message))).scalar_count()
-        assert remaining_messages == 0
-        print(f"    ✓ All messages permanently deleted")
+    # Messages should be permanently deleted
+    remaining_messages = (await test_db.execute(select(func.count(Message.id)))).scalar_one()
+    assert remaining_messages == 0
+    print(f"    ✓ All messages permanently deleted")
 
-        # Memories should be permanently deleted
-        remaining_memories = (await db.execute(select(Memory))).scalar_count()
-        assert remaining_memories == 0
-        print(f"    ✓ All memories permanently deleted")
+    # Memories should be permanently deleted
+    remaining_memories = (await test_db.execute(select(func.count(Memory.id)))).scalar_one()
+    assert remaining_memories == 0
+    print(f"    ✓ All memories permanently deleted")
 
-        # Prompts should be permanently deleted
-        remaining_prompts = (await db.execute(select(Prompt))).scalar_count()
-        assert remaining_prompts == 0
-        print(f"    ✓ All prompts permanently deleted")
+    # Prompts should be permanently deleted
+    remaining_prompts = (await test_db.execute(select(func.count(Prompt.id)))).scalar_one()
+    assert remaining_prompts == 0
+    print(f"    ✓ All prompts permanently deleted")
 
-        # Artifacts should be permanently deleted
-        remaining_artifacts = (await db.execute(select(Artifact))).scalar_count()
-        assert remaining_artifacts == 0
-        print(f"    ✓ All artifacts permanently deleted")
+    # Artifacts should be permanently deleted
+    remaining_artifacts = (await test_db.execute(select(func.count(Artifact.id)))).scalar_one()
+    assert remaining_artifacts == 0
+    print(f"    ✓ All artifacts permanently deleted")
 
-        # Checkpoints should be permanently deleted
-        remaining_checkpoints = (await db.execute(select(Checkpoint))).scalar_count()
-        assert remaining_checkpoints == 0
-        print(f"    ✓ All checkpoints permanently deleted")
+    # Checkpoints should be permanently deleted
+    remaining_checkpoints = (await test_db.execute(select(func.count(Checkpoint.id)))).scalar_one()
+    assert remaining_checkpoints == 0
+    print(f"    ✓ All checkpoints permanently deleted")
 
-        # Projects should be permanently deleted
-        remaining_projects = (await db.execute(select(Project))).scalar_count()
-        assert remaining_projects == 0
-        print(f"    ✓ All projects permanently deleted")
+    # Projects should be permanently deleted
+    remaining_projects = (await test_db.execute(select(func.count(Project.id)))).scalar_one()
+    assert remaining_projects == 0
+    print(f"    ✓ All projects permanently deleted")
 
-        # Step 7: Verify login is not possible (session management would be handled by auth system)
-        # For this test, we verify that the audit log was created
-        print("\n  Step 7: Verifying audit log was created...")
-        audit_logs = (await db.execute(
-            select(AuditLog).where(AuditLog.action == "account_deletion")
-        )).scalars().all()
+    # Step 7: Verify audit log was created
+    print("\n  Step 7: Verifying audit log was created...")
+    # Commit to ensure audit log is persisted
+    await test_db.commit()
+    audit_logs = (await test_db.execute(
+        select(AuditLog).where(AuditLog.action == "account_deletion")
+    )).scalars().all()
 
-        assert len(audit_logs) > 0
-        audit_log = audit_logs[0]
-        assert audit_log.user_id == "default-user"
-        assert audit_log.action == "account_deletion"
-        assert audit_log.resource_type == "user"
-        assert audit_log.resource_id == "default-user"
-        assert "items_to_delete" in audit_log.details
-        print(f"    ✓ Audit log created for account deletion")
+    assert len(audit_logs) > 0
+    audit_log = audit_logs[0]
+    assert audit_log.user_id == "default-user"
+    assert audit_log.action == "account_deletion"
+    assert audit_log.resource_type == "user"
+    assert audit_log.resource_id == "default-user"
+    assert "items_to_delete" in audit_log.details
+    print(f"    ✓ Audit log created for account deletion")
 
-        # Cleanup (nothing to clean since everything is deleted)
-        print("\n  Cleanup: No data remaining to clean up")
-
-    await engine.dispose()
-    print("\n✅ Feature #139: Account Deletion Test PASSED")
+    print("\n✅ Feature #140: Account Deletion Test PASSED")
 
 
-async def test_account_deletion_with_no_data():
+@pytest.mark.asyncio
+async def test_account_deletion_with_no_data(test_db):
     """Test that account deletion works even with no data."""
     print("\nTesting Account Deletion with Empty Database...")
 
-    engine = create_async_engine(settings.database_url)
-    async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-
-    # Create tables if they don't exist
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    async with async_session() as db:
-        client = TestClient(app)
-        response = client.delete("/api/settings/account?confirm=DELETE_ACCOUNT")
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.delete("/api/settings/account?confirm=DELETE_ACCOUNT")
 
         assert response.status_code == 200
         data = response.json()
@@ -257,35 +262,8 @@ async def test_account_deletion_with_no_data():
 
         print("  ✓ Empty database deletion works correctly")
 
-    await engine.dispose()
     print("✅ Empty State Test PASSED")
 
 
-async def main():
-    await test_account_deletion_removes_all_data()
-    await test_account_deletion_with_no_data()
-
-    print("\n" + "="*60)
-    print("FEATURE #139: ACCOUNT DELETION REMOVES ALL USER DATA")
-    print("="*60)
-    print("\nManual Testing Steps:")
-    print("1. Start the backend server")
-    print("2. Start the frontend server")
-    print("3. Open http://localhost:5173 in browser")
-    print("4. Create some conversations, messages, memories, etc.")
-    print("5. Open Settings → Data & Account tab")
-    print("6. Scroll to Danger Zone section")
-    print("7. Type 'DELETE_ACCOUNT' in the confirmation input")
-    print("8. Click 'Delete Account Permanently' button")
-    print("9. Confirm the browser confirmation dialog")
-    print("10. Verify success message with deletion counts")
-    print("\nExpected behavior:")
-    print("- Must type exactly 'DELETE_ACCOUNT' to enable button")
-    print("- Browser shows confirmation dialog with warning")
-    print("- Success message shows all deleted item counts")
-    print("- User is redirected to home page")
-    print("- All data is permanently removed")
-
-
 if __name__ == "__main__":
-    asyncio.run(main())
+    pytest.main([__file__, "-v"])

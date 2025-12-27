@@ -8,6 +8,7 @@ import 'katex/dist/katex.min.css'
 import { ResizableHandle } from './ResizableHandle'
 import { JsonViewer } from './JsonViewer'
 import { CsvViewer } from './CsvViewer'
+import { ReactPreview } from './ReactPreview'
 
 export function ArtifactPanel() {
   const { setPanelType, setPanelOpen, panelWidth, setPanelWidth } = useUIStore()
@@ -330,6 +331,17 @@ export function ArtifactPanel() {
     // CSV Viewer (Feature #144)
     if (artifact_type === 'csv' || language === 'csv') {
       return <CsvViewer data={content} editable={false} />
+    }
+
+    // React Component Preview (Feature #147)
+    if (artifact_type === 'react' || language === 'react' || language === 'jsx' || language === 'tsx') {
+      return (
+        <ReactPreview
+          code={content}
+          onError={(error) => console.error('React preview error:', error)}
+          onReady={() => console.log('React preview ready')}
+        />
+      )
     }
 
     // Code Display (default)
