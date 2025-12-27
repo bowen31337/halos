@@ -260,3 +260,4 @@ async def update_project_settings(
     await db.refresh(project)
 
     return {"status": "updated", "settings": settings}
+

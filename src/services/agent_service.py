@@ -3,10 +3,14 @@
 This module provides the core agent functionality using LangChain's DeepAgents framework.
 It includes:
 - create_deep_agent() for agent creation
-- Built-in middleware for planning (TodoListMiddleware)
-- Filesystem operations (FilesystemMiddleware)
-- Sub-agent delegation (SubAgentMiddleware)
-- Human-in-the-loop workflows (HumanInTheLoopMiddleware)
+- Built-in middleware provided by create_deep_agent:
+  - TodoListMiddleware (planning with write_todos/read_todos)
+  - FilesystemMiddleware (ls, read_file, write_file, edit_file, glob, grep)
+  - SubAgentMiddleware (sub-agent delegation via task() tool)
+  - SummarizationMiddleware (context exceeding 170k tokens)
+  - AnthropicPromptCachingMiddleware (cost reduction)
+  - PatchToolCallsMiddleware (tool call handling)
+  - HumanInTheLoopMiddleware (tool approval via interrupt_on)
 - Backend configurations (StateBackend, CompositeBackend, StoreBackend)
 - Long-term memory via StoreBackend
 """
@@ -67,13 +71,11 @@ class AgentService:
         Built-in Middleware (provided by create_deep_agent):
         2. TodoListMiddleware - Provides write_todos and read_todos tools
         3. FilesystemMiddleware - Provides ls, read_file, write_file, edit_file, glob, grep
-        4. SummarizationMiddleware - Handles context exceeding 170k tokens
-        5. AnthropicPromptCachingMiddleware - Reduces API costs via caching
-        6. PatchToolCallsMiddleware - Handles tool call processing
-        7. HumanInTheLoopMiddleware - Handles tool approval (if interrupt_on provided)
-
-        Additional Middleware (added manually):
-        8. SubAgentMiddleware - Provides task() tool for sub-agent delegation
+        4. SubAgentMiddleware - Provides task() tool for sub-agent delegation
+        5. SummarizationMiddleware - Handles context exceeding 170k tokens
+        6. AnthropicPromptCachingMiddleware - Reduces API costs via caching
+        7. PatchToolCallsMiddleware - Handles tool call processing
+        8. HumanInTheLoopMiddleware - Handles tool approval (if interrupt_on provided)
 
         Backend Configuration:
         9. StateBackend - Ephemeral file storage in agent state
@@ -107,15 +109,14 @@ class AgentService:
         # Note: create_deep_agent already provides:
         # - TodoListMiddleware (write_todos, read_todos)
         # - FilesystemMiddleware (ls, read_file, write_file, edit_file, glob, grep)
+        # - SubAgentMiddleware (task() tool for sub-agent delegation)
         # - SummarizationMiddleware (context exceeding 170k tokens)
         # - AnthropicPromptCachingMiddleware (cost reduction)
         # - PatchToolCallsMiddleware (tool call handling)
         # - HumanInTheLoopMiddleware (if interrupt_on is provided)
         #
-        # We add SubAgentMiddleware for task() tool for sub-agent delegation
-        middleware_stack = [
-            SubAgentMiddleware(default_model=model),  # Provides task() for sub-agent delegation
-        ]
+        # We don't need to add any additional middleware for the core features
+        middleware_stack = []
 
         # Step 3: Create system prompt
         system_prompt = """You are Claude, a helpful AI assistant created by Anthropic.
@@ -167,19 +168,17 @@ You are helping build a Claude.ai clone application. Be professional, friendly, 
             )
 
             # Step 6: Create backend configuration
-            # StateBackend for ephemeral working files
+            # StateBackend for ephemeral working files (uses MemorySaver as runtime)
             runtime = MemorySaver()
             state_backend = StateBackend(runtime=runtime)
 
-            # StoreBackend for long-term memory
-            store_backend = StoreBackend(runtime=self.memory_store)
-
             # CompositeBackend for hybrid memory (ephemeral + persistent)
             # Routes /memories/ to StoreBackend for long-term memory
+            # Note: StoreBackend uses the same runtime for tool execution
             composite_backend = CompositeBackend(
                 default=state_backend,
                 routes={
-                    "/memories/": store_backend,
+                    "/memories/": lambda rt: StoreBackend(runtime=rt),
                 },
             )
 

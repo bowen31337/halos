@@ -583,8 +583,9 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
-    "test_date": "2025-12-27"
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Backend endpoint /conversations/{id}/move implemented. Frontend MoveModal and handleMove function added to Sidebar. API service has moveConversation method."
   },
   {
     "category": "functional",
@@ -598,9 +599,10 @@
       "Step 6: Start a new conversation",
       "Step 7: Verify AI is casual and fun"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27"
   },
   {
     "category": "functional",

@@ -1,9 +1,16 @@
 """User settings endpoints."""
 
 from typing import Optional
+from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.core.database import get_db
+from src.models.conversation import Conversation
+from src.models.project import Project
 
 router = APIRouter()
 
@@ -151,3 +158,46 @@ async def list_models() -> list[dict]:
             "default": False,
         },
     ]
+
+
+@router.get("/instructions/effective")
+async def get_effective_custom_instructions(
+    conversation_id: Optional[str] = None,
+    db: AsyncSession = Depends(get_db)
+) -> dict:
+    """
+    Get effective custom instructions for a conversation.
+
+    Returns both project and global instructions.
+    Project instructions override global instructions if both exist.
+    """
+    global_instructions = user_settings.get("custom_instructions", "")
+    project_instructions = ""
+
+    if conversation_id:
+        # Get conversation to find its project
+        result = await db.execute(
+            select(Conversation).where(Conversation.id == conversation_id)
+        )
+        conversation = result.scalar_one_or_none()
+
+        if conversation and conversation.project_id:
+            # Get project custom instructions
+            result = await db.execute(
+                select(Project).where(Project.id == conversation.project_id)
+            )
+            project = result.scalar_one_or_none()
+
+            if project and project.custom_instructions:
+                project_instructions = project.custom_instructions
+
+    # Project instructions take precedence
+    effective_instructions = project_instructions if project_instructions else global_instructions
+
+    return {
+        "project_instructions": project_instructions,
+        "global_instructions": global_instructions,
+        "effective_instructions": effective_instructions,
+        "using_project": bool(project_instructions)
+    }
+

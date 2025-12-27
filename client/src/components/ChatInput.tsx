@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useConversationStore } from '../stores/conversationStore'
 import { useUIStore } from '../stores/uiStore'
+import { useProjectStore } from '../stores/projectStore'
 import { api } from '../services/api'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -140,10 +141,21 @@ export function ChatInput() {
     abortControllerRef.current = abortController
 
     try {
+      // Get project-specific custom instructions
+      const { conversations } = useConversationStore.getState()
+      const { projects } = useProjectStore.getState()
+      const currentConversation = conversations.find(c => c.id === convId)
+      const projectInstructions = currentConversation?.projectId
+        ? projects.find(p => p.id === currentConversation.projectId)?.custom_instructions
+        : null
+
+      // Use project instructions if available, otherwise use global custom instructions
+      const effectiveInstructions = projectInstructions || customInstructions
+
       // Prepare message with custom instructions if set
       let finalMessage = messageToSend
-      if (customInstructions.trim()) {
-        finalMessage = `[System Instructions: ${customInstructions}]\n\n${messageToSend}`
+      if (effectiveInstructions.trim()) {
+        finalMessage = `[System Instructions: ${effectiveInstructions}]\n\n${messageToSend}`
       }
 
       // Call the backend SSE API with conversation ID
@@ -157,7 +169,7 @@ export function ChatInput() {
           extended_thinking: extendedThinkingEnabled,
           temperature: temperature,
           max_tokens: maxTokens,
-          custom_instructions: customInstructions,
+          custom_instructions: effectiveInstructions,
           model: useUIStore.getState().selectedModel
         }),
         signal: abortController.signal,

@@ -110,6 +110,7 @@ uv pip install -r pyproject.toml 2>/dev/null || {
         uvicorn>=0.27.0 \
         sqlalchemy>=2.0.0 \
         pydantic>=2.0.0 \
+        pydantic-settings>=2.0.0 \
         sse-starlette>=2.0.0 \
         python-multipart>=0.0.6 \
         aiofiles>=23.0.0 \
@@ -119,6 +120,8 @@ uv pip install -r pyproject.toml 2>/dev/null || {
         httpx>=0.25.0 \
         langchain-anthropic>=0.2.0 \
         langgraph>=0.2.0 \
+        aiosqlite>=0.19.0 \
+        deepagents>=0.3.1 \
         pytest>=8.0.0 \
         pytest-asyncio>=0.23.0 \
         pytest-cov>=4.0.0 \

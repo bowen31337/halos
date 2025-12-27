@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { api } from '../services/api'
 import { ProjectSelector } from './ProjectSelector'
+import type { Project } from '../stores/projectStore'
 
 export function Sidebar() {
   const {
@@ -18,7 +19,6 @@ export function Sidebar() {
     updateConversation,
     archiveConversation,
     unarchiveConversation,
-    updateConversationInStore,
   } = useConversationStore()
 
   const { setSidebarOpen } = useUIStore()
@@ -34,14 +34,13 @@ export function Sidebar() {
   const [movingId, setMovingId] = useState<string | null>(null)
   const [showArchived, setShowArchived] = useState(false)
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
-  const [showMoveModal, setShowMoveModal] = useState<string | null>(null) // conversation ID for move modal
+  const [showMoveModal, setShowMoveModal] = useState<string | null>(null)
 
   const handleArchive = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
     setArchivingId(id)
     try {
       await archiveConversation(id)
-      // If archiving the current conversation, navigate away
       if (currentConversationId === id) {
         setCurrentConversation(null)
         navigate('/')
@@ -65,14 +64,12 @@ export function Sidebar() {
     }
   }
 
-  // Sync URL param with store
   useEffect(() => {
     if (conversationId) {
       setCurrentConversation(conversationId)
     }
   }, [conversationId, setCurrentConversation])
 
-  // Load conversations from API on mount
   useEffect(() => {
     loadConversations()
   }, [loadConversations])
@@ -93,7 +90,6 @@ export function Sidebar() {
   const handleSelectConversation = (conv: Conversation) => {
     setCurrentConversation(conv.id)
     navigate(`/c/${conv.id}`)
-    // Close sidebar on mobile
     if (window.innerWidth < 768) {
       setSidebarOpen(false)
     }
@@ -148,7 +144,6 @@ export function Sidebar() {
       })
       if (response.ok) {
         const apiDuplicate = await response.json()
-        // Transform API response to frontend format
         const duplicate = {
           id: apiDuplicate.id,
           title: apiDuplicate.title,
@@ -160,7 +155,6 @@ export function Sidebar() {
           createdAt: apiDuplicate.created_at,
           updatedAt: apiDuplicate.updated_at,
         }
-        // Add to local state
         const { addConversation } = useConversationStore.getState()
         addConversation(duplicate)
       }
@@ -198,9 +192,7 @@ export function Sidebar() {
     setMovingId(id)
     try {
       const updated = await api.moveConversation(id, projectId)
-      // Update the conversation in the store
       updateConversation(id, { projectId: updated.project_id })
-      // If moving the current conversation and it's no longer visible, navigate away
       if (currentConversationId === id) {
         const currentConv = conversations.find(c => c.id === id)
         if (currentConv) {
@@ -220,45 +212,10 @@ export function Sidebar() {
     }
   }
 
-  // Load projects on mount
   useEffect(() => {
     fetchProjects()
   }, [fetchProjects])
 
-  // Move conversation functions
-  const handleMoveToProject = async (projectId: string | null) => {
-    if (!showMoveModal) return
-
-    setMovingId(showMoveModal)
-    try {
-      const updated = await api.moveConversation(showMoveModal, projectId)
-      // Update the conversation in the store
-      updateConversation(showMoveModal, { projectId: updated.project_id })
-      // If moving the current conversation and it's no longer visible, navigate away
-      if (currentConversationId === showMoveModal) {
-        const currentConv = conversations.find(c => c.id === showMoveModal)
-        if (currentConv) {
-          const newProjectId = updated.project_id
-          const shouldNavigateAway = selectedProjectId !== null && selectedProjectId !== newProjectId
-          if (shouldNavigateAway) {
-            setCurrentConversation(null)
-            navigate('/')
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Failed to move conversation:', error)
-    } finally {
-      setMovingId(null)
-      setShowMoveModal(null)
-    }
-  }
-
-  const handleCloseMoveModal = () => {
-    setShowMoveModal(null)
-  }
-
-  // Group conversations by date
   const groupByDate = (conversations: Conversation[]) => {
     const now = new Date()
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
@@ -287,22 +244,15 @@ export function Sidebar() {
     return groups
   }
 
-  // Filter conversations by search query, archive status, and project
   const filteredConversations = conversations.filter(conv => {
-    // Filter by archive status
     if (showArchived && !conv.isArchived) return false
     if (!showArchived && conv.isArchived) return false
-
-    // Filter by project (null means "All Conversations" - show everything)
     if (selectedProjectId && conv.projectId !== selectedProjectId) return false
-
-    // Filter by search query
     if (!searchQuery.trim()) return true
     const query = searchQuery.toLowerCase()
     return conv.title.toLowerCase().includes(query)
   })
 
-  // Sort pinned conversations first
   const sortedConversations = [...filteredConversations].sort((a, b) => {
     if (a.isPinned && !b.isPinned) return -1
     if (!a.isPinned && b.isPinned) return 1
@@ -313,7 +263,6 @@ export function Sidebar() {
 
   return (
     <div className="flex flex-col h-full bg-[var(--bg-secondary)] border-r border-[var(--border)]">
-      {/* Header */}
       <div className="p-4 border-b border-[var(--border)] space-y-3">
         <button
           onClick={handleNewConversation}
@@ -324,13 +273,11 @@ export function Sidebar() {
           <span>{isCreating ? 'Creating...' : 'New Chat'}</span>
         </button>
 
-        {/* Project Selector */}
         <ProjectSelector
           selectedProjectId={selectedProjectId}
           onProjectChange={setSelectedProjectId}
         />
 
-        {/* Search input */}
         <div className="relative">
           <input
             type="text"
@@ -344,7 +291,6 @@ export function Sidebar() {
           </svg>
         </div>
 
-        {/* Archive toggle */}
         <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
           <button
             onClick={() => setShowArchived(!showArchived)}
@@ -360,7 +306,6 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Conversation List */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {conversations.length === 0 ? (
           <div className="text-center p-8 text-[var(--text-secondary)] text-sm">
@@ -386,14 +331,12 @@ export function Sidebar() {
                 onArchive={(e) => handleArchive(e, conv.id)}
                 onUnarchive={(e) => handleUnarchive(e, conv.id)}
                 onExport={(e, format) => handleExport(e, conv.id, format)}
-                onMove={(e) => {
-                  e.stopPropagation()
-                  setShowMoveModal(conv.id)
-                }}
+                onMove={() => setShowMoveModal(conv.id)}
                 isDeleting={deletingId === conv.id}
                 isDuplicating={duplicatingId === conv.id}
                 isArchiving={archivingId === conv.id}
                 isExporting={exportingId === conv.id}
+                isMoving={movingId === conv.id}
               />
             ))}
 
@@ -415,14 +358,12 @@ export function Sidebar() {
                 onArchive={(e) => handleArchive(e, conv.id)}
                 onUnarchive={(e) => handleUnarchive(e, conv.id)}
                 onExport={(e, format) => handleExport(e, conv.id, format)}
-                onMove={(e) => {
-                  e.stopPropagation()
-                  setShowMoveModal(conv.id)
-                }}
+                onMove={() => setShowMoveModal(conv.id)}
                 isDeleting={deletingId === conv.id}
                 isDuplicating={duplicatingId === conv.id}
                 isArchiving={archivingId === conv.id}
                 isExporting={exportingId === conv.id}
+                isMoving={movingId === conv.id}
               />
             ))}
 
@@ -444,65 +385,28 @@ export function Sidebar() {
                 onArchive={(e) => handleArchive(e, conv.id)}
                 onUnarchive={(e) => handleUnarchive(e, conv.id)}
                 onExport={(e, format) => handleExport(e, conv.id, format)}
-                onMove={(e) => {
-                  e.stopPropagation()
-                  setShowMoveModal(conv.id)
-                }}
+                onMove={() => setShowMoveModal(conv.id)}
                 isDeleting={deletingId === conv.id}
                 isDuplicating={duplicatingId === conv.id}
                 isArchiving={archivingId === conv.id}
                 isExporting={exportingId === conv.id}
+                isMoving={movingId === conv.id}
               />
             ))}
           </>
         )}
       </div>
 
-      {/* Move Conversation Modal */}
       {showMoveModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg p-6 w-full max-w-md shadow-xl">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-[var(--text-primary)]">Move Conversation</h3>
-              <button
-                onClick={handleCloseMoveModal}
-                className="p-1 hover:bg-[var(--bg-secondary)] rounded"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                  Select Project
-                </label>
-                <select
-                  onChange={(e) => handleMoveToProject(e.target.value === 'none' ? null : e.target.value)}
-                  className="w-full px-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-                  disabled={movingId === showMoveModal}
-                >
-                  <option value="none">No Project (Remove from project)</option>
-                  {projects.map((project) => (
-                    <option key={project.id} value={project.id}>
-                      {project.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex justify-end">
-                <button
-                  onClick={handleCloseMoveModal}
-                  className="px-4 py-2 text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] rounded-lg"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <MoveModal
+          conversationId={showMoveModal}
+          projects={projects}
+          currentProjectId={conversations.find(c => c.id === showMoveModal)?.projectId || null}
+          onMove={handleMove}
+          onClose={() => setShowMoveModal(null)}
+        />
       )}
 
-      {/* Footer */}
       <div className="p-3 border-t border-[var(--border)] text-xs text-[var(--text-secondary)] flex justify-between items-center">
         <span>{conversations.length} conversations</span>
         <button
@@ -527,11 +431,12 @@ interface ConversationItemProps {
   onArchive: (e: React.MouseEvent) => void
   onUnarchive: (e: React.MouseEvent) => void
   onExport: (e: React.MouseEvent, format: 'json' | 'markdown') => void
-  onMove: (e: React.MouseEvent) => void
+  onMove: () => void
   isDeleting: boolean
   isDuplicating: boolean
   isArchiving: boolean
   isExporting: boolean
+  isMoving: boolean
 }
 
 function ConversationItem({
@@ -545,10 +450,12 @@ function ConversationItem({
   onArchive,
   onUnarchive,
   onExport,
+  onMove,
   isDeleting,
   isDuplicating,
   isArchiving,
   isExporting,
+  isMoving,
 }: ConversationItemProps) {
   const [showActions, setShowActions] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
@@ -633,8 +540,7 @@ function ConversationItem({
             {conv.title || 'Untitled'}
           </span>
 
-          {/* Actions - show on hover or when selected */}
-          {(showActions || isSelected) && !isDeleting && !isDuplicating && !isArchiving && !isExporting && (
+          {(showActions || isSelected) && !isDeleting && !isDuplicating && !isArchiving && !isExporting && !isMoving && (
             <div className="flex gap-1">
               <button
                 onClick={handleStartEdit}
@@ -703,7 +609,7 @@ function ConversationItem({
                 📝
               </button>
               <button
-                onClick={(e) => onMove(e)}
+                onClick={onMove}
                 title="Move to Project"
                 className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
                   isSelected ? 'hover:bg-white/20' : ''
@@ -723,23 +629,111 @@ function ConversationItem({
             </div>
           )}
 
-          {isDeleting && (
-            <span className="text-xs">Deleting...</span>
-          )}
-
-          {isDuplicating && (
-            <span className="text-xs">Duplicating...</span>
-          )}
-
-          {isArchiving && (
-            <span className="text-xs">Archiving...</span>
-          )}
-
-          {isExporting && (
-            <span className="text-xs">Exporting...</span>
-          )}
+          {isDeleting && <span className="text-xs">Deleting...</span>}
+          {isDuplicating && <span className="text-xs">Duplicating...</span>}
+          {isArchiving && <span className="text-xs">Archiving...</span>}
+          {isExporting && <span className="text-xs">Exporting...</span>}
+          {isMoving && <span className="text-xs">Moving...</span>}
         </>
       )}
+    </div>
+  )
+}
+
+interface MoveModalProps {
+  conversationId: string
+  projects: Project[]
+  currentProjectId: string | null
+  onMove: (e: React.MouseEvent, id: string, projectId: string | null) => void
+  onClose: () => void
+}
+
+function MoveModal({ conversationId, projects, currentProjectId, onMove, onClose }: MoveModalProps) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="bg-[var(--bg-primary)] rounded-xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+        <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-[var(--text-primary)]">
+            Move Conversation
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-[var(--surface-elevated)] rounded-lg transition-colors"
+          >
+            <svg className="w-5 h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+          <p className="text-sm text-[var(--text-secondary)]">
+            Select a project to move this conversation to:
+          </p>
+
+          <button
+            onClick={(e) => onMove(e, conversationId, null)}
+            className={`w-full px-4 py-3 text-left rounded-lg border transition-colors ${
+              currentProjectId === null
+                ? 'border-[var(--primary)] bg-[var(--surface-elevated)]'
+                : 'border-[var(--border)] hover:border-[var(--primary)]'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-lg">📋</span>
+              <div className="flex-1">
+                <div className="font-medium">All Conversations</div>
+                <div className="text-xs text-[var(--text-secondary)]">No project filter</div>
+              </div>
+              {currentProjectId === null && (
+                <span className="text-xs text-[var(--primary)] font-medium">Current</span>
+              )}
+            </div>
+          </button>
+
+          {projects.length === 0 ? (
+            <div className="px-3 py-4 text-sm text-[var(--text-secondary)] text-center">
+              No projects available. Create a project first.
+            </div>
+          ) : (
+            projects.map((project) => (
+              <button
+                key={project.id}
+                onClick={(e) => onMove(e, conversationId, project.id)}
+                className={`w-full px-4 py-3 text-left rounded-lg border transition-colors ${
+                  currentProjectId === project.id
+                    ? 'border-[var(--primary)] bg-[var(--surface-elevated)]'
+                    : 'border-[var(--border)] hover:border-[var(--primary)]'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-lg" style={{ color: project.color }}>
+                    {project.icon || '📁'}
+                  </span>
+                  <div className="flex-1">
+                    <div className="font-medium">{project.name}</div>
+                    {project.description && (
+                      <div className="text-xs text-[var(--text-secondary)]">{project.description}</div>
+                    )}
+                  </div>
+                  {currentProjectId === project.id && (
+                    <span className="text-xs text-[var(--primary)] font-medium">Current</span>
+                  )}
+                </div>
+              </button>
+            ))
+          )}
+        </div>
+
+        <div className="px-6 py-4 border-t border-[var(--border)] flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--surface-elevated)] rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

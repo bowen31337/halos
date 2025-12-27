@@ -4,15 +4,55 @@ import json
 from typing import Optional
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from langchain_core.messages import HumanMessage
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import settings
+from src.core.database import get_db
 from src.services.agent_service import agent_service
 
 router = APIRouter()
+
+
+async def get_effective_custom_instructions(
+    conversation_id: Optional[str],
+    db: AsyncSession
+) -> tuple[str, str]:
+    """
+    Get effective custom instructions for a conversation.
+
+    Returns a tuple of (project_instructions, global_instructions).
+    Project instructions take precedence over global instructions.
+    """
+    from src.api.routes.settings import user_settings
+    from sqlalchemy import select
+    from src.models.conversation import Conversation
+    from src.models.project import Project
+
+    global_instructions = user_settings.get("custom_instructions", "")
+    project_instructions = ""
+
+    if conversation_id:
+        # Get conversation to find its project
+        result = await db.execute(
+            select(Conversation).where(Conversation.id == conversation_id)
+        )
+        conversation = result.scalar_one_or_none()
+
+        if conversation and conversation.project_id:
+            # Get project custom instructions
+            result = await db.execute(
+                select(Project).where(Project.id == conversation.project_id)
+            )
+            project = result.scalar_one_or_none()
+
+            if project and project.custom_instructions:
+                project_instructions = project.custom_instructions
+
+    return project_instructions, global_instructions
 
 
 class AgentRequest(BaseModel):
@@ -44,7 +84,10 @@ pending_approvals: dict[str, dict] = {}
 
 
 @router.post("/invoke")
-async def invoke_agent(data: AgentRequest) -> dict:
+async def invoke_agent(
+    data: AgentRequest,
+    db: AsyncSession = Depends(get_db)
+) -> dict:
     """Synchronously invoke the agent and return complete response."""
     thread_id = data.thread_id or str(uuid4())
 
@@ -66,10 +109,22 @@ async def invoke_agent(data: AgentRequest) -> dict:
                 "error": "Agent creation failed - check API key configuration",
             }
 
+        # Get effective custom instructions (project overrides global)
+        project_instructions, global_instructions = await get_effective_custom_instructions(
+            str(data.conversation_id) if data.conversation_id else None,
+            db
+        )
+
+        # Use explicitly provided instructions, or fall back to effective instructions
+        effective_instructions = data.custom_instructions
+        if not effective_instructions or not effective_instructions.strip():
+            # Use project instructions if available, otherwise global
+            effective_instructions = project_instructions if project_instructions else global_instructions
+
         # Prepare message with custom instructions if provided
         message_content = data.message
-        if data.custom_instructions and data.custom_instructions.strip():
-            message_content = f"[System Instructions: {data.custom_instructions}]\n\n{data.message}"
+        if effective_instructions and effective_instructions.strip():
+            message_content = f"[System Instructions: {effective_instructions}]\n\n{data.message}"
 
         # Invoke agent with message and parameters
         config = {
@@ -77,7 +132,7 @@ async def invoke_agent(data: AgentRequest) -> dict:
                 "thread_id": thread_id,
                 "temperature": data.temperature,
                 "max_tokens": data.max_tokens,
-                "custom_instructions": data.custom_instructions,
+                "custom_instructions": effective_instructions,
                 "system_prompt_override": data.system_prompt_override,
             }
         }
@@ -105,7 +160,10 @@ async def invoke_agent(data: AgentRequest) -> dict:
 
 
 @router.post("/stream")
-async def stream_agent(request: Request) -> EventSourceResponse:
+async def stream_agent(
+    request: Request,
+    db: AsyncSession = Depends(get_db)
+) -> EventSourceResponse:
     """Stream agent responses via Server-Sent Events."""
     data = await request.json()
     message = data.get("message", "")
@@ -116,6 +174,7 @@ async def stream_agent(request: Request) -> EventSourceResponse:
     temperature = data.get("temperature", 0.7)
     max_tokens = data.get("max_tokens", 4096)
     custom_instructions = data.get("custom_instructions", "")
+    conversation_id = data.get("conversation_id")
 
     async def event_generator():
         """Generate SSE events for agent response."""
@@ -147,13 +206,25 @@ async def stream_agent(request: Request) -> EventSourceResponse:
                 }
                 return
 
+            # Get effective custom instructions (project overrides global)
+            project_instructions, global_instructions = await get_effective_custom_instructions(
+                str(conversation_id) if conversation_id else None,
+                db
+            )
+
+            # Use explicitly provided instructions, or fall back to effective instructions
+            effective_instructions = custom_instructions
+            if not effective_instructions or not effective_instructions.strip():
+                # Use project instructions if available, otherwise global
+                effective_instructions = project_instructions if project_instructions else global_instructions
+
             # Stream agent response with extended thinking support
             # Pass temperature, max_tokens, custom_instructions, and system_prompt_override in config for mock agent to use
 
             # Prepare message with custom instructions if provided (same as invoke endpoint)
             message_content = message
-            if custom_instructions and custom_instructions.strip():
-                message_content = f"[System Instructions: {custom_instructions}]\n\n{message}"
+            if effective_instructions and effective_instructions.strip():
+                message_content = f"[System Instructions: {effective_instructions}]\n\n{message}"
 
             config = {
                 "configurable": {
@@ -161,7 +232,7 @@ async def stream_agent(request: Request) -> EventSourceResponse:
                     "extended_thinking": extended_thinking,
                     "temperature": temperature,
                     "max_tokens": max_tokens,
-                    "custom_instructions": custom_instructions,
+                    "custom_instructions": effective_instructions,
                 }
             }
 
