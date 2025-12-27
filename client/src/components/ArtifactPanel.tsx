@@ -6,6 +6,7 @@ import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import katex from 'katex'
 import 'katex/dist/katex.min.css'
 import { ResizableHandle } from './ResizableHandle'
+import { JsonViewer } from './JsonViewer'
 
 export function ArtifactPanel() {
   const { setPanelType, setPanelOpen, panelWidth, setPanelWidth } = useUIStore()
