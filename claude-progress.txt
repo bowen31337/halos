@@ -6,9 +6,9 @@
 |--------|-------|--------|
 | **Total Features** | 201 | |
 | **Dev Done** | 126 | 62.7% ✅ |
-| **QA Passed** | 126 | 62.7% ✅ |
+| **QA Passed** | 123 | 61.2% ✅ |
 | **Dev Queue** | 75 | 37.3% remaining |
-| **QA Queue** | 75 | 37.3% remaining |
+| **QA Queue** | 78 | 38.8% remaining |
 
 ### 🎯 Recently Completed Features (Session 46)
 
