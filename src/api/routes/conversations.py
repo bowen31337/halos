@@ -36,6 +36,12 @@ class ConversationUpdate(BaseModel):
     is_pinned: Optional[bool] = None
 
 
+class MoveConversationRequest(BaseModel):
+    """Request model for moving a conversation to a project."""
+
+    project_id: Optional[str] = None
+
+
 class ConversationResponse(BaseModel):
     """Response model for a conversation."""
 
@@ -234,6 +240,40 @@ async def duplicate_conversation(
         "message_count": duplicate.message_count,
         "created_at": duplicate.created_at.isoformat(),
         "updated_at": duplicate.updated_at.isoformat(),
+    }
+
+
+@router.post("/{conversation_id}/move")
+async def move_conversation(
+    conversation_id: str,
+    data: MoveConversationRequest,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Move a conversation to a different project (or remove from project)."""
+    result = await db.execute(
+        select(ConversationModel).where(ConversationModel.id == conversation_id)
+    )
+    conversation = result.scalar_one_or_none()
+
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    # Update project_id (can be None to remove from project)
+    conversation.project_id = data.project_id
+    conversation.updated_at = datetime.utcnow()
+    await db.commit()
+    await db.refresh(conversation)
+
+    return {
+        "id": conversation.id,
+        "title": conversation.title,
+        "model": conversation.model,
+        "project_id": conversation.project_id,
+        "is_archived": conversation.is_archived,
+        "is_pinned": conversation.is_pinned,
+        "message_count": conversation.message_count,
+        "created_at": conversation.created_at.isoformat(),
+        "updated_at": conversation.updated_at.isoformat(),
     }
 
 

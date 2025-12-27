@@ -149,6 +149,12 @@ async def stream_agent(request: Request) -> EventSourceResponse:
 
             # Stream agent response with extended thinking support
             # Pass temperature, max_tokens, custom_instructions, and system_prompt_override in config for mock agent to use
+
+            # Prepare message with custom instructions if provided (same as invoke endpoint)
+            message_content = message
+            if custom_instructions and custom_instructions.strip():
+                message_content = f"[System Instructions: {custom_instructions}]\n\n{message}"
+
             config = {
                 "configurable": {
                     "thread_id": thread_id,
@@ -170,7 +176,7 @@ async def stream_agent(request: Request) -> EventSourceResponse:
                 }
 
             async for event in agent.astream_events(
-                {"messages": [HumanMessage(content=message)]},
+                {"messages": [HumanMessage(content=message_content)]},
                 config=config,
                 version="v2",
             ):

@@ -107,7 +107,6 @@ export const useUIStore = create<UIState>()(
         extendedThinkingEnabled: state.extendedThinkingEnabled,
         fontSize: state.fontSize,
         customInstructions: state.customInstructions,
-        systemPromptOverride: state.systemPromptOverride,
         temperature: state.temperature,
         maxTokens: state.maxTokens,
       }),

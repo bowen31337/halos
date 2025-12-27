@@ -18,9 +18,11 @@ export function Sidebar() {
     updateConversation,
     archiveConversation,
     unarchiveConversation,
+    updateConversationInStore,
   } = useConversationStore()
 
   const { setSidebarOpen } = useUIStore()
+  const { projects, fetchProjects } = useProjectStore()
   const navigate = useNavigate()
   const { conversationId } = useParams()
   const [isCreating, setIsCreating] = useState(false)
@@ -29,8 +31,10 @@ export function Sidebar() {
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null)
   const [archivingId, setArchivingId] = useState<string | null>(null)
   const [exportingId, setExportingId] = useState<string | null>(null)
+  const [movingId, setMovingId] = useState<string | null>(null)
   const [showArchived, setShowArchived] = useState(false)
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
+  const [showMoveModal, setShowMoveModal] = useState<string | null>(null) // conversation ID for move modal
 
   const handleArchive = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
@@ -189,6 +193,71 @@ export function Sidebar() {
     }
   }
 
+  const handleMove = async (e: React.MouseEvent, id: string, projectId: string | null) => {
+    e.stopPropagation()
+    setMovingId(id)
+    try {
+      const updated = await api.moveConversation(id, projectId)
+      // Update the conversation in the store
+      updateConversation(id, { projectId: updated.project_id })
+      // If moving the current conversation and it's no longer visible, navigate away
+      if (currentConversationId === id) {
+        const currentConv = conversations.find(c => c.id === id)
+        if (currentConv) {
+          const newProjectId = updated.project_id
+          const shouldNavigateAway = selectedProjectId !== null && selectedProjectId !== newProjectId
+          if (shouldNavigateAway) {
+            setCurrentConversation(null)
+            navigate('/')
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to move conversation:', error)
+    } finally {
+      setMovingId(null)
+      setShowMoveModal(null)
+    }
+  }
+
+  // Load projects on mount
+  useEffect(() => {
+    fetchProjects()
+  }, [fetchProjects])
+
+  // Move conversation functions
+  const handleMoveToProject = async (projectId: string | null) => {
+    if (!showMoveModal) return
+
+    setMovingId(showMoveModal)
+    try {
+      const updated = await api.moveConversation(showMoveModal, projectId)
+      // Update the conversation in the store
+      updateConversation(showMoveModal, { projectId: updated.project_id })
+      // If moving the current conversation and it's no longer visible, navigate away
+      if (currentConversationId === showMoveModal) {
+        const currentConv = conversations.find(c => c.id === showMoveModal)
+        if (currentConv) {
+          const newProjectId = updated.project_id
+          const shouldNavigateAway = selectedProjectId !== null && selectedProjectId !== newProjectId
+          if (shouldNavigateAway) {
+            setCurrentConversation(null)
+            navigate('/')
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to move conversation:', error)
+    } finally {
+      setMovingId(null)
+      setShowMoveModal(null)
+    }
+  }
+
+  const handleCloseMoveModal = () => {
+    setShowMoveModal(null)
+  }
+
   // Group conversations by date
   const groupByDate = (conversations: Conversation[]) => {
     const now = new Date()
@@ -317,6 +386,10 @@ export function Sidebar() {
                 onArchive={(e) => handleArchive(e, conv.id)}
                 onUnarchive={(e) => handleUnarchive(e, conv.id)}
                 onExport={(e, format) => handleExport(e, conv.id, format)}
+                onMove={(e) => {
+                  e.stopPropagation()
+                  setShowMoveModal(conv.id)
+                }}
                 isDeleting={deletingId === conv.id}
                 isDuplicating={duplicatingId === conv.id}
                 isArchiving={archivingId === conv.id}
@@ -342,6 +415,10 @@ export function Sidebar() {
                 onArchive={(e) => handleArchive(e, conv.id)}
                 onUnarchive={(e) => handleUnarchive(e, conv.id)}
                 onExport={(e, format) => handleExport(e, conv.id, format)}
+                onMove={(e) => {
+                  e.stopPropagation()
+                  setShowMoveModal(conv.id)
+                }}
                 isDeleting={deletingId === conv.id}
                 isDuplicating={duplicatingId === conv.id}
                 isArchiving={archivingId === conv.id}
@@ -367,6 +444,10 @@ export function Sidebar() {
                 onArchive={(e) => handleArchive(e, conv.id)}
                 onUnarchive={(e) => handleUnarchive(e, conv.id)}
                 onExport={(e, format) => handleExport(e, conv.id, format)}
+                onMove={(e) => {
+                  e.stopPropagation()
+                  setShowMoveModal(conv.id)
+                }}
                 isDeleting={deletingId === conv.id}
                 isDuplicating={duplicatingId === conv.id}
                 isArchiving={archivingId === conv.id}
@@ -376,6 +457,50 @@ export function Sidebar() {
           </>
         )}
       </div>
+
+      {/* Move Conversation Modal */}
+      {showMoveModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--bg-primary)] border border-[var(--border)] rounded-lg p-6 w-full max-w-md shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-[var(--text-primary)]">Move Conversation</h3>
+              <button
+                onClick={handleCloseMoveModal}
+                className="p-1 hover:bg-[var(--bg-secondary)] rounded"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                  Select Project
+                </label>
+                <select
+                  onChange={(e) => handleMoveToProject(e.target.value === 'none' ? null : e.target.value)}
+                  className="w-full px-3 py-2 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+                  disabled={movingId === showMoveModal}
+                >
+                  <option value="none">No Project (Remove from project)</option>
+                  {projects.map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  onClick={handleCloseMoveModal}
+                  className="px-4 py-2 text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] rounded-lg"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <div className="p-3 border-t border-[var(--border)] text-xs text-[var(--text-secondary)] flex justify-between items-center">
@@ -402,6 +527,7 @@ interface ConversationItemProps {
   onArchive: (e: React.MouseEvent) => void
   onUnarchive: (e: React.MouseEvent) => void
   onExport: (e: React.MouseEvent, format: 'json' | 'markdown') => void
+  onMove: (e: React.MouseEvent) => void
   isDeleting: boolean
   isDuplicating: boolean
   isArchiving: boolean
@@ -575,6 +701,15 @@ function ConversationItem({
                 }`}
               >
                 📝
+              </button>
+              <button
+                onClick={(e) => onMove(e)}
+                title="Move to Project"
+                className={`p-1 rounded hover:bg-[var(--bg-secondary)] ${
+                  isSelected ? 'hover:bg-white/20' : ''
+                }`}
+              >
+                📁
               </button>
               <button
                 onClick={onDelete}

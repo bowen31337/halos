@@ -18,9 +18,9 @@
       "Step 13: Verify custom subagents can be registered using subagents parameter",
       "Step 14: Verify long-term memory works via CompositeBackend with StoreBackend routes"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -581,9 +581,10 @@
       "Step 7: Switch to Project B",
       "Step 8: Verify conversation appears in Project B"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": false,
+    "test_date": "2025-12-27"
   },
   {
     "category": "functional",

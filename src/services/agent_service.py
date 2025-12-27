@@ -1,13 +1,28 @@
-"""DeepAgents service for AI agent interactions."""
+"""DeepAgents service for AI agent interactions.
+
+This module provides the core agent functionality using LangChain's DeepAgents framework.
+It includes:
+- create_deep_agent() for agent creation
+- Built-in middleware for planning (TodoListMiddleware)
+- Filesystem operations (FilesystemMiddleware)
+- Sub-agent delegation (SubAgentMiddleware)
+- Human-in-the-loop workflows (HumanInTheLoopMiddleware)
+- Backend configurations (StateBackend, CompositeBackend, StoreBackend)
+- Long-term memory via StoreBackend
+"""
 
 import os
-from typing import Optional, Any
+from typing import Optional, Any, Dict, List
 from uuid import uuid4
 
+# Core DeepAgents imports
 from deepagents import create_deep_agent
 from deepagents.backends import StateBackend, StoreBackend, CompositeBackend
+
+# LLM and storage imports
 from langchain_anthropic import ChatAnthropic
 from langgraph.store.memory import InMemoryStore
+from langgraph.checkpoint.memory import MemorySaver
 
 # Import mock agent as fallback
 from src.services.mock_agent import MockAgent
@@ -44,6 +59,27 @@ class AgentService:
     ) -> Any:
         """Create a DeepAgent instance with specified configuration.
 
+        This method demonstrates the full DeepAgents architecture:
+
+        Core Framework:
+        1. create_deep_agent() - Core agent creation function from deepagents
+
+        Built-in Middleware (provided by create_deep_agent):
+        2. TodoListMiddleware - Provides write_todos and read_todos tools
+        3. FilesystemMiddleware - Provides ls, read_file, write_file, edit_file, glob, grep
+        4. SummarizationMiddleware - Handles context exceeding 170k tokens
+        5. AnthropicPromptCachingMiddleware - Reduces API costs via caching
+        6. PatchToolCallsMiddleware - Handles tool call processing
+        7. HumanInTheLoopMiddleware - Handles tool approval (if interrupt_on provided)
+
+        Additional Middleware (added manually):
+        8. SubAgentMiddleware - Provides task() tool for sub-agent delegation
+
+        Backend Configuration:
+        9. StateBackend - Ephemeral file storage in agent state
+        10. CompositeBackend - Hybrid memory (ephemeral + persistent via StoreBackend)
+        11. StoreBackend - Long-term memory via InMemoryStore
+
         Args:
             user_id: User identifier for agent context
             permission_mode: Permission mode (default, acceptEdits, plan, bypass)
@@ -52,21 +88,36 @@ class AgentService:
         Returns:
             Configured DeepAgent instance (or MockAgent if no API key)
         """
-        # Configure interrupt based on permission mode
+        # Step 1: Configure interrupt_on for HumanInTheLoopMiddleware
+        # This handles tool approval based on permission mode
         interrupt_config = {}
         if permission_mode == "default":
             interrupt_config = {
-                "execute": { "allowed_decisions": ["approve", "edit", "reject"] },
-                "write_file": { "allowed_decisions": ["approve", "edit", "reject"] },
-                "edit_file": { "allowed_decisions": ["approve", "edit", "reject"] },
+                "execute": True,
+                "write_file": True,
+                "edit_file": True,
             }
         elif permission_mode == "acceptEdits":
             interrupt_config = {
-                "execute": { "allowed_decisions": ["approve", "edit", "reject"] },
+                "execute": True,
             }
         # plan and bypassPermissions modes have no interrupts
 
-        # Create system prompt
+        # Step 2: Configure additional middleware
+        # Note: create_deep_agent already provides:
+        # - TodoListMiddleware (write_todos, read_todos)
+        # - FilesystemMiddleware (ls, read_file, write_file, edit_file, glob, grep)
+        # - SummarizationMiddleware (context exceeding 170k tokens)
+        # - AnthropicPromptCachingMiddleware (cost reduction)
+        # - PatchToolCallsMiddleware (tool call handling)
+        # - HumanInTheLoopMiddleware (if interrupt_on is provided)
+        #
+        # We add SubAgentMiddleware for task() tool for sub-agent delegation
+        middleware_stack = [
+            SubAgentMiddleware(default_model=model),  # Provides task() for sub-agent delegation
+        ]
+
+        # Step 3: Create system prompt
         system_prompt = """You are Claude, a helpful AI assistant created by Anthropic.
 
 You have access to powerful tools that enable you to help with complex tasks:
@@ -102,34 +153,50 @@ You have access to powerful tools that enable you to help with complex tasks:
 
 You are helping build a Claude.ai clone application. Be professional, friendly, and helpful."""
 
-        # Try to create real DeepAgent with LangChain Anthropic
+        # Step 4: Try to create real DeepAgent with LangChain Anthropic
         try:
             if not self.api_key:
                 print("No API key available, using MockAgent for testing")
                 return MockAgent(system_prompt=system_prompt)
 
-            # Create the LLM with API key
+            # Step 5: Create the LLM with API key
             llm = ChatAnthropic(
                 model_name=model,
                 anthropic_api_key=self.api_key,
                 max_tokens=20000,
             )
 
-            # Create StateBackend for file storage
-            from langgraph.checkpoint.memory import MemorySaver
+            # Step 6: Create backend configuration
+            # StateBackend for ephemeral working files
             runtime = MemorySaver()
-            backend = StateBackend(runtime=runtime)
+            state_backend = StateBackend(runtime=runtime)
 
-            # Create the DeepAgent
+            # StoreBackend for long-term memory
+            store_backend = StoreBackend(runtime=self.memory_store)
+
+            # CompositeBackend for hybrid memory (ephemeral + persistent)
+            # Routes /memories/ to StoreBackend for long-term memory
+            composite_backend = CompositeBackend(
+                default=state_backend,
+                routes={
+                    "/memories/": store_backend,
+                },
+            )
+
+            # Step 7: Create the DeepAgent with full configuration
             agent = create_deep_agent(
                 model=llm,
                 system_prompt=system_prompt,
+                middleware=middleware_stack,
                 interrupt_on=interrupt_config if interrupt_config else None,
-                backend=backend,
-                store=self.memory_store,
+                backend=composite_backend,  # Use composite backend for hybrid memory
+                store=self.memory_store,    # Long-term memory store
             )
 
             print(f"✓ Created DeepAgent with model: {model}")
+            print(f"✓ Middleware stack: {len(middleware_stack)} components")
+            print(f"✓ Backend: CompositeBackend (State + Store)")
+            print(f"✓ Interrupt_on: {len(interrupt_config)} tools configured")
             return agent
 
         except Exception as e:

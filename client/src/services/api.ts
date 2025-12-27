@@ -80,6 +80,15 @@ class APIService {
     })
   }
 
+  async moveConversation(id: string, projectId: string | null): Promise<Conversation> {
+    const response = await fetch(`${API_BASE}/conversations/${id}/move`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ project_id: projectId }),
+    })
+    return response.json()
+  }
+
   async duplicateConversation(id: string): Promise<Conversation> {
     const response = await fetch(`${API_BASE}/conversations/${id}/duplicate`, {
       method: 'POST',

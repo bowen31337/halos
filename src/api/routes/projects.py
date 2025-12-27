@@ -189,7 +189,7 @@ async def delete_project(
         raise HTTPException(status_code=404, detail="Project not found")
 
     # Unlink conversations from this project
-    await db.execute(
+    result = await db.execute(
         select(Conversation).where(Conversation.project_id == project_id)
     )
     conversations = result.scalars().all()
