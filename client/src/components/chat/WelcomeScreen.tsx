@@ -1,4 +1,3 @@
-
 import { useConversationStore } from '../../stores/conversationStore'
 
 const suggestions = [
@@ -9,7 +8,7 @@ const suggestions = [
 ]
 
 export function WelcomeScreen() {
-  const { } = useConversationStore()
+  const { setInputMessage } = useConversationStore()
 
   const handleSuggestion = (prompt: string) => {
     setInputMessage(prompt)

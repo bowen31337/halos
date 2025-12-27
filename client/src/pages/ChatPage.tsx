@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { useConversationStore } from '../stores/conversationStore'
 import { MessageList } from '../components/MessageList'

@@ -4,10 +4,32 @@ import { api } from '../services/api'
 import { v4 as uuidv4 } from 'uuid'
 
 export function ChatInput() {
-  const [inputValue, setInputValue] = useState('')
-  const { isStreaming, isLoading, addMessage, appendToLastMessage, setStreaming, setLoading, currentConversationId, createConversation } = useConversationStore()
+  const {
+    isStreaming,
+    isLoading,
+    addMessage,
+    appendToLastMessage,
+    setStreaming,
+    setLoading,
+    currentConversationId,
+    createConversation,
+    inputMessage: storeInputMessage,
+    setInputMessage
+  } = useConversationStore()
+
+  // Use local state for immediate UI feedback, sync with store
+  const [inputValue, setInputValue] = useState(storeInputMessage)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
+
+  // Sync with store when it changes (e.g., from WelcomeScreen)
+  useEffect(() => {
+    if (storeInputMessage && storeInputMessage !== inputValue) {
+      setInputValue(storeInputMessage)
+      // Clear the store message after syncing
+      setInputMessage('')
+    }
+  }, [storeInputMessage, inputValue, setInputMessage])
 
   // Auto-resize textarea
   useEffect(() => {
@@ -28,9 +50,17 @@ export function ChatInput() {
 
     if (!inputValue.trim() || isLoading) return
 
-    const convId = currentConversationId || 'default'
+    // Ensure we have a conversation ID
+    let convId = currentConversationId
+    if (!convId) {
+      // Create a new conversation
+      const newConv = await createConversation('New Conversation')
+      convId = newConv.id
+    }
+
+    const userMessageId = uuidv4()
     const userMessage = {
-      id: uuidv4(),
+      id: userMessageId,
       conversationId: convId,
       role: 'user' as const,
       content: inputValue,
@@ -54,6 +84,13 @@ export function ChatInput() {
       isStreaming: true,
     }
     addMessage(assistantMessage)
+
+    // Persist user message to backend
+    try {
+      await api.createMessage(convId, { content: messageToSend, role: 'user' })
+    } catch (e) {
+      console.warn('Failed to persist user message:', e)
+    }
 
     // Create abort controller for cancellation
     const abortController = new AbortController()
@@ -83,6 +120,7 @@ export function ChatInput() {
 
       const decoder = new TextDecoder()
       let buffer = ''
+      let fullAssistantContent = ''
 
       while (true) {
         const { done, value } = await reader.read()
@@ -114,6 +152,7 @@ export function ChatInput() {
                   case 'message':
                     if (eventData.content) {
                       appendToLastMessage(eventData.content)
+                      fullAssistantContent += eventData.content
                     }
                     break
                   case 'tool_start':
@@ -145,6 +184,7 @@ export function ChatInput() {
                 const eventData = JSON.parse(currentData)
                 if (eventData.content) {
                   appendToLastMessage(eventData.content)
+                  fullAssistantContent += eventData.content
                 }
               } catch (e) {
                 console.warn('Failed to parse SSE data:', e)
@@ -164,19 +204,33 @@ export function ChatInput() {
         useConversationStore.setState({ messages: updatedMessages })
       }
 
+      // Persist assistant message to backend
+      try {
+        await api.createMessage(convId, { content: fullAssistantContent, role: 'assistant' })
+      } catch (e) {
+        console.warn('Failed to persist assistant message:', e)
+      }
+
     } catch (error: unknown) {
       if (error instanceof Error && error.name === 'AbortError') {
         console.log('Request cancelled by user')
       } else {
         console.error('Error sending message:', error)
         // Add error message
+        const errorMsg = `Error: ${error instanceof Error ? error.message : String(error)}. The backend may not be running or API key not configured.`
         addMessage({
           id: uuidv4(),
           conversationId: convId,
           role: 'assistant',
-          content: `Error: ${error instanceof Error ? error.message : String(error)}. The backend may not be running or API key not configured.`,
+          content: errorMsg,
           createdAt: new Date().toISOString(),
         })
+        // Persist error message
+        try {
+          await api.createMessage(convId, { content: errorMsg, role: 'assistant' })
+        } catch (e) {
+          console.warn('Failed to persist error message:', e)
+        }
       }
     } finally {
       setLoading(false)

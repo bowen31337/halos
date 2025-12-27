@@ -2,7 +2,7 @@
  * API Service for backend communication
  */
 
-import { Conversation, Message } from '@/stores/conversationStore'
+import type { Conversation, Message } from '@/stores/conversationStore'
 
 const API_BASE = '/api'
 

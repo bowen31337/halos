@@ -253,6 +253,7 @@ export const useConversationStore = create<ConversationState>((set) => ({
           if (!response.ok) throw new Error('Failed to regenerate')
 
           const reader = response.body?.getReader()
+          if (!reader) throw new Error('No response body')
           const decoder = new TextDecoder()
           let buffer = ''
 
@@ -355,6 +356,7 @@ export const useConversationStore = create<ConversationState>((set) => ({
       if (!response.ok) throw new Error('Failed to send')
 
       const reader = response.body?.getReader()
+      if (!reader) throw new Error('No response body')
       const decoder = new TextDecoder()
       let buffer = ''
 
