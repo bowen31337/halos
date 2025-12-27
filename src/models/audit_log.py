@@ -111,6 +111,10 @@ class AuditActionType(enum.Enum):
     USER_PASSWORD_CHANGE = "user_password_change"
     USER_PROFILE_UPDATE = "user_profile_update"
 
+    # Data export & account actions
+    DATA_EXPORT = "data_export"
+    ACCOUNT_DELETION = "account_deletion"
+
 
 class AuditLog(Base):
     """Model for auditing user actions and security events."""

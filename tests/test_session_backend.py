@@ -125,10 +125,13 @@ def test_refresh_token():
     token = sm.create_session("test_user")
     token_data = sm.verify_token(token)
 
+    # Wait to ensure different timestamp (int(time.time() changes every second)
+    time.sleep(1.1)
+
     # Refresh the token
     new_token = sm.refresh_token(token_data)
     assert new_token is not None
-    assert new_token != token  # Should be a new token
+    assert new_token != token  # Should be a new token (different timestamp)
 
     # New token should be valid
     new_token_data = sm.verify_token(new_token)
@@ -145,6 +148,9 @@ def test_refresh_with_refresh_token():
     result = sm.create_full_session("test_user")
     access_token = result["access_token"]
     refresh_token = result["refresh_token"]
+
+    # Wait to ensure different timestamp
+    time.sleep(1.1)
 
     # Use refresh token to get new access token
     new_access_token = sm.refresh_with_refresh_token(refresh_token)
@@ -249,8 +255,8 @@ def test_update_session_activity():
 
     initial_activity = sm.sessions[session_id]["last_activity"]
 
-    # Wait a bit
-    time.sleep(0.1)
+    # Wait to ensure different timestamp
+    time.sleep(1.1)
 
     # Update activity
     sm._update_session_activity(session_id)
@@ -312,7 +318,7 @@ def test_refresh_with_expired_refresh_token():
     """Verify expired refresh tokens are rejected."""
     sm = SessionManager()
     original_expiry = sm.refresh_token_expiry_days
-    sm.refresh_token_expiry_days = 0.0001  # Very short expiry for testing
+    sm.refresh_token_expiry_days = 0.00001  # Very short expiry (~0.86 seconds)
 
     try:
         # Create session
@@ -320,7 +326,7 @@ def test_refresh_with_expired_refresh_token():
         refresh_token = result["refresh_token"]
 
         # Wait for expiry
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         # Try to refresh
         new_token = sm.refresh_with_refresh_token(refresh_token)

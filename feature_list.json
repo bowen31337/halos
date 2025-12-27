@@ -2374,7 +2374,7 @@
     "passes": true,
     "is_dev_done": true,
     "is_qa_passed": true,
-    "notes": "Full implementation: UI in SettingsModal (Privacy tab), store integration, backend settings API, content filter utility, and agent integration. All 8 tests passing.",
+    "notes": "Complete: Content filtering UI in settings, filter instructions applied to agent, response filtering in stream endpoint, 13 code tests passing, 2 browser tests",
     "test_date": "2025-12-27"
   },
   {

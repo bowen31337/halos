@@ -19,6 +19,7 @@ from src.models.artifact import Artifact
 from src.models.conversation import Conversation
 from src.models.memory import Memory
 from src.utils.audit import log_agent_invocation, get_request_info
+from src.utils.content_filter import apply_content_filtering_to_message, should_filter_response
 
 router = APIRouter()
 
@@ -608,6 +609,9 @@ async def stream_agent(
             if effective_instructions and effective_instructions.strip():
                 message_content = f"[System Instructions: {effective_instructions}]\n\n{message}"
 
+            # Apply content filtering
+            message_content = apply_content_filtering_to_message(message_content)
+
             # Add project files context if available
             if files_content:
                 message_content = f"{files_content}{message_content}"
@@ -919,6 +923,20 @@ async def stream_agent(
                     "event": "files",
                     "data": json.dumps({"files": agent._thread_state["files"]}),
                 }
+
+            # Apply content filtering to the final response
+            should_filter, filter_reason = should_filter_response(full_response)
+            if should_filter:
+                # Yield a filter notification event
+                yield {
+                    "event": "content_filtered",
+                    "data": json.dumps({
+                        "reason": filter_reason,
+                        "original_length": len(full_response),
+                    }),
+                }
+                # Replace the response with a filtered message
+                full_response = f"[Content Filtered: {filter_reason}]"
 
             # Done event with thinking content and artifacts if available
             done_data = {"thread_id": thread_id}

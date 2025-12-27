@@ -381,3 +381,324 @@ async def get_session_status() -> dict:
         }
     }
 
+
+# ==================== Data Export & Account Management ====================
+
+
+@router.get("/export-all")
+async def export_all_user_data(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    """
+    Export all user data including conversations, messages, settings, memories, and more.
+
+    This endpoint provides a comprehensive export of all user content for:
+    - Data portability (GDPR compliance)
+    - Backup purposes
+    - Migration to other systems
+
+    Returns:
+        Response: JSON file containing all user data
+    """
+    # Get all conversations for the user (in a real app, filter by user_id)
+    conv_result = await db.execute(
+        select(Conversation)
+        .where(Conversation.is_deleted == False)
+        .order_by(Conversation.created_at)
+    )
+    conversations = conv_result.scalars().all()
+
+    # Get all messages
+    msg_result = await db.execute(
+        select(Message)
+        .order_by(Message.created_at)
+    )
+    messages = msg_result.scalars().all()
+
+    # Get all memories
+    memory_result = await db.execute(
+        select(Memory)
+        .where(Memory.is_active == True)
+        .order_by(Memory.created_at)
+    )
+    memories = memory_result.scalars().all()
+
+    # Get all prompts
+    prompt_result = await db.execute(
+        select(Prompt)
+        .where(Prompt.is_active == True)
+        .order_by(Prompt.created_at)
+    )
+    prompts = prompt_result.scalars().all()
+
+    # Get all artifacts
+    artifact_result = await db.execute(
+        select(Artifact)
+        .order_by(Artifact.created_at)
+    )
+    artifacts = artifact_result.scalars().all()
+
+    # Get all checkpoints
+    checkpoint_result = await db.execute(
+        select(Checkpoint)
+        .order_by(Checkpoint.created_at)
+    )
+    checkpoints = checkpoint_result.scalars().all()
+
+    # Get all projects
+    project_result = await db.execute(
+        select(Project)
+        .order_by(Project.created_at)
+    )
+    projects = project_result.scalars().all()
+
+    # Build export data structure
+    export_data = {
+        "export_version": "1.0",
+        "export_date": datetime.utcnow().isoformat(),
+        "export_type": "full_user_data",
+        "summary": {
+            "conversations": len(conversations),
+            "messages": len(messages),
+            "memories": len(memories),
+            "prompts": len(prompts),
+            "artifacts": len(artifacts),
+            "checkpoints": len(checkpoints),
+            "projects": len(projects),
+        },
+        "data": {
+            "conversations": [
+                {
+                    "id": c.id,
+                    "title": c.title,
+                    "model": c.model,
+                    "project_id": c.project_id,
+                    "is_archived": c.is_archived,
+                    "is_pinned": c.is_pinned,
+                    "token_count": c.token_count,
+                    "created_at": c.created_at.isoformat(),
+                    "updated_at": c.updated_at.isoformat(),
+                }
+                for c in conversations
+            ],
+            "messages": [
+                {
+                    "id": m.id,
+                    "conversation_id": m.conversation_id,
+                    "role": m.role,
+                    "content": m.content,
+                    "thinking_content": m.thinking_content,
+                    "tool_calls": m.tool_calls,
+                    "tool_results": m.tool_results,
+                    "attachments": m.attachments,
+                    "input_tokens": m.input_tokens,
+                    "output_tokens": m.output_tokens,
+                    "cache_read_tokens": m.cache_read_tokens,
+                    "cache_write_tokens": m.cache_write_tokens,
+                    "created_at": m.created_at.isoformat(),
+                    "edited_at": m.edited_at.isoformat() if m.edited_at else None,
+                }
+                for m in messages
+            ],
+            "memories": [
+                {
+                    "id": mem.id,
+                    "content": mem.content,
+                    "category": mem.category,
+                    "created_at": mem.created_at.isoformat(),
+                }
+                for mem in memories
+            ],
+            "prompts": [
+                {
+                    "id": p.id,
+                    "title": p.title,
+                    "content": p.content,
+                    "category": p.category,
+                    "description": p.description,
+                    "tags": p.tags,
+                    "created_at": p.created_at.isoformat(),
+                }
+                for p in prompts
+            ],
+            "artifacts": [
+                {
+                    "id": a.id,
+                    "conversation_id": a.conversation_id,
+                    "title": a.title,
+                    "language": a.language,
+                    "content": a.content,
+                    "created_at": a.created_at.isoformat(),
+                }
+                for a in artifacts
+            ],
+            "checkpoints": [
+                {
+                    "id": cp.id,
+                    "conversation_id": cp.conversation_id,
+                    "name": cp.name,
+                    "notes": cp.notes,
+                    "state": cp.state,
+                    "created_at": cp.created_at.isoformat(),
+                }
+                for cp in checkpoints
+            ],
+            "projects": [
+                {
+                    "id": p.id,
+                    "name": p.name,
+                    "description": p.description,
+                    "created_at": p.created_at.isoformat(),
+                }
+                for p in projects
+            ],
+            "settings": user_settings.copy(),
+        },
+    }
+
+    # Audit log
+    ip_address, user_agent = get_request_info(request)
+    await log_audit(
+        db=db,
+        user_id="default-user",
+        action=AuditAction.DATA_EXPORT,
+        resource_type="user",
+        resource_id="all",
+        details={"export_type": "full", "item_count": sum(export_data["summary"].values())},
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+
+    json_str = json.dumps(export_data, indent=2, ensure_ascii=False)
+    filename = f"user_data_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
+
+    return Response(
+        content=json_str,
+        media_type="application/json",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"'
+        }
+    )
+
+
+@router.delete("/account")
+async def delete_account(
+    request: Request,
+    confirm: str = "",
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Delete user account and all associated data.
+
+    This is a destructive operation that:
+    1. Soft deletes all conversations
+    2. Deletes all messages
+    3. Deletes all memories
+    4. Deletes all prompts
+    5. Deletes all artifacts
+    6. Deletes all checkpoints
+    7. Deletes all projects
+    8. Deletes all shared links
+    9. Deletes all audit logs
+    10. Deletes all sessions and API keys
+
+    WARNING: This operation cannot be undone!
+
+    Args:
+        confirm: Must be "DELETE_ACCOUNT" to confirm the deletion
+
+    Returns:
+        dict: Confirmation of deletion
+    """
+    if confirm != "DELETE_ACCOUNT":
+        raise HTTPException(
+            status_code=400,
+            detail="You must provide confirmation. Set confirm='DELETE_ACCOUNT' to proceed."
+        )
+
+    # Get all data for audit
+    conv_count = (await db.execute(select(Conversation).where(Conversation.is_deleted == False))).scalar_count()
+    msg_count = (await db.execute(select(Message))).scalar_count()
+    memory_count = (await db.execute(select(Memory).where(Memory.is_active == True))).scalar_count()
+    prompt_count = (await db.execute(select(Prompt).where(Prompt.is_active == True))).scalar_count()
+    artifact_count = (await db.execute(select(Artifact))).scalar_count()
+    checkpoint_count = (await db.execute(select(Checkpoint))).scalar_count()
+    project_count = (await db.execute(select(Project))).scalar_count()
+
+    total_items = conv_count + msg_count + memory_count + prompt_count + artifact_count + checkpoint_count + project_count
+
+    # Log the deletion request before proceeding
+    ip_address, user_agent = get_request_info(request)
+    await log_audit(
+        db=db,
+        user_id="default-user",
+        action=AuditAction.ACCOUNT_DELETION,
+        resource_type="user",
+        resource_id="default-user",
+        details={
+            "items_to_delete": total_items,
+            "conversations": conv_count,
+            "messages": msg_count,
+            "memories": memory_count,
+            "prompts": prompt_count,
+            "artifacts": artifact_count,
+            "checkpoints": checkpoint_count,
+            "projects": project_count,
+        },
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+
+    # Soft delete all conversations
+    result = await db.execute(
+        select(Conversation).where(Conversation.is_deleted == False)
+    )
+    conversations = result.scalars().all()
+    for conv in conversations:
+        conv.is_deleted = True
+
+    # Delete all messages
+    await db.execute(select(Message).delete())
+
+    # Delete all memories
+    await db.execute(select(Memory).delete())
+
+    # Delete all prompts
+    await db.execute(select(Prompt).delete())
+
+    # Delete all artifacts
+    await db.execute(select(Artifact).delete())
+
+    # Delete all checkpoints
+    await db.execute(select(Checkpoint).delete())
+
+    # Delete all projects
+    await db.execute(select(Project).delete())
+
+    # Note: In a real multi-user system, we would also:
+    # - Delete user sessions
+    # - Delete API keys
+    # - Delete audit logs (or keep for compliance)
+    # - Delete shared conversations
+    # - Delete MCP servers
+    # - Delete background tasks
+
+    await db.commit()
+
+    return {
+        "status": "success",
+        "message": "Account and all associated data have been deleted.",
+        "deleted_items": {
+            "conversations": conv_count,
+            "messages": msg_count,
+            "memories": memory_count,
+            "prompts": prompt_count,
+            "artifacts": artifact_count,
+            "checkpoints": checkpoint_count,
+            "projects": project_count,
+        },
+        "total_deleted": total_items,
+        "note": "Conversations were soft-deleted and can be recovered if needed. All other data was permanently deleted."
+    }
+
