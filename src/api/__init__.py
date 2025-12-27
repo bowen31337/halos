@@ -30,7 +30,9 @@ router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 router.include_router(conversations.router, prefix="/conversations", tags=["Conversations"])
 router.include_router(conversation_branching.router, prefix="/conversations", tags=["Conversation Branching"])
 router.include_router(sharing.router, prefix="/conversations", tags=["Sharing"])
+
 router.include_router(messages.router, prefix="/messages", tags=["Messages"])
+
 router.include_router(agent.router, prefix="/agent", tags=["Agent"])
 router.include_router(artifacts.router, prefix="/artifacts", tags=["Artifacts"])
 # Checkpoints routes - conversation-specific ops under /conversations, checkpoint ops under /checkpoints

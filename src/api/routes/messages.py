@@ -16,7 +16,9 @@ from src.core.database import get_db
 from src.core.config import settings
 from src.models import Message, Conversation
 
-router = APIRouter()
+# Two separate routers for different path patterns
+conversation_messages_router = APIRouter()
+message_operations_router = APIRouter()
 
 # Directory for uploaded images
 UPLOAD_DIR = "/tmp/talos-uploads"
@@ -40,7 +42,8 @@ class MessageUpdate(BaseModel):
     content: str
 
 
-@router.get("/conversations/{conversation_id}/messages")
+# Conversation-specific message routes (for /api/conversations/{id}/messages)
+@conversation_messages_router.get("/{conversation_id}/messages")
 async def list_messages(
     conversation_id: str,
     limit: int = 100,
@@ -80,7 +83,7 @@ async def list_messages(
     ]
 
 
-@router.post("/conversations/{conversation_id}/messages", status_code=status.HTTP_201_CREATED)
+@conversation_messages_router.post("/{conversation_id}/messages", status_code=status.HTTP_201_CREATED)
 async def create_message(
     conversation_id: str,
     data: MessageCreate,
@@ -135,7 +138,8 @@ async def create_message(
     }
 
 
-@router.get("/{message_id}")
+# Message CRUD routes (for /api/messages/{id})
+@message_operations_router.get("/{message_id}")
 async def get_message(
     message_id: str,
     db: AsyncSession = Depends(get_db),
@@ -165,7 +169,7 @@ async def get_message(
     }
 
 
-@router.put("/{message_id}")
+@message_operations_router.put("/{message_id}")
 async def update_message(
     message_id: str,
     data: MessageUpdate,
@@ -202,7 +206,7 @@ async def update_message(
     }
 
 
-@router.delete("/{message_id}", status_code=status.HTTP_204_NO_CONTENT)
+@message_operations_router.delete("/{message_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_message(
     message_id: str,
     db: AsyncSession = Depends(get_db),
@@ -226,7 +230,7 @@ async def delete_message(
     await db.commit()
 
 
-@router.post("/upload-image", status_code=status.HTTP_201_CREATED)
+@message_operations_router.post("/upload-image", status_code=status.HTTP_201_CREATED)
 async def upload_image(file: UploadFile = File(...)) -> dict:
     """Upload an image file and return its URL."""
     # Validate file type
@@ -262,7 +266,7 @@ async def upload_image(file: UploadFile = File(...)) -> dict:
     }
 
 
-@router.get("/images/{filename}")
+@message_operations_router.get("/images/{filename}")
 async def get_image(filename: str) -> FileResponse:
     """Serve an uploaded image file."""
     file_path = os.path.join(UPLOAD_DIR, filename)
