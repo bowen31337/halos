@@ -56,6 +56,8 @@ export function ChatInput() {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  // Store the message that triggered an interrupt so we can resume after approval
+  const interruptedMessageRef = useRef<string>('')
 
   // Sync with store when it changes (e.g., from WelcomeScreen)
   useEffect(() => {
@@ -124,6 +126,8 @@ export function ChatInput() {
 
     addMessage(userMessage)
     const messageToSend = inputValue
+    // Store the message for potential HITL resume
+    interruptedMessageRef.current = messageToSend
     setInputValue('')
     setImages([]) // Clear images after sending
     setLoading(true)
@@ -585,9 +589,12 @@ export function ChatInput() {
   // HITL Approval Dialog Handlers
   const handleHITLApproved = async () => {
     setHitlApproval(null)
-    // Resume the conversation by re-sending the original message
-    if (inputValue.trim()) {
-      await handleSend()
+    // Restore the interrupted message and resume
+    const messageToResume = interruptedMessageRef.current
+    if (messageToResume.trim()) {
+      setInputValue(messageToResume)
+      // Wait a tick for state to update, then send
+      setTimeout(() => handleSend(), 0)
     }
   }
 
@@ -602,13 +609,19 @@ export function ChatInput() {
       content: 'Tool execution was rejected by user.',
       createdAt: new Date().toISOString(),
     })
+    // Clear the interrupted message ref
+    interruptedMessageRef.current = ''
   }
 
   const handleHITLEdited = async (editedInput: any) => {
-    // The backend handles the edit, now resume
+    // The backend handles the edit, now resume with the original message
+    // (The edit was already sent to backend via api.handleInterrupt)
     setHitlApproval(null)
-    if (inputValue.trim()) {
-      await handleSend()
+    const messageToResume = interruptedMessageRef.current
+    if (messageToResume.trim()) {
+      setInputValue(messageToResume)
+      // Wait a tick for state to update, then send
+      setTimeout(() => handleSend(), 0)
     }
   }
 

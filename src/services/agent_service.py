@@ -105,6 +105,18 @@ class AgentService:
             }
         # plan and bypassPermissions modes have no interrupts
 
+        # Also support UI permission modes (auto, manual)
+        # manual = default (all tools require approval)
+        # auto = bypassPermissions (no approvals needed)
+        if permission_mode == "manual":
+            interrupt_config = {
+                "execute": True,
+                "write_file": True,
+                "edit_file": True,
+            }
+        elif permission_mode == "auto":
+            interrupt_config = {}  # No interrupts
+
         # Step 2: Configure additional middleware
         # Note: create_deep_agent already provides:
         # - TodoListMiddleware (write_todos, read_todos)

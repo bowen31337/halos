@@ -232,6 +232,14 @@ console.log(greet("World"));
             interrupt_config = {"execute": True}
         # plan and bypassPermissions modes have no interrupts
 
+        # Also support UI permission modes (auto, manual)
+        # manual = default (all tools require approval)
+        # auto = bypassPermissions (no approvals needed)
+        if permission_mode == "manual":
+            interrupt_config = {"execute": True, "write_file": True, "edit_file": True}
+        elif permission_mode == "auto":
+            interrupt_config = {}  # No interrupts
+
         # Check if we should simulate execute tool usage
         execute_keywords = ["execute", "run", "command", "shell", "bash", "terminal"]
         if any(word in actual_message.lower() for word in execute_keywords):

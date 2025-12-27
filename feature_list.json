@@ -1009,9 +1009,9 @@
       "Step 5: Verify agent acknowledges rejection",
       "Step 6: Verify conversation can continue"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
@@ -1026,9 +1026,9 @@
       "Step 7: Switch to 'bypassPermissions'",
       "Step 8: Verify all tools auto-execute"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true
   },
   {
     "category": "functional",
