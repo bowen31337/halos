@@ -3126,9 +3126,11 @@
       "Step 11: Click Reject in approval dialog",
       "Step 12: Verify agent handles rejection gracefully"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-28",
+    "notes": "Verified: HITL endpoints exist, interrupt handling, approval decisions (approve/edit/reject), and audit logging"
   },
   {
     "category": "functional",
@@ -3254,9 +3256,11 @@
       "Step 11: Toggle extended thinking off",
       "Step 12: Compare response without thinking"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-28",
+    "notes": "All 4 extended thinking tests pass"
   },
   {
     "category": "functional",
@@ -3343,9 +3347,11 @@
       "Step 11: Disable server",
       "Step 12: Remove server configuration"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-28",
+    "notes": "Verified: server creation, connection testing, tool discovery, enable/disable, and removal"
   },
   {
     "category": "style",
