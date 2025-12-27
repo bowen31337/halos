@@ -411,9 +411,10 @@
       "Step 5: Verify the file appears as an attachment",
       "Step 6: Verify the attachment can be removed before sending"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "notes": "Implemented with dragOver, dragLeave, drop handlers"
   },
   {
     "category": "functional",
