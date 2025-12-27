@@ -2615,9 +2615,10 @@
       "Step 5: Verify strengths are listed",
       "Step 6: Check other models show their capabilities"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": false,
+    "notes": "Implemented model capabilities tooltip with strengths, limits, and capability badges"
   },
   {
     "category": "functional",

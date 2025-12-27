@@ -410,37 +410,56 @@ export function Header() {
         {/* Branch Selector - only show when in a conversation */}
         {currentConversationId && <BranchSelector conversationId={currentConversationId} />}
 
-        {/* Dropdown menu */}
+        {/* Dropdown menu - Feature #151: Model capabilities display */}
         {modelDropdownOpen && (
           <>
             <div
               className="fixed inset-0 z-10"
               onClick={() => setModelDropdownOpen(false)}
             />
-            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg shadow-lg z-20 py-2">
+            <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-80 bg-[var(--bg-primary)] border border-[var(--border-primary)] rounded-lg shadow-lg z-20 py-2 max-h-[60vh] overflow-y-auto">
               {MODELS.map((model) => (
-                <button
-                  key={model.id}
-                  onClick={() => {
-                    setSelectedModel(model.id)
-                    setModelDropdownOpen(false)
-                  }}
-                  className={`w-full px-4 py-3 text-left hover:bg-[var(--surface-elevated)] transition-colors ${
-                    selectedModel === model.id ? 'bg-[var(--surface-elevated)]' : ''
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium text-[var(--text-primary)]">{model.name}</div>
-                      <div className="text-xs text-[var(--text-secondary)]">{model.description}</div>
+                <div key={model.id}>
+                  <button
+                    onClick={() => {
+                      setSelectedModel(model.id)
+                      setModelDropdownOpen(false)
+                    }}
+                    className={`w-full px-4 py-3 text-left hover:bg-[var(--surface-elevated)] transition-colors ${
+                      selectedModel === model.id ? 'bg-[var(--surface-elevated)]' : ''
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <div>
+                        <div className="font-medium text-[var(--text-primary)]">{model.name}</div>
+                        <div className="text-xs text-[var(--text-secondary)]">{model.description}</div>
+                      </div>
+                      {selectedModel === model.id && (
+                        <svg className="w-5 h-5 text-[var(--primary)]" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
                     </div>
-                    {selectedModel === model.id && (
-                      <svg className="w-5 h-5 text-[var(--primary)]" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    )}
+                  </button>
+                  <div className="px-4 pb-3 pt-0 text-xs text-[var(--text-secondary)] space-y-1 bg-[var(--bg-secondary)]/50 mx-2 mb-2 rounded">
+                    <div className="font-medium text-[var(--text-primary)]">Capabilities:</div>
+                    <div className="flex flex-wrap gap-1">
+                      {model.capabilities.map((cap) => (
+                        <span key={cap} className="px-1.5 py-0.5 bg-[var(--bg-tertiary)] rounded text-[10px]">
+                          {cap}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="pt-1 border-t border-[var(--border-primary)]/30 mt-1">
+                      <div className="font-medium text-[var(--text-primary)]">Strengths:</div>
+                      <div>{model.strengths}</div>
+                    </div>
+                    <div className="pt-1 border-t border-[var(--border-primary)]/30 mt-1">
+                      <div className="font-medium text-[var(--text-primary)]">Limits:</div>
+                      <div>{model.limits}</div>
+                    </div>
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           </>
