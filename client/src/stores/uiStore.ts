@@ -5,7 +5,7 @@ interface UIState {
   // Theme
   theme: 'light' | 'dark' | 'system'
   highContrast: boolean
-  colorBlindMode: 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia' | 'achromatopsia' | 'achromatopsia'
+  colorBlindMode: 'none' | 'deuteranopia' | 'protanopia' | 'tritanopia' | 'achromatopsia'
 
   // Sidebar
   sidebarOpen: boolean

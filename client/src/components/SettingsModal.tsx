@@ -413,8 +413,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             { id: 'deuteranopia', label: 'Deuteranopia', description: 'Green-blind (most common)' },
             { id: 'protanopia', label: 'Protanopia', description: 'Red-blind' },
             { id: 'tritanopia', label: 'Tritanopia', description: 'Blue-blind (rare)' },
-            { id: 'achromatopsia', label: 'Achromatopsia', description: 'Complete color blindness (grayscale)' },
-            { id: 'achromatopsia', label: 'Achromatopsia', description: 'Total color blindness' },
+            { id: 'achromatopsia', label: 'Achromatopsia', description: 'Total color blindness (grayscale)' },
           ] as const).map((mode) => (
             <button
               key={mode.id}
