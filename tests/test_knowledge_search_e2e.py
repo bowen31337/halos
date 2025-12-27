@@ -12,7 +12,7 @@ from httpx import AsyncClient
 from src.core.database import async_session_factory, Base, engine
 from src.models.project_file import ProjectFile
 from src.models.project import Project
-from main import app
+from src.main import app
 
 
 @pytest.fixture(scope="module")

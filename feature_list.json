@@ -2827,7 +2827,7 @@
     "is_dev_done": true,
     "is_qa_passed": true,
     "test_date": "2025-12-28",
-    "notes": "Implemented /api/search/knowledge endpoint with full-text search in ProjectFile model. Created KnowledgeSearch React component. Backend searches in filename and extracted content fields."
+    "notes": "Fully implemented: GET /api/search/knowledge endpoint searches filename and file content. Frontend KnowledgeSearch.tsx component with debounced search, file type filtering, and content preview. Verified with tests."
   },
   {
     "category": "functional",
