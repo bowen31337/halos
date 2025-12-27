@@ -135,14 +135,14 @@ Result: Full viewport view or tabbed interface
 ### Progress Statistics
 
 **Total Features:** 201/201
-**Completed (Dev):** 57/201 (28.4%)
-**QA Passed:** 57/201 (28.4%)
+**Completed (Dev):** 58/201 (28.9%)
+**QA Passed:** 58/201 (28.9%)
 
 **Completed Systems:**
 - **Artifact System:** Features #38-48, #90, #115, #180 (14 features, 100%)
 - **Branching System:** Features #49, #50, #188 (3 features, 100%)
 - **Checkpoint System:** Features #51-53, #91, #181 (5 features, 100%)
-- **Todo System:** Feature #54 (1 feature, 100%)
+- **Todo System:** Features #53-54 (2 features, 100%)
 - **Files System:** Features #55-57 (3 features, 100%)
 - **Tool Visualization:** Feature #58 (1 feature, 100%)
 - **Project System:** Features #35-37 (3 features, 100%)
@@ -167,6 +167,30 @@ Result: Full viewport view or tabbed interface
 15. **`client/src/components/BranchSelector.tsx`** - Branch selector
 16. **`client/src/components/BranchTree.vue`** - Branch tree visualization
 17. **`tests/test_artifact_ui.py`** - UI verification tests
+
+### Features #56-58 Implementation Summary
+
+#### Feature #56: Diff Viewer
+**Files Modified:**
+- **`client/src/components/FilesPanel.tsx`** - Added diff viewer tab, modal, and side-by-side diff display
+- **`client/src/stores/chatStore.ts`** - FileDiff interface and tracking logic
+- **`client/src/components/FilesPanel.tsx`** - Diff highlighting (added/removed lines)
+
+**Test Coverage:** Integrated into existing files panel tests
+
+#### Feature #57: Download Files
+**Files Modified:**
+- **`client/src/components/FilesPanel.tsx`** - Download button in file preview modal
+
+**Status:** Already implemented in Feature #55
+
+#### Feature #58: Tool Execution Visualization
+**Files Modified:**
+- **`client/src/components/ChatInput.tsx`** - Tool start/end event handling, stores tool calls as messages
+- **`client/src/components/MessageBubble.tsx`** - Collapsible tool display with input/output
+- **`client/src/stores/conversationStore.ts`** - Tool message type support
+
+**Test Coverage:** Tool events flow through existing streaming tests
 18. **`test_conversation_branching_simple.py`** - E2E branching test
 19. **`test_branching_e2e.py`** - Comprehensive E2E test
 20. **`feature_list.json`** - Updated status
