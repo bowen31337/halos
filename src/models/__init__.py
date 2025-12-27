@@ -10,5 +10,6 @@ class Base(DeclarativeBase):
 from src.models.conversation import Conversation
 from src.models.message import Message
 from src.models.project import Project
+from src.models.project_file import ProjectFile
 
-__all__ = ["Base", "Conversation", "Message", "Project"]
+__all__ = ["Base", "Conversation", "Message", "Project", "ProjectFile"]
