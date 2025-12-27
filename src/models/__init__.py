@@ -27,11 +27,12 @@ from src.models.folder import Folder, FolderItem
 from src.models.background_task import BackgroundTask, TaskStatus
 from src.models.audit_log import AuditLog, AuditActionType, AuditAction
 from src.models.template import Template
+from src.models.saved_search import SavedSearch
 
 __all__ = [
     "Base", "Conversation", "Message", "Comment", "Project", "ProjectFile", "Artifact",
     "Checkpoint", "Memory", "SharedConversation", "Prompt", "MCPServer",
     "Folder", "FolderItem", "BackgroundTask", "TaskStatus", "AuditLog",
     "AuditActionType", "AuditAction", "User", "Session", "PasswordResetToken",
-    "APIKey", "UserStatus", "Tag", "conversation_tags", "Template"
+    "APIKey", "UserStatus", "Tag", "conversation_tags", "Template", "SavedSearch"
 ]
