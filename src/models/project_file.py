@@ -39,7 +39,3 @@ class ProjectFile(Base):
 
     # Relationship
     project = relationship("Project", back_populates="files")
-
-
-# Add relationship to Project model
-Project.files = relationship("ProjectFile", back_populates="project", cascade="all, delete-orphan")
