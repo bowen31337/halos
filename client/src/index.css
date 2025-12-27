@@ -778,3 +778,438 @@ textarea:focus-visible {
 .dark .prose em {
   color: var(--text-primary);
 }
+
+/* ==================== Responsive Design ==================== */
+
+/* Tablet Breakpoint (768px) - Landscape tablets and smaller laptops */
+@media (max-width: 768px) {
+  /* Layout adjustments */
+  :root {
+    --sidebar-width: 280px;
+    --panel-width: 350px;
+  }
+
+  /* Header - reduce button spacing and hide some controls */
+  .h-14 {
+    height: 3.5rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  /* Hide extended thinking toggle on tablet (keep model selector) */
+  [data-tour="thinking-toggle"] {
+    display: none;
+  }
+
+  /* Project selector - make it more compact */
+  [data-tour="sidebar"] > .relative > button {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Model selector - compact */
+  [data-tour="model-selector"] > button:first-child {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Hide some header action buttons on tablet */
+  [data-tour="model-selector"] button[title="Toggle task list"],
+  [data-tour="model-selector"] button[title="Toggle workspace files"],
+  [data-tour="model-selector"] button[title="Toggle file changes"] {
+    display: none;
+  }
+
+  /* Sidebar - becomes overlay when open */
+  .flex.h-screen.overflow-hidden > div:first-child.translate-x-0 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 40;
+    background: var(--bg-secondary);
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Chat page - adjust for narrower view */
+  .chat-page-container {
+    width: 100%;
+  }
+
+  /* Panels become overlays on tablet */
+  .panel-transition {
+    position: fixed;
+    top: 3.5rem;
+    right: 0;
+    height: calc(100vh - 3.5rem);
+    z-index: 30;
+    background: var(--bg-primary);
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Message bubbles - increase max-width for readability */
+  .message-bubble {
+    max-width: 90%;
+  }
+
+  /* Input field - ensure full width */
+  .chat-input-wrapper {
+    width: 100%;
+    padding: 0.75rem;
+  }
+
+  /* Modals - adjust for tablet */
+  .fixed.inset-0.flex.items-center.justify-center {
+    padding: 1rem;
+  }
+
+  /* Command palette - full width on tablet */
+  .command-palette {
+    width: 90%;
+    max-width: 500px;
+  }
+
+  /* Touch targets - minimum 44x44px */
+  button, .btn, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Text size adjustments for readability */
+  body {
+    font-size: 16px;
+  }
+
+  .message-bubble {
+    font-size: 15px;
+  }
+
+  /* Reduce some spacing */
+  .p-4 {
+    padding: 0.75rem;
+  }
+
+  .px-4 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+/* Mobile Breakpoint (375px) - Phones */
+@media (max-width: 375px) {
+  /* Root variables for mobile */
+  :root {
+    --sidebar-width: 280px;
+    --panel-width: 100%;
+  }
+
+  /* Base font size adjustment */
+  body {
+    font-size: 15px;
+  }
+
+  /* Header - single row, compact */
+  .h-14 {
+    height: 3.25rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  /* Hide project selector text, show only icon */
+  [data-tour="sidebar"] > .relative > button {
+    max-width: 40px;
+    padding: 0.5rem;
+  }
+
+  [data-tour="sidebar"] > .relative > button > span:not(:first-child) {
+    display: none;
+  }
+
+  /* Model selector - show only icon/abbreviation */
+  [data-tour="model-selector"] > button:first-child {
+    max-width: 80px;
+    padding: 0.5rem;
+  }
+
+  [data-tour="model-selector"] > button:first-child > span:last-child {
+    display: none;
+  }
+
+  /* Hide most header buttons, keep only essential */
+  [data-tour="model-selector"] button[title="Toggle task list"],
+  [data-tour="model-selector"] button[title="Toggle workspace files"],
+  [data-tour="model-selector"] button[title="Toggle file changes"],
+  [data-tour="model-selector"] button[title="Manage checkpoints"],
+  [data-tour="model-selector"] button[title="Export conversation"],
+  [data-tour="model-selector"] button[title="Share conversation"],
+  [data-tour="model-selector"] button[title="Prompt Library"],
+  [data-tour="model-selector"] button[title="MCP Servers"],
+  [data-tour="model-selector"] button[title="SubAgent Library"],
+  [data-tour="model-selector"] button[title="Memory Manager"] {
+    display: none;
+  }
+
+  /* Keep settings and maybe one other button visible */
+  [data-tour="model-selector"] button[title="Settings"] {
+    display: block;
+  }
+
+  /* Sidebar - hidden by default, full screen overlay */
+  .flex.h-screen.overflow-hidden > div:first-child {
+    transform: translateX(-100%);
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .flex.h-screen.overflow-hidden > div:first-child.translate-x-0 {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  /* Main content - full width */
+  .flex.flex-1.flex-col.min-w-0 {
+    width: 100%;
+  }
+
+  /* Chat area - no right margin for panels */
+  .chat-page-container > div:first-child {
+    margin-right: 0 !important;
+  }
+
+  /* Panels - full screen overlay */
+  .panel-transition {
+    width: 100%;
+    max-width: 100%;
+    top: 0;
+    height: 100vh;
+    z-index: 50;
+  }
+
+  /* Message bubbles - full width on mobile */
+  .message-bubble {
+    max-width: 95%;
+    padding: 0.625rem 0.875rem;
+  }
+
+  /* Chat input - full width, larger touch target */
+  .chat-input-wrapper {
+    padding: 0.5rem;
+  }
+
+  #chat-input {
+    font-size: 16px; /* Prevents zoom on iOS */
+    min-height: 48px;
+  }
+
+  /* Send button - larger */
+  button[title="Send message"] {
+    min-width: 48px;
+    min-height: 48px;
+  }
+
+  /* Modals - full screen */
+  .fixed.inset-0.flex.items-center.justify-center {
+    padding: 0;
+    align-items: flex-start;
+  }
+
+  .fixed.inset-0.flex.items-center.justify-center > div {
+    width: 100%;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    max-width: 100%;
+  }
+
+  /* Command palette - full screen */
+  .command-palette {
+    width: 100%;
+    max-width: 100%;
+    height: 100vh;
+    border-radius: 0;
+  }
+
+  /* Welcome screen - adjust padding */
+  .welcome-screen {
+    padding: 1rem;
+  }
+
+  /* Empty states - smaller icons */
+  .empty-state-icon {
+    font-size: 3rem;
+  }
+
+  /* Touch targets - larger on mobile */
+  button, .btn, [role="button"], .clickable {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
+  /* Reduce spacing */
+  .p-4, .px-4, .py-4 {
+    padding: 0.5rem;
+  }
+
+  .gap-2, .gap-3, .gap-4 {
+    gap: 0.5rem;
+  }
+
+  /* Sidebar close button - always visible */
+  .border-t.border-[var(--border)] button.lg\\:hidden {
+    display: block !important;
+  }
+
+  /* Conversation items - more compact */
+  .group.flex.items-center.gap-2.px-3.py-2 {
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Input field placeholder - smaller text */
+  input[placeholder] {
+    font-size: 14px;
+  }
+}
+
+/* Reduced Motion - respect user preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  /* Disable specific animations */
+  .loading-spinner,
+  .loading-dots > span,
+  .typing-indicator,
+  .loading-pulse,
+  .animate-fade-in,
+  .animate-slide-in-right,
+  .animate-slide-in-left,
+  .transition-smooth,
+  .transition-all-smooth,
+  .transition-colors-smooth,
+  .transition-transform-smooth,
+  .transition-opacity-smooth,
+  .sidebar-transition,
+  .panel-transition,
+  .modal-transition,
+  .button-hover,
+  .card-hover,
+  .list-item-hover,
+  .fade-in-mount,
+  .slide-in-right,
+  .slide-in-left {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  /* Instant state changes */
+  button:hover,
+  button:active,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible {
+    transition: none !important;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  :root {
+    --border: #000000;
+    --border-primary: #000000;
+    --text-primary: #000000;
+    --text-secondary: #000000;
+    --text-muted: #000000;
+  }
+
+  .dark {
+    --border: #FFFFFF;
+    --border-primary: #FFFFFF;
+    --text-primary: #FFFFFF;
+    --text-secondary: #FFFFFF;
+    --text-muted: #FFFFFF;
+  }
+
+  /* Thicker borders */
+  .border,
+  .border-b,
+  .border-t,
+  .border-l,
+  .border-r {
+    border-width: 2px !important;
+  }
+
+  /* Stronger focus indicators */
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  a:focus-visible {
+    outline-width: 3px !important;
+    outline-offset: 3px !important;
+  }
+
+  /* Stronger shadows */
+  .shadow-lg,
+  .shadow-2xl {
+    box-shadow: 0 0 0 2px currentColor !important;
+  }
+
+  /* Higher contrast for buttons */
+  .bg-[var(--primary)] {
+    filter: contrast(1.2);
+  }
+
+  /* Remove subtle backgrounds */
+  .bg-[var(--bg-secondary)],
+  .bg-[var(--surface-elevated)],
+  .bg-[var(--surface-secondary)] {
+    background-color: var(--bg-primary) !important;
+  }
+}
+
+/* Print Styles */
+@media print {
+  /* Hide UI elements */
+  .h-14,
+  .flex.h-screen.overflow-hidden > div:first-child,
+  .chat-input-wrapper,
+  button[title="Toggle sidebar"],
+  button[title="Settings"],
+  .panel-transition {
+    display: none !important;
+  }
+
+  /* Show only message content */
+  .flex.flex-1.flex-col.min-w-0 {
+    width: 100%;
+  }
+
+  .message-bubble {
+    max-width: 100%;
+    page-break-inside: avoid;
+  }
+
+  /* Remove backgrounds */
+  body {
+    background: white;
+    color: black;
+  }
+
+  .message-bubble.assistant {
+    background: white;
+    border: 1px solid #ccc;
+  }
+
+  .message-bubble.user {
+    background: #f0f0f0;
+    border: 1px solid #999;
+  }
+}

@@ -111,35 +111,50 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
       : '{}'
 
     return (
-      <div className="mb-6">
-        <div className="bg-[var(--surface-elevated)] rounded-lg border border-[var(--border-primary)] overflow-hidden">
-          {/* Tool header */}
+      <div className="mb-6 fade-in-mount">
+        <div className="bg-gradient-to-br from-[var(--surface-elevated)] to-[var(--bg-secondary)] rounded-lg border border-[var(--border-primary)] overflow-hidden shadow-sm card-hover">
+          {/* Tool header with distinct accent */}
           <div
-            className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-[var(--surface-secondary)] transition-colors"
+            className="flex items-center justify-between px-4 py-3 cursor-pointer hover:bg-[var(--surface-secondary)] transition-colors-smooth border-b border-[var(--border)]/50"
             onClick={() => setIsExpanded(!isExpanded)}
           >
-            <div className="flex items-center gap-2 text-sm font-medium text-[var(--text-primary)]">
-              <span>🔧</span>
-              <span>{toolName}</span>
-              <span className="text-xs text-[var(--text-secondary)] px-2 py-0.5 bg-[var(--bg-secondary)] rounded">Tool Call</span>
+            <div className="flex items-center gap-3 text-sm font-medium text-[var(--text-primary)]">
+              <div className="w-6 h-6 rounded bg-[var(--info)]/20 flex items-center justify-center text-[var(--info)] text-xs font-bold"
+                   style={{ fontFamily: 'monospace' }}>
+                {toolName.substring(0, 3).toUpperCase()}
+              </div>
+              <span className="font-semibold tracking-wide">{toolName}</span>
+              <span className="text-xs px-2 py-0.5 bg-[var(--info)]/10 text-[var(--info)] rounded-full border border-[var(--info)]/20"
+                    style={{ letterSpacing: '0.05em' }}>
+                TOOL CALL
+              </span>
             </div>
-            <svg
-              className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+            <div className="flex items-center gap-2">
+              <span className={`text-xs px-2 py-0.5 rounded transition-colors-smooth ${isExpanded ? 'bg-[var(--bg-primary)] text-[var(--text-secondary)]' : 'bg-[var(--surface-secondary)] text-[var(--text-secondary)]'}`}>
+                {isExpanded ? 'Collapse' : 'Expand'}
+              </span>
+              <svg
+                className={`w-4 h-4 text-[var(--text-secondary)] transition-transform-smooth ${isExpanded ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
           </div>
 
-          {/* Tool content - collapsible */}
+          {/* Tool content - collapsible with smooth animation */}
           {isExpanded && (
-            <div className="px-4 pb-3 space-y-3">
+            <div className="px-4 pb-3 space-y-3 animate-fade-in">
               {/* Tool Input */}
               <div>
-                <div className="text-xs font-semibold text-[var(--text-secondary)] mb-1">Input:</div>
-                <pre className="text-xs text-[var(--text-primary)] bg-[var(--bg-primary)] p-2 rounded overflow-x-auto font-mono">
+                <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text-secondary)] mb-1">
+                  <span className="w-1.5 h-1.5 bg-[var(--info)] rounded-full"></span>
+                  <span>Input Parameters</span>
+                </div>
+                <pre className="text-xs text-[var(--text-primary)] bg-[var(--bg-primary)]/80 p-3 rounded-lg overflow-x-auto font-mono border border-[var(--border)]/50"
+                     style={{ borderRadius: '0.5rem' }}>
                   {formattedInput}
                 </pre>
               </div>
@@ -147,8 +162,12 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
               {/* Tool Output */}
               {toolOutput && (
                 <div>
-                  <div className="text-xs font-semibold text-[var(--text-secondary)] mb-1">Output:</div>
-                  <pre className="text-xs text-[var(--text-primary)] bg-[var(--bg-primary)] p-2 rounded overflow-x-auto font-mono whitespace-pre-wrap">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text-secondary)] mb-1">
+                    <span className="w-1.5 h-1.5 bg-[var(--success)] rounded-full"></span>
+                    <span>Output Result</span>
+                  </div>
+                  <pre className="text-xs text-[var(--text-primary)] bg-[var(--bg-primary)]/80 p-3 rounded-lg overflow-x-auto font-mono whitespace-pre-wrap border border-[var(--border)]/50"
+                       style={{ borderRadius: '0.5rem' }}>
                     {toolOutput}
                   </pre>
                 </div>
