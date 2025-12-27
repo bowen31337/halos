@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import { useConversationStore } from '../stores/conversationStore'
 import { useUIStore } from '../stores/uiStore'
+import { useArtifactStore } from '../stores/artifactStore'
 import { MessageList } from '../components/MessageList'
 import { ChatInput } from '../components/ChatInput'
 import { WelcomeScreen } from '../components/WelcomeScreen'
@@ -11,6 +12,7 @@ export function ChatPage() {
   const { conversationId } = useParams()
   const { messages, currentConversationId, setCurrentConversation, loadMessages } = useConversationStore()
   const { panelOpen, panelType } = useUIStore()
+  const { loadArtifactsForConversation, clearArtifacts } = useArtifactStore()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Set current conversation from URL
@@ -18,8 +20,11 @@ export function ChatPage() {
     if (conversationId) {
       setCurrentConversation(conversationId)
       loadMessages(conversationId)
+      loadArtifactsForConversation(conversationId)
+    } else {
+      clearArtifacts()
     }
-  }, [conversationId, setCurrentConversation, loadMessages])
+  }, [conversationId, setCurrentConversation, loadMessages, loadArtifactsForConversation, clearArtifacts])
 
   // Auto-scroll to bottom
   useEffect(() => {

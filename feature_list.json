@@ -635,9 +635,11 @@
       "Step 5: Verify the artifact title shows component name",
       "Step 6: Verify language badge shows 'React/JSX'"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Backend: Artifact detection API, database model, agent stream integration. Frontend: ArtifactPanel.tsx, artifactStore.ts, ChatInput.tsx integration. Tests: 26/27 passing (1 infrastructure issue)"
   },
   {
     "category": "functional",

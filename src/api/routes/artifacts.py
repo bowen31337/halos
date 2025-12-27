@@ -77,15 +77,15 @@ REACT_PATTERNS = [
 
 def detect_language(code: str, language_hint: str = "") -> str:
     """Detect the programming language of a code block."""
+    # Check for React/JSX patterns first (highest priority)
+    for pattern in REACT_PATTERNS:
+        if re.search(pattern, code, re.IGNORECASE):
+            return "React/JSX"
+
     # If language hint is provided, use it
     if language_hint:
         normalized = language_hint.lower().strip()
         return LANGUAGE_ALIASES.get(normalized, normalized)
-
-    # Check for React/JSX patterns
-    for pattern in REACT_PATTERNS:
-        if re.search(pattern, code, re.IGNORECASE):
-            return "React/JSX"
 
     # Simple heuristics
     if "def " in code and ":" in code and "import " not in code:
@@ -147,10 +147,24 @@ def extract_code_blocks(content: str) -> list[dict]:
         language = detect_language(code, language_hint)
         title = extract_title_from_code(code, language)
 
+        # Auto-detect artifact type from language
+        language_lower = language.lower()
+        if language_lower in ["html", "htm"]:
+            artifact_type = "html"
+        elif language_lower in ["svg"]:
+            artifact_type = "svg"
+        elif language_lower in ["mermaid"]:
+            artifact_type = "mermaid"
+        elif language_lower in ["latex", "tex"]:
+            artifact_type = "latex"
+        else:
+            artifact_type = "code"
+
         artifacts.append({
             "content": code,
             "language": language,
             "title": title,
+            "artifact_type": artifact_type,
         })
 
     return artifacts

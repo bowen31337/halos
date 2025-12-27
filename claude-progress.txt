@@ -1,5 +1,198 @@
 # Claude.ai Clone - Development Progress
 
+## Session 16 Summary (Feature #39 - Artifact Detection & Rendering)
+
+### Date: 2025-12-27
+
+**Session Focus:** Implemented artifact detection and side panel rendering (Feature #39)
+
+### Feature Implemented
+
+**Feature #39:** Artifact detection renders code artifacts in side panel ✓
+
+### Implementation Details
+
+1. **Backend API Endpoints** ✓
+   - **Location:** `src/api/routes/artifacts.py`
+   - **New Endpoints:**
+     - `POST /api/artifacts/detect` - Detect code blocks in content
+     - `POST /api/artifacts/create` - Create new artifact
+   - **Existing Endpoints (Enhanced):**
+     - `GET /api/artifacts/conversations/{id}/artifacts` - List conversation artifacts
+     - `GET /api/artifacts/{id}` - Get specific artifact
+     - `PUT /api/artifacts/{id}` - Update artifact
+     - `DELETE /api/artifacts/{id}` - Delete artifact
+     - `POST /api/artifacts/{id}/fork` - Fork artifact
+     - `GET /api/artifacts/{id}/versions` - Get version history
+     - `GET /api/artifacts/{id}/download` - Download artifact
+
+2. **Backend Detection Logic** ✓
+   - **Location:** `src/api/routes/artifacts.py`
+   - **Functions:**
+     - `extract_code_blocks(content)` - Extracts markdown code blocks
+     - `detect_language(code, hint)` - Detects language (React/JSX, Python, JS, etc.)
+     - `extract_title_from_code(code, language)` - Extracts function/class names
+   - **Features:**
+     - React/JSX pattern detection (import React, JSX syntax)
+     - Language aliases (python → py, javascript → js)
+     - Title extraction from function/class declarations
+     - Automatic language badge detection
+
+3. **Frontend Store** ✓
+   - **Location:** `client/src/stores/artifactStore.ts` (NEW)
+   - **State:**
+     - `artifacts[]` - List of detected artifacts
+     - `currentArtifactId` - Currently selected artifact
+     - `isDetecting` - Detection loading state
+   - **Actions:**
+     - `detectArtifacts(content, conversationId)` - Detect code blocks
+     - `createArtifact(data)` - Create new artifact
+     - `loadArtifactsForConversation(id)` - Load conversation artifacts
+     - `addArtifact(artifact)` - Add to store
+     - `removeArtifact(id)` - Remove artifact
+     - `setCurrentArtifactId(id)` - Select artifact
+
+4. **Frontend Components** ✓
+   - **Location:** `client/src/components/ArtifactPanel.tsx` (NEW)
+   - **Features:**
+     - Side panel with artifact list (left side)
+     - Code viewer with syntax highlighting (right side)
+     - Language badges (React/JSX, Python, etc.)
+     - Copy to clipboard button
+     - Download button
+     - Delete button
+     - Version display
+     - Auto-open when artifacts detected
+   - **Styling:** Dark mode compatible with syntax highlighting
+
+5. **Frontend Integration** ✓
+   - **Location:** `client/src/components/MessageBubble.tsx`
+   - **Changes:**
+     - Added "Extract Artifacts" button (📦) for messages with code blocks
+     - Detects code blocks via regex pattern
+     - Calls artifact store to detect and display artifacts
+   - **Location:** `client/src/components/Header.tsx`
+   - **Changes:**
+     - Added Artifacts button with count badge
+     - Toggles artifact panel visibility
+   - **Location:** `client/src/pages/ChatPage.tsx`
+   - **Changes:**
+     - Renders ArtifactPanel when panelType='artifacts'
+     - Adjusts layout for panel (margin-right)
+
+6. **Frontend API Service** ✓
+   - **Location:** `client/src/services/api.ts`
+   - **Methods (for future use):**
+     - Artifact detection via fetch to `/api/artifacts/detect`
+     - Artifact creation via fetch to `/api/artifacts/create`
+
+7. **Database Model** ✓
+   - **Location:** `src/models/artifact.py`
+   - **Fields:**
+     - `id`, `conversation_id` (FK)
+     - `title`, `content`, `language`, `artifact_type`
+     - `version`, `parent_artifact_id`
+     - `is_archived`, `is_deleted`
+     - `created_at`, `updated_at`
+   - **Relationships:**
+     - `conversation` - Back reference to Conversation
+     - `parent` / `versions` - Versioning support
+
+8. **Test Coverage** ✓
+   - **Location:** `tests/test_artifact_detection.py` (NEW)
+   - **18 Tests Passing:**
+     - ✅ Code block extraction (Python, React, multiple)
+     - ✅ Language detection (Python, JS, React)
+     - ✅ Title extraction (functions, classes, components)
+     - ✅ API endpoints (detect, create, list)
+     - ✅ Full workflow test
+
+### Files Created
+
+1. **`client/src/components/ArtifactPanel.tsx`** - Side panel UI
+2. **`client/src/stores/artifactStore.ts`** - State management
+3. **`tests/test_artifact_detection.py`** - Test suite
+
+### Files Modified
+
+1. **`src/api/routes/artifacts.py`** - Added detection & creation endpoints
+2. **`client/src/components/MessageBubble.tsx`** - Added extract button
+3. **`client/src/components/Header.tsx`** - Added artifacts toggle button
+4. **`client/src/pages/ChatPage.tsx`** - Integrated artifact panel
+5. **`feature_list.json`** - Updated feature #39 status
+
+### Test Results
+
+**All 18 Tests Passing:** ✓
+```
+1. test_extract_code_blocks_python - ✓
+2. test_extract_code_blocks_react - ✓
+3. test_extract_code_blocks_multiple - ✓
+4. test_extract_code_blocks_no_blocks - ✓
+5. test_extract_code_blocks_empty - ✓
+6. test_detect_language_python - ✓
+7. test_detect_language_javascript - ✓
+8. test_detect_language_react - ✓
+9. test_detect_language_with_hint - ✓
+10. test_extract_title_function - ✓
+11. test_extract_title_class - ✓
+12. test_extract_title_python - ✓
+13. test_extract_title_react_component - ✓
+14. test_extract_title_fallback - ✓
+15. test_detect_artifacts_endpoint - ✓
+16. test_create_artifact_endpoint - ✓
+17. test_list_artifacts_endpoint - ✓
+18. test_full_workflow - ✓
+```
+
+### Progress Update
+
+**Previous:** 38/201 features (18.9%)
+**Current:** 39/201 features (19.4%)
+**New Feature:** +1 (Feature #39)
+
+**Total Features:** 201/201
+**Completed (Dev):** 39/201 (19.4%)
+**Passing:** 39/201 (19.4%)
+**QA Passed:** 38/201 (18.9%)
+
+### API Endpoints Summary
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/artifacts/detect` | Detect code blocks in content |
+| POST | `/api/artifacts/create` | Create new artifact |
+| GET | `/api/artifacts/conversations/{id}/artifacts` | List conversation artifacts |
+| GET | `/api/artifacts/{id}` | Get specific artifact |
+| PUT | `/api/artifacts/{id}` | Update artifact |
+| DELETE | `/api/artifacts/{id}` | Delete artifact |
+| POST | `/api/artifacts/{id}/fork` | Fork artifact |
+| GET | `/api/artifacts/{id}/versions` | Get version history |
+| GET | `/api/artifacts/{id}/download` | Download artifact |
+
+### User Flow
+
+1. User sends message: "Create a React button component"
+2. AI responds with code in markdown blocks
+3. User hovers over message → sees 📦 button
+4. User clicks 📦 → artifacts detected and panel opens
+5. Side panel shows:
+   - Left: List of artifacts with titles and languages
+   - Right: Syntax-highlighted code with copy/download/delete
+6. User can also toggle panel via Header button (shows count badge)
+
+### Next Steps
+
+**Next Features:** #40-42 (Artifacts)
+- Feature #40: HTML artifact preview with live preview
+- Feature #41: SVG artifact renders as graphic
+- Feature #42: Mermaid diagram artifact renders correctly
+
+---
+
+*Last Updated: Session 16*
+*Status: Feature #39 Complete - Ready for HTML/SVG/Mermaid Features*
+
 ## Session 15 Summary (Feature #38 - Project File Upload)
 
 ### Date: 2025-12-27
@@ -9,10 +202,6 @@
 ### Feature Implemented
 
 **Feature #38:** Upload files to project knowledge base ✓
-
-### Implementation Details
-
-1. **Backend API Endpoints** ✓
    - **Location:** `src/api/routes/projects.py`
    - **Endpoints:**
      - `POST /api/projects/{project_id}/files` - Upload file

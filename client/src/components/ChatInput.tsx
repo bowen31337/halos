@@ -283,6 +283,7 @@ export function ChatInput() {
                           version: artifact.version,
                           createdAt: artifact.created_at || new Date().toISOString(),
                           conversationId: convId,
+                          artifact_type: artifact.artifact_type,
                         })
                       })
                       // Open the artifact panel

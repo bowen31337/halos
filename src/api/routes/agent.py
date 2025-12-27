@@ -260,8 +260,11 @@ async def create_artifacts_from_response(
         created_artifacts.append({
             "id": artifact.id,
             "title": artifact.title,
+            "content": artifact.content,
             "language": artifact.language,
             "artifact_type": artifact.artifact_type,
+            "version": artifact.version,
+            "created_at": artifact.created_at.isoformat() if artifact.created_at else None,
         })
 
     await db.commit()
