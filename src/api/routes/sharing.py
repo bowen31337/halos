@@ -147,9 +147,9 @@ async def view_shared_conversation(
                 "id": msg.id,
                 "role": msg.role,
                 "content": msg.content,
-                "created_at": msg.created_at.isoformat(),
+                "createdAt": msg.created_at.isoformat(),
                 "attachments": msg.attachments,
-                "thinking_content": msg.thinking_content,
+                "thinkingContent": msg.thinking_content,
             }
             for msg in messages_result
         ]

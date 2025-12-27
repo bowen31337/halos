@@ -108,10 +108,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
 
     Returns structured error responses for HTTP errors.
     """
-    import traceback
     logger.warning(f"HTTP error {exc.status_code} on {request.url.path}: {exc.detail}")
-    print(f"DEBUG HTTP ERROR: {exc.status_code} on {request.url.path}: {exc.detail}")
-    print(f"Traceback:\n{''.join(traceback.format_stack())}")
 
     return JSONResponse(
         status_code=exc.status_code,

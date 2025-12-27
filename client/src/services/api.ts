@@ -1445,6 +1445,91 @@ class APIService {
     }
     return response.json()
   }
+
+  // Comment APIs for shared conversations
+  async createComment(shareToken: string, data: {
+    message_id: string
+    content: string
+    parent_comment_id?: string
+    anonymous_name?: string
+  }): Promise<{
+    id: string
+    message_id: string
+    conversation_id: string
+    user_id: string | null
+    anonymous_name: string | null
+    content: string
+    parent_comment_id: string | null
+    created_at: string
+    updated_at: string | null
+    replies: any[]
+  }> {
+    const response = await fetch(`${API_BASE}/comments/shared/${shareToken}/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Unknown error' }))
+      throw new Error(error.detail || `Failed to create comment: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async getComments(shareToken: string, messageId?: string): Promise<Array<{
+    id: string
+    message_id: string
+    conversation_id: string
+    user_id: string | null
+    anonymous_name: string | null
+    content: string
+    parent_comment_id: string | null
+    created_at: string
+    updated_at: string | null
+    replies: any[]
+  }>> {
+    const url = messageId
+      ? `${API_BASE}/comments/shared/${shareToken}/comments?message_id=${messageId}`
+      : `${API_BASE}/comments/shared/${shareToken}/comments`
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`Failed to get comments: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async updateComment(shareToken: string, commentId: string, content: string): Promise<{
+    id: string
+    message_id: string
+    conversation_id: string
+    user_id: string | null
+    anonymous_name: string | null
+    content: string
+    parent_comment_id: string | null
+    created_at: string
+    updated_at: string | null
+    replies: any[]
+  }> {
+    const response = await fetch(`${API_BASE}/comments/shared/${shareToken}/comments/${commentId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content }),
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ detail: 'Unknown error' }))
+      throw new Error(error.detail || `Failed to update comment: ${response.status}`)
+    }
+    return response.json()
+  }
+
+  async deleteComment(shareToken: string, commentId: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/comments/shared/${shareToken}/comments/${commentId}`, {
+      method: 'DELETE',
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to delete comment: ${response.status}`)
+    }
+  }
 }
 
 export const api = new APIService()

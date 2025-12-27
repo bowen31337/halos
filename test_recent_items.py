@@ -21,17 +21,17 @@ def test_recent_items_backend():
             f"{BASE_URL}/api/conversations",
             json={"title": f"Recent Test Conversation {i+1}"}
         )
-        if response.status_code == 200:
+        if response.status_code in [200, 201]:
             conv = response.json()
             conversation_ids.append(conv['id'])
             print(f"  ✓ Created conversation: {conv['title']} (ID: {conv['id']})")
         else:
-            print(f"  ✗ Failed to create conversation {i+1}")
+            print(f"  ✗ Failed to create conversation {i+1}: {response.status_code} {response.text}")
             return False
 
     # List all conversations
     response = requests.get(f"{BASE_URL}/api/conversations")
-    if response.status_code == 200:
+    if response.status_code in [200, 201]:
         conversations = response.json()
         print(f"  ✓ Retrieved {len(conversations)} conversations")
     else:

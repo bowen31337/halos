@@ -70,8 +70,6 @@ class BatchExportResult(BaseModel):
 
 
 @router.post("/api/batch/conversations", response_model=BatchOperationResponse)
-@router.post("/conversations/batch/delete", response_model=BatchOperationResponse)  # Frontend compatibility
-@router.post("/conversations/batch/archive", response_model=BatchOperationResponse)  # Frontend compatibility
 async def batch_conversation_operations(
     request: BatchOperationRequest,
     background_tasks: BackgroundTasks,
@@ -198,7 +196,6 @@ async def batch_export_conversations(
 
     Frontend-compatible endpoint that returns blob data.
     """
-    print(f"DEBUG batch.py: batch_export_conversations called with request={request}, export_format={export_format}")
     # Extract conversation_ids from request body
     conversation_ids = request.get("conversation_ids", [])
     if not conversation_ids:

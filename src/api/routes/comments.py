@@ -163,10 +163,9 @@ async def update_comment(
     if not shared:
         raise HTTPException(status_code=404, detail="Shared conversation not found")
 
-    # Get comment with replies
+    # Get comment
     result = await db.execute(
         select(CommentModel)
-        .options(selectinload(CommentModel.replies))
         .where(CommentModel.id == comment_id)
         .where(CommentModel.conversation_id == shared.conversation_id)
     )
@@ -181,10 +180,20 @@ async def update_comment(
     comment.edited_at = datetime.utcnow()
 
     await db.commit()
-    await db.refresh(comment)
 
-    # Don't include replies in update response to avoid lazy loading
-    return _comment_to_response(comment, include_replies=False)
+    # Return response without accessing relationships
+    return CommentResponse(
+        id=comment.id,
+        message_id=comment.message_id,
+        conversation_id=comment.conversation_id,
+        user_id=comment.user_id,
+        anonymous_name=comment.anonymous_name,
+        content=comment.content,
+        parent_comment_id=comment.parent_comment_id,
+        created_at=comment.created_at.isoformat(),
+        updated_at=comment.updated_at.isoformat(),
+        replies=[]
+    )
 
 
 @router.delete("/shared/{share_token}/comments/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)

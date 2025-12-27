@@ -96,11 +96,22 @@ class AuditActionType(enum.Enum):
     CONVERSATION_SHARE_UPDATE = "conversation_share_update"
     CONVERSATION_SHARE_REVOKE = "conversation_share_revoke"
 
+    # Comment actions
+    COMMENT_CREATE = "comment_create"
+    COMMENT_UPDATE = "comment_update"
+    COMMENT_DELETE = "comment_delete"
+
     # Prompt library actions
     PROMPT_CREATE = "prompt_create"
     PROMPT_UPDATE = "prompt_update"
     PROMPT_DELETE = "prompt_delete"
     PROMPT_USE = "prompt_use"
+
+    # Template actions
+    TEMPLATE_CREATE = "template_create"
+    TEMPLATE_UPDATE = "template_update"
+    TEMPLATE_DELETE = "template_delete"
+    TEMPLATE_USE = "template_use"
 
     # Tag actions
     TAG_CREATE = "tag_create"

@@ -25,6 +25,7 @@ from src.api.routes import (
     subagents,
     tags,
     tasks,
+    templates,
     usage,
 )
 
@@ -57,6 +58,7 @@ router.include_router(subagents.router, prefix="/subagents", tags=["SubAgents"])
 router.include_router(tasks.router, prefix="/tasks", tags=["Tasks"])
 router.include_router(usage.router, prefix="/usage", tags=["Usage"])
 router.include_router(prompts.router, prefix="/prompts", tags=["Prompts"])
+router.include_router(templates.router, prefix="/templates", tags=["Templates"])
 router.include_router(mcp.router, prefix="/mcp", tags=["MCP"])
 router.include_router(audit.router, prefix="/audit", tags=["Audit"])
 router.include_router(comments.router, prefix="/comments", tags=["Comments"])
