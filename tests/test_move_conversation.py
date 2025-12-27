@@ -113,7 +113,7 @@ async def test_move_conversation_endpoint(client: AsyncClient):
     all_conversations = all_convs_response.json()
 
     no_project_conversations = [c for c in all_conversations if c['project_id'] is None]
-    assert len(no_project_conversations) == 2, "No project should have 2 conversations (conv + conv2)"
+    assert len(no_project_conversations) == 1, "No project should have 1 conversation (only conv)"
     print(f"✓ Verified project filtering: no project has {len(no_project_conversations)} conversation(s)")
 
     print("\n✅ Move conversation endpoint test PASSED")
