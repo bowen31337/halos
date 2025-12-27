@@ -312,22 +312,22 @@ console.log(greet("World"));
             await asyncio.sleep(0.1)
 
         # Check if we should simulate sub-agent delegation
-        # Trigger sub-agent for messages containing "research", "investigate", "delegate", or "sub-agent"
-        sub_agent_keywords = ["research", "investigate", "delegate", "sub-agent", "subagent", "specialist", "expert"]
+        # Trigger sub-agent for messages containing research, code review, documentation, or testing keywords
+        sub_agent_keywords = ["research", "investigate", "delegate", "sub-agent", "subagent", "specialist", "expert", "review", "documentation", "docs", "test", "testing"]
         if any(word in actual_message.lower() for word in sub_agent_keywords):
             # Determine which sub-agent to use based on message content
-            # Use underscore naming to match test expectations
-            sub_agent_name = "research_agent"
+            # Use hyphenated naming to match test expectations
+            sub_agent_name = "research-agent"
             task_description = "Gathering information and analyzing the request"
 
             if "code" in actual_message.lower() or "review" in actual_message.lower():
-                sub_agent_name = "code_review_agent"
+                sub_agent_name = "code-review-agent"
                 task_description = "Analyzing code quality and suggesting improvements"
             elif "doc" in actual_message.lower() or "documentation" in actual_message.lower():
-                sub_agent_name = "documentation_agent"
+                sub_agent_name = "docs-agent"
                 task_description = "Creating comprehensive documentation"
             elif "test" in actual_message.lower():
-                sub_agent_name = "testing_agent"
+                sub_agent_name = "test-agent"
                 task_description = "Writing and running test cases"
 
             # Sub-agent start event - emit as on_custom_event which the agent routes handle

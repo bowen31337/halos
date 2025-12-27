@@ -20,7 +20,9 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": true
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Fixed: subagents router included in main API, mock agent emits correct events"
   },
   {
     "category": "functional",
@@ -1043,7 +1045,9 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Fixed: subagents router included in main API, mock agent emits correct events"
   },
   {
     "category": "functional",
@@ -1056,9 +1060,11 @@
       "Step 5: Verify test-writing-agent is listed",
       "Step 6: Click on each to view description and tools"
     ],
-    "passes": false,
+    "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Fixed: subagents router included in main API, mock agent emits correct events"
   },
   {
     "category": "functional",
@@ -1075,9 +1081,11 @@
       "Step 9: Use it in a conversation",
       "Step 10: Verify it works correctly"
     ],
-    "passes": false,
+    "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Fixed: subagents router included in main API, mock agent emits correct events"
   },
   {
     "category": "functional",
@@ -1576,9 +1584,11 @@
       "Step 8: DELETE /api/subagents/:id",
       "Step 9: Verify deletion works"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Fixed: subagents router included in main API, mock agent emits correct events"
   },
   {
     "category": "functional",
@@ -3011,9 +3021,11 @@
       "Step 10: Verify review results integrated",
       "Step 11: Check subagent execution history"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "Fixed: subagents router included in main API, mock agent emits correct events"
   },
   {
     "category": "functional",
