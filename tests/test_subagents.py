@@ -188,12 +188,13 @@ def test_mock_agent_subagent_delegation():
         async for event in agent.astream_events({"messages": messages}, {"configurable": {"thread_id": "test-2"}}):
             events.append(event)
 
-        subagent_start = [e for e in events if e.get('event') == 'on_subagent_start']
+        subagent_start = [e for e in events if e.get('event') == 'on_custom_event' and e.get('name') == 'subagent_start']
         assert len(subagent_start) > 0
 
         # Should use code-review-agent
         start_event = subagent_start[0]
-        assert 'code-review-agent' in start_event.get('name', ''), f"Expected 'code-review-agent', got {start_event.get('name')}"
+        start_data = start_event.get('data', {})
+        assert 'code-review-agent' in start_data.get('subagent', ''), f"Expected 'code-review-agent', got {start_data.get('subagent')}"
 
         return True
 
