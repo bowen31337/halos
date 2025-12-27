@@ -1,20 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useChatStore } from '../stores/chatStore'
 import { useUIStore } from '../stores/uiStore'
 
-interface SubAgentIndicatorProps {
-  isVisible: boolean
-  subAgentName?: string
-  progress?: number
-  isCompleted?: boolean
-}
-
-export function SubAgentIndicator({
-  isVisible,
-  subAgentName = "research-agent",
-  progress = 0,
-  isCompleted = false
-}: SubAgentIndicatorProps) {
+export function SubAgentIndicator() {
   const { extendedThinkingEnabled } = useUIStore()
+  const { subAgent } = useChatStore()
+
+  const isVisible = subAgent.isDelegated || subAgent.status === 'working' || subAgent.status === 'completed'
+  const subAgentName = subAgent.subAgentName || 'unknown'
+  const progress = subAgent.progress || 0
+  const isCompleted = subAgent.status === 'completed'
 
   if (!isVisible && !extendedThinkingEnabled) {
     return null

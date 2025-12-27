@@ -26,6 +26,24 @@ export interface FileDiff {
   changeType: 'added' | 'modified' | 'deleted'
 }
 
+export interface SubAgentState {
+  isDelegated: boolean
+  subAgentName: string | null
+  reason: string | null
+  progress: number
+  status: 'idle' | 'delegated' | 'working' | 'completed'
+  result: string | null
+}
+
+// Interface for delegation events from backend
+export interface SubAgentDelegationEvent {
+  isActive: boolean
+  subAgentName: string
+  progress: number
+  isCompleted: boolean
+  taskDescription?: string
+}
+
 interface ChatState {
   // Input
   inputMessage: string
@@ -37,6 +55,7 @@ interface ChatState {
   files: WorkspaceFile[]
   fileHistory: Map<string, string[]> // fileId -> array of content versions
   fileDiffs: FileDiff[]
+  subAgent: SubAgentState
 
   // UI state
   showThinking: boolean
@@ -56,6 +75,15 @@ interface ChatState {
   clearFileDiffs: () => void
   setShowThinking: (show: boolean) => void
   clearInput: () => void
+  // SubAgent actions
+  setSubAgentDelegated: (name: string, reason: string) => void
+  setSubAgentProgress: (progress: number, status?: 'working' | 'completed') => void
+  setSubAgentResult: (result: string) => void
+  clearSubAgent: () => void
+  // Aliases for ChatInput compatibility
+  setSubAgentDelegation: (delegation: SubAgentState | null) => void
+  updateSubAgentProgress: (progress: number) => void
+  completeSubAgentDelegation: () => void
 }
 
 export const useChatStore = create<ChatState>((set, get) => ({
@@ -68,6 +96,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
   fileHistory: new Map(),
   fileDiffs: [],
   showThinking: false,
+  subAgent: {
+    isDelegated: false,
+    subAgentName: null,
+    reason: null,
+    progress: 0,
+    status: 'idle',
+    result: null,
+  },
 
   // Actions
   setInputMessage: (message) => set({ inputMessage: message }),
@@ -206,4 +242,74 @@ export const useChatStore = create<ChatState>((set, get) => ({
   clearFileDiffs: () => set({ fileDiffs: [] }),
   setShowThinking: (show) => set({ showThinking: show }),
   clearInput: () => set({ inputMessage: '' }),
+
+  // SubAgent actions
+  setSubAgentDelegated: (name, reason) =>
+    set({
+      subAgent: {
+        isDelegated: true,
+        subAgentName: name,
+        reason: reason,
+        progress: 0,
+        status: 'delegated',
+        result: null,
+      },
+    }),
+  setSubAgentProgress: (progress, status) =>
+    set((state) => ({
+      subAgent: {
+        ...state.subAgent,
+        progress,
+        status: status || (progress >= 100 ? 'completed' : 'working'),
+      },
+    })),
+  setSubAgentResult: (result) =>
+    set((state) => ({
+      subAgent: {
+        ...state.subAgent,
+        result,
+        status: 'completed',
+        progress: 100,
+      },
+    })),
+  clearSubAgent: () =>
+    set({
+      subAgent: {
+        isDelegated: false,
+        subAgentName: null,
+        reason: null,
+        progress: 0,
+        status: 'idle',
+        result: null,
+      },
+    }),
+  // Aliases for ChatInput compatibility
+  // delegation format: { isActive, subAgentName, progress, isCompleted, taskDescription }
+  setSubAgentDelegation: (delegation) =>
+    set({
+      subAgent: {
+        isDelegated: delegation?.isActive || false,
+        subAgentName: delegation?.subAgentName || null,
+        reason: delegation?.taskDescription || null,
+        progress: delegation?.progress || 0,
+        status: delegation ? (delegation.isCompleted ? 'completed' : 'delegated') : 'idle',
+        result: null,
+      },
+    }),
+  updateSubAgentProgress: (progress) =>
+    set((state) => ({
+      subAgent: {
+        ...state.subAgent,
+        progress,
+        status: progress >= 100 ? 'completed' : 'working',
+      },
+    })),
+  completeSubAgentDelegation: () =>
+    set((state) => ({
+      subAgent: {
+        ...state.subAgent,
+        status: 'completed',
+        progress: 100,
+      },
+    })),
 }))

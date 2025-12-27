@@ -1042,7 +1042,7 @@
       "Step 6: Verify delegation indicator clears on completion"
     ],
     "passes": false,
-    "is_dev_done": false,
+    "is_dev_done": true,
     "is_qa_passed": false
   },
   {
@@ -1057,7 +1057,7 @@
       "Step 6: Click on each to view description and tools"
     ],
     "passes": false,
-    "is_dev_done": false,
+    "is_dev_done": true,
     "is_qa_passed": false
   },
   {
@@ -1076,7 +1076,7 @@
       "Step 10: Verify it works correctly"
     ],
     "passes": false,
-    "is_dev_done": false,
+    "is_dev_done": true,
     "is_qa_passed": false
   },
   {

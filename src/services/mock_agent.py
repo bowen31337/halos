@@ -311,8 +311,66 @@ console.log(greet("World"));
             }
             await asyncio.sleep(0.1)
 
+        # Check if we should simulate sub-agent delegation
+        # Trigger sub-agent for messages containing "research", "investigate", "delegate", or "sub-agent"
+        sub_agent_keywords = ["research", "investigate", "delegate", "sub-agent", "subagent", "specialist", "expert"]
+        if any(word in actual_message.lower() for word in sub_agent_keywords):
+            # Determine which sub-agent to use based on message content
+            sub_agent_name = "research-agent"
+            task_description = "Gathering information and analyzing the request"
+
+            if "code" in actual_message.lower() or "review" in actual_message.lower():
+                sub_agent_name = "code-review-agent"
+                task_description = "Analyzing code quality and suggesting improvements"
+            elif "doc" in actual_message.lower() or "documentation" in actual_message.lower():
+                sub_agent_name = "docs-agent"
+                task_description = "Creating comprehensive documentation"
+            elif "test" in actual_message.lower():
+                sub_agent_name = "test-agent"
+                task_description = "Writing and running test cases"
+
+            # Sub-agent start event
+            yield {
+                "event": "on_custom_event",
+                "name": "subagent_start",
+                "data": {
+                    "subagent": sub_agent_name,
+                    "reason": task_description,
+                },
+            }
+            await asyncio.sleep(0.2)
+
+            # Sub-agent progress events (simulate work being done)
+            for progress in [20, 40, 60, 80]:
+                yield {
+                    "event": "on_custom_event",
+                    "name": "subagent_progress",
+                    "data": {
+                        "subagent": sub_agent_name,
+                        "progress": progress,
+                    },
+                }
+                await asyncio.sleep(0.15)
+
+            # Sub-agent end event with result
+            result = f"Sub-agent {sub_agent_name} completed analysis. Result: The task was successfully delegated and completed."
+            yield {
+                "event": "on_custom_event",
+                "name": "subagent_end",
+                "data": {
+                    "subagent": sub_agent_name,
+                    "output": result,
+                },
+            }
+            await asyncio.sleep(0.1)
+
+            # Add sub-agent result to the response
+            response_text = self._generate_mock_response(actual_message, custom_instructions)
+            response_text += f"\n\n**Sub-agent {sub_agent_name} Report:**\n\n{result}"
+
         # Generate response using the same method as invoke
-        response_text = self._generate_mock_response(actual_message, custom_instructions)
+        else:
+            response_text = self._generate_mock_response(actual_message, custom_instructions)
 
         # Add todo simulation for complex tasks
         has_todos = any(word in actual_message.lower() for word in ["plan", "build", "create", "write", "implement", "task"])

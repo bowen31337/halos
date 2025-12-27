@@ -5,7 +5,7 @@ import { SubAgentIndicator } from './SubAgentIndicator'
 import { useUIStore } from '../stores/uiStore'
 
 export function Layout() {
-  const { sidebarOpen, sidebarWidth, extendedThinkingEnabled } = useUIStore()
+  const { sidebarOpen, sidebarWidth } = useUIStore()
 
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--bg-primary)]">
@@ -27,11 +27,8 @@ export function Layout() {
         </main>
       </div>
 
-      {/* Sub-agent indicator - always visible when extended thinking enabled */}
-      <SubAgentIndicator
-        isVisible={false}
-        extendedThinkingEnabled={extendedThinkingEnabled}
-      />
+      {/* Sub-agent indicator - shows when sub-agent is active or extended thinking enabled */}
+      <SubAgentIndicator />
     </div>
   )
 }

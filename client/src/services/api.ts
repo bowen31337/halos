@@ -27,7 +27,7 @@ export interface AgentResponse {
 }
 
 export interface SSEEvent {
-  event: 'start' | 'message' | 'tool_start' | 'tool_end' | 'done' | 'error' | 'thinking' | 'todos' | 'files' | 'interrupt'
+  event: 'start' | 'message' | 'tool_start' | 'tool_end' | 'done' | 'error' | 'thinking' | 'todos' | 'files' | 'interrupt' | 'subagent_start' | 'subagent_end'
   data: string
 }
 
@@ -314,6 +314,66 @@ class APIService {
 
   async getWorkspaceFiles(threadId: string): Promise<any> {
     const response = await fetch(`${API_BASE}/agent/files/${threadId}`)
+    return response.json()
+  }
+
+  // SubAgent APIs
+  async getBuiltinSubagents(): Promise<any[]> {
+    const response = await fetch(`${API_BASE}/subagents/builtin`)
+    return response.json()
+  }
+
+  async getSubagents(includeBuiltin: boolean = true): Promise<any[]> {
+    const response = await fetch(`${API_BASE}/subagents?include_builtin=${includeBuiltin}`)
+    return response.json()
+  }
+
+  async getSubagent(subagentId: string): Promise<any> {
+    const response = await fetch(`${API_BASE}/subagents/${subagentId}`)
+    return response.json()
+  }
+
+  async createSubagent(data: {
+    name: string
+    description?: string
+    system_prompt: string
+    model?: string
+    tools?: string[]
+  }): Promise<any> {
+    const response = await fetch(`${API_BASE}/subagents`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    return response.json()
+  }
+
+  async updateSubagent(subagentId: string, data: {
+    description?: string
+    system_prompt?: string
+    model?: string
+    tools?: string[]
+    is_active?: boolean
+  }): Promise<any> {
+    const response = await fetch(`${API_BASE}/subagents/${subagentId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    return response.json()
+  }
+
+  async deleteSubagent(subagentId: string): Promise<void> {
+    const response = await fetch(`${API_BASE}/subagents/${subagentId}`, {
+      method: 'DELETE',
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to delete subagent: ${response.status}`)
+    }
+  }
+
+  async getSubagentTools(subagentId: string): Promise<string[]> {
+    const response = await fetch(`${API_BASE}/subagents/${subagentId}/tools`)
     return response.json()
   }
 

@@ -340,6 +340,49 @@ export function ChatInput() {
                       setStreaming(false)
                     }
                     break
+                  case 'subagent_start':
+                    // Handle sub-agent delegation start
+                    if (eventData.subagent) {
+                      const { setSubAgentDelegated } = useChatStore.getState()
+                      setSubAgentDelegated(eventData.subagent, eventData.reason || 'Task delegated')
+                      console.log(`Subagent ${eventData.subagent} started: ${eventData.reason}`)
+                    }
+                    break
+                  case 'subagent_progress':
+                    // Handle sub-agent progress update
+                    if (eventData.subagent !== undefined && eventData.progress !== undefined) {
+                      const { setSubAgentProgress } = useChatStore.getState()
+                      setSubAgentProgress(eventData.progress, 'working')
+                    }
+                    break
+                  case 'subagent_end':
+                    // Handle sub-agent completion
+                    if (eventData.subagent) {
+                      const { setSubAgentResult, clearSubAgent } = useChatStore.getState()
+                      if (eventData.output) {
+                        setSubAgentResult(eventData.output)
+                      } else {
+                        clearSubAgent()
+                      }
+                      console.log(`Subagent ${eventData.subagent} completed: ${eventData.output}`)
+
+                      // Add a message to show sub-agent result
+                      const { addMessage } = useConversationStore.getState()
+                      addMessage({
+                        id: `subagent-${Date.now()}`,
+                        conversationId: convId,
+                        role: 'assistant' as const,
+                        content: `**Subagent ${eventData.subagent} Result:**\\n\\n${eventData.output}`,
+                        createdAt: new Date().toISOString(),
+                      })
+
+                      // Clear sub-agent delegation after a delay
+                      setTimeout(() => {
+                        const { clearSubAgent } = useChatStore.getState()
+                        clearSubAgent()
+                      }, 5000)
+                    }
+                    break
                   case 'done':
                     console.log('Stream completed')
                     // Store thinking content if present

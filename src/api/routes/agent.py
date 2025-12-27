@@ -588,6 +588,42 @@ async def stream_agent(
                                 "event": "todos",
                                 "data": json.dumps({"todos": todos}),
                             }
+                    elif event_name == "subagent_start":
+                        # Handle sub-agent delegation start
+                        event_data = event.get("data", {})
+                        subagent = event_data.get("subagent", "")
+                        reason = event_data.get("reason", "")
+                        yield {
+                            "event": "subagent_start",
+                            "data": json.dumps({
+                                "subagent": subagent,
+                                "reason": reason,
+                            }),
+                        }
+                    elif event_name == "subagent_progress":
+                        # Handle sub-agent progress update
+                        event_data = event.get("data", {})
+                        subagent = event_data.get("subagent", "")
+                        progress = event_data.get("progress", 0)
+                        yield {
+                            "event": "subagent_progress",
+                            "data": json.dumps({
+                                "subagent": subagent,
+                                "progress": progress,
+                            }),
+                        }
+                    elif event_name == "subagent_end":
+                        # Handle sub-agent completion
+                        event_data = event.get("data", {})
+                        subagent = event_data.get("subagent", "")
+                        output = event_data.get("output", "")
+                        yield {
+                            "event": "subagent_end",
+                            "data": json.dumps({
+                                "subagent": subagent,
+                                "output": output,
+                            }),
+                        }
 
                 # Check for todos in agent state during streaming
                 if hasattr(agent, '_thread_state') and 'todos' in agent._thread_state:

@@ -8,6 +8,7 @@ import { ProjectModal } from './ProjectModal'
 import { ProjectFilesModal } from './ProjectFilesModal'
 import { BranchSelector } from './BranchSelector'
 import { CheckpointManager } from './CheckpointManager'
+import { SubAgentModal } from './SubAgentModal'
 
 const MODELS = [
   { id: 'claude-sonnet-4-5-20250929', name: 'Claude Sonnet 4.5', description: 'Balanced' },
@@ -36,6 +37,7 @@ export function Header() {
   const [editingProject, setEditingProject] = useState<{ id: string } | null>(null)
   const [isExporting, setIsExporting] = useState(false)
   const [checkpointManagerOpen, setCheckpointManagerOpen] = useState(false)
+  const [subAgentModalOpen, setSubAgentModalOpen] = useState(false)
 
   // Fetch projects on mount
   useEffect(() => {
