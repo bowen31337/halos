@@ -8,6 +8,7 @@ import { useArtifactStore } from '../stores/artifactStore'
 import { useUIStore } from '../stores/uiStore'
 import { useConversationStore } from '../stores/conversationStore'
 import { useBranchingStore } from '../stores/branchingStore'
+import { OptimizedImage } from './OptimizedImage'
 
 interface MessageBubbleProps {
   message: Message
@@ -254,17 +255,28 @@ export function MessageBubble({ message, onRegenerate, onEdit }: MessageBubblePr
           </div>
         )}
 
-        {/* Display image attachments */}
+        {/* Display image attachments with optimization */}
         {message.attachments && message.attachments.length > 0 && (
           <div className="mb-3 flex flex-wrap gap-2">
-            {message.attachments.map((attachment, idx) => (
-              <img
-                key={idx}
-                src={attachment}
-                alt={`Attachment ${idx + 1}`}
-                className="max-w-md max-h-64 rounded-lg object-contain border border-[var(--border-primary)]"
-              />
-            ))}
+            {message.attachments.map((attachment, idx) => {
+              // Generate thumbnail URL by appending ?thumbnail=1 if the backend supports it
+              // Otherwise, the OptimizedImage component will handle lazy loading
+              const thumbnailSrc = attachment.includes('?')
+                ? `${attachment}&thumbnail=1`
+                : `${attachment}?thumbnail=1`
+
+              return (
+                <div key={idx} className="group relative">
+                  <OptimizedImage
+                    src={attachment}
+                    thumbnailSrc={thumbnailSrc}
+                    alt={`Attachment ${idx + 1}`}
+                    className="max-w-md max-h-64 rounded-lg border border-[var(--border-primary)]"
+                    placeholderClassName="w-full h-full min-w-[120px] min-h-[80px]"
+                  />
+                </div>
+              )
+            })}
           </div>
         )}
 

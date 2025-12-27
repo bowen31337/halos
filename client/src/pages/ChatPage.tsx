@@ -49,9 +49,12 @@ export function ChatPage() {
     }
   }, [conversationId, setCurrentConversation, loadMessages, loadArtifactsForConversation, clearArtifacts])
 
-  // Auto-scroll to bottom
+  // Auto-scroll to bottom (only for small message lists)
+  // Virtualized list handles its own scrolling
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (messages.length < 15) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
   }, [messages])
 
   const showWelcome = messages.length === 0
@@ -67,16 +70,15 @@ export function ChatPage() {
   const shouldAdjustWidth = panelOpen && !isTablet && !isMobile
 
   return (
-    <div className="flex flex-col h-full relative">
-      {/* Messages area */}
-      <div className={`flex-1 overflow-y-auto transition-all duration-300 ${shouldAdjustWidth ? getPanelWidth() : ''}`}>
+    <div className="flex flex-col h-full relative overflow-hidden">
+      {/* Messages area - virtualized list handles its own scrolling */}
+      <div className={`flex-1 overflow-hidden transition-all duration-300 ${shouldAdjustWidth ? getPanelWidth() : ''}`}>
         {showWelcome ? (
-          <WelcomeScreen />
+          <div className="h-full overflow-y-auto">
+            <WelcomeScreen />
+          </div>
         ) : (
-          <>
-            <MessageList />
-            <div ref={messagesEndRef} />
-          </>
+          <MessageList />
         )}
       </div>
 

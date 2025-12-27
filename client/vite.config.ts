@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
-import { esbuild } from 'esbuild'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -20,9 +19,28 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    // Enable code splitting
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split vendor dependencies
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'state-vendor': ['zustand', '@tanstack/react-query'],
+          'ui-vendor': ['react-window', 'react-syntax-highlighter', 'react-markdown'],
+          'utils-vendor': ['uuid', 'remark-gfm'],
+          // Split heavy components
+          'settings-components': ['./src/components/SettingsModal.tsx'],
+          'message-components': ['./src/components/MessageBubble.tsx', './src/components/MessageList.tsx'],
+          'panel-components': ['./src/components/ArtifactPanel.tsx', './src/components/TodoPanel.tsx'],
+        },
+      },
+    },
+    // Optimize chunk size
+    chunkSizeWarningLimit: 500,
+  },
   optimizeDeps: {
     esbuildOptions: {
-      // Use the Node.js esbuild binary instead of native
       platform: 'node',
     },
   },

@@ -1,14 +1,28 @@
 import { Routes, Route } from 'react-router-dom'
-import { useEffect, useState } from 'react'
-import { Layout } from './components/Layout'
-import { ChatPage } from './pages/ChatPage'
-import { SharedView } from './pages/SharedView'
+import { useEffect, useState, Suspense, lazy } from 'react'
 import { useUIStore } from './stores/uiStore'
-import { PWAInstallPrompt } from './components/PWAInstallPrompt'
 import { OfflineIndicator } from './components/OfflineIndicator'
 import { useOnlineStatus } from './hooks/useOnlineStatus'
 import { useSessionTimeout } from './hooks/useSessionTimeout'
 import { SessionTimeoutModal } from './components/SessionTimeoutModal'
+
+// Lazy load heavy components for code splitting
+const Layout = lazy(() => import('./components/Layout').then(m => ({ default: m.Layout })))
+const ChatPage = lazy(() => import('./pages/ChatPage').then(m => ({ default: m.ChatPage })))
+const SharedView = lazy(() => import('./pages/SharedView').then(m => ({ default: m.SharedView })))
+const PWAInstallPrompt = lazy(() => import('./components/PWAInstallPrompt').then(m => ({ default: m.PWAInstallPrompt })))
+
+// Loading fallback component
+function LoadingFallback() {
+  return (
+    <div className="flex items-center justify-center h-screen bg-[var(--bg-primary)]">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary)] mx-auto mb-4"></div>
+        <div className="text-[var(--text-secondary)]">Loading...</div>
+      </div>
+    </div>
+  )
+}
 
 function App() {
   const { theme, setTheme, fontSize, setFontSize, highContrast, setHighContrast, colorBlindMode, setColorBlindMode } = useUIStore()
@@ -44,7 +58,7 @@ function App() {
   }, [colorBlindMode, setColorBlindMode])
 
   return (
-    <>
+    <Suspense fallback={<LoadingFallback />}>
       <OfflineIndicator />
       <Routes>
         <Route path="/" element={<Layout />}>
@@ -67,7 +81,7 @@ function App() {
           }}
         />
       )}
-    </>
+    </Suspense>
   )
 }
 
