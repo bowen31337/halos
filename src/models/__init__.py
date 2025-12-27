@@ -18,5 +18,6 @@ from src.models.shared_conversation import SharedConversation
 from src.models.prompt import Prompt
 from src.models.mcp_server import MCPServer
 from src.models.folder import Folder, FolderItem
+from src.models.background_task import BackgroundTask, TaskStatus
 
-__all__ = ["Base", "Conversation", "Message", "Project", "ProjectFile", "Artifact", "Checkpoint", "Memory", "SharedConversation", "Prompt", "MCPServer", "Folder", "FolderItem"]
+__all__ = ["Base", "Conversation", "Message", "Project", "ProjectFile", "Artifact", "Checkpoint", "Memory", "SharedConversation", "Prompt", "MCPServer", "Folder", "FolderItem", "BackgroundTask", "TaskStatus"]

@@ -1481,9 +1481,9 @@
     ],
     "passes": true,
     "is_dev_done": true,
-    "is_qa_passed": false,
+    "is_qa_passed": true,
     "test_date": "2025-12-27",
-    "notes": "Verified working via API tests"
+    "notes": "All CRUD operations tested: create, get, update, delete. Archive/pin functionality verified. Settings endpoint tested. 3 tests passed."
   },
   {
     "category": "functional",
@@ -1611,9 +1611,11 @@
       "Step 8: DELETE /api/folders/:id",
       "Step 9: Verify folder deleted"
     ],
-    "passes": false,
-    "is_dev_done": false,
-    "is_qa_passed": false
+    "passes": true,
+    "is_dev_done": true,
+    "is_qa_passed": true,
+    "test_date": "2025-12-27",
+    "notes": "All 9 steps tested and passed. Hierarchical folder structure working correctly."
   },
   {
     "category": "functional",

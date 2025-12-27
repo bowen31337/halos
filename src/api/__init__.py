@@ -20,6 +20,7 @@ from src.api.routes import (
     settings,
     sharing,
     subagents,
+    tasks,
     usage,
 )
 
@@ -49,6 +50,7 @@ router.include_router(memory.router, prefix="/memory", tags=["Memory"])
 router.include_router(search.router, prefix="/search", tags=["Search"])
 router.include_router(settings.router, prefix="/settings", tags=["Settings"])
 router.include_router(subagents.router, prefix="/subagents", tags=["SubAgents"])
+router.include_router(tasks.router, prefix="/tasks", tags=["Tasks"])
 router.include_router(usage.router, prefix="/usage", tags=["Usage"])
 router.include_router(prompts.router, prefix="/prompts", tags=["Prompts"])
 router.include_router(mcp.router, prefix="/mcp", tags=["MCP"])

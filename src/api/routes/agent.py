@@ -616,58 +616,59 @@ async def stream_agent(
                     "data": json.dumps({"status": "thinking"}),
                 }
 
-            async for event in agent.astream_events(
-                {"messages": [HumanMessage(content=message_content)]},
-                config=config,
-                version="v2",
-            ):
-                event_kind = event.get("event", "")
+            try:
+                async for event in agent.astream_events(
+                    {"messages": [HumanMessage(content=message_content)]},
+                    config=config,
+                    version="v2",
+                ):
+                    event_kind = event.get("event", "")
 
-                # Handle thinking events from mock agent
-                if extended_thinking and event_kind == "on_chain_stream" and event.get("name") == "think_step":
-                    chunk = event.get("data", {}).get("chunk", {})
-                    content = chunk.content if hasattr(chunk, 'content') else ""
-                    if content:
-                        thinking_content += content
+                    # Handle thinking events from mock agent
+                    if extended_thinking and event_kind == "on_chain_stream" and event.get("name") == "think_step":
+                        chunk = event.get("data", {}).get("chunk", {})
+                        content = chunk.content if hasattr(chunk, 'content') else ""
+                        if content:
+                            thinking_content += content
+                            yield {
+                                "event": "thinking",
+                                "data": json.dumps({"content": content}),
+                            }
+                        continue
+
+                    # Stream message content
+                    elif event_kind == "on_chat_model_stream":
+                        chunk = event.get("data", {}).get("chunk", {})
+                        content = chunk.content if hasattr(chunk, 'content') else ""
+                        if content:
+                            full_response += content
+                            yield {
+                                "event": "message",
+                                "data": json.dumps({"content": content}),
+                            }
+
+                    # Tool start event
+                    elif event_kind == "on_tool_start":
+                        tool_name = event.get("name", "")
+                        tool_input = event.get("data", {}).get("input", {})
                         yield {
-                            "event": "thinking",
-                            "data": json.dumps({"content": content}),
+                            "event": "tool_start",
+                            "data": json.dumps({
+                                "tool": tool_name,
+                                "input": tool_input,
+                            }),
                         }
-                    continue
 
-                # Stream message content
-                if event_kind == "on_chat_model_stream":
-                    chunk = event.get("data", {}).get("chunk", {})
-                    content = chunk.content if hasattr(chunk, 'content') else ""
-                    if content:
-                        full_response += content
+                    # Tool end event
+                    elif event_kind == "on_tool_end":
+                        tool_output = event.get("data", {}).get("output", "")
                         yield {
-                            "event": "message",
-                            "data": json.dumps({"content": content}),
+                            "event": "tool_end",
+                            "data": json.dumps({"output": str(tool_output)[:500]}),  # Limit output size
                         }
 
-                # Tool start event
-                elif event_kind == "on_tool_start":
-                    tool_name = event.get("name", "")
-                    tool_input = event.get("data", {}).get("input", {})
-                    yield {
-                        "event": "tool_start",
-                        "data": json.dumps({
-                            "tool": tool_name,
-                            "input": tool_input,
-                        }),
-                    }
-
-                # Tool end event
-                elif event_kind == "on_tool_end":
-                    tool_output = event.get("data", {}).get("output", "")
-                    yield {
-                        "event": "tool_end",
-                        "data": json.dumps({"output": str(tool_output)[:500]}),  # Limit output size
-                    }
-
-                # Interrupt event (HITL - Human in the Loop)
-                elif event_kind == "on_interrupt":
+                    # Interrupt event (HITL - Human in the Loop)
+                    elif event_kind == "on_interrupt":
                     event_data = event.get("data", {})
                     tool_name = event_data.get("tool", event.get("name", ""))
                     tool_input = event_data.get("input", {})
@@ -837,6 +838,16 @@ async def stream_agent(
                             "event": "files",
                             "data": json.dumps({"files": current_files}),
                         }
+
+            except Exception as e:
+                # Catch any errors during streaming and yield error event
+                import traceback
+                traceback.print_exc()
+                yield {
+                    "event": "error",
+                    "data": json.dumps({"error": str(e), "type": "streaming_error"}),
+                }
+                return
 
             # Detect and create artifacts from the full response
             artifacts = []

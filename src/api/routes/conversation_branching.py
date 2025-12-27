@@ -39,7 +39,9 @@ async def create_conversation_branch(
     """
     # Get the parent conversation
     parent_conversation = await db.execute(
-        select(Conversation).where(Conversation.id == conversation_id)
+        select(Conversation)
+        .where(Conversation.id == conversation_id)
+        .where(Conversation.is_deleted == False)
     )
     parent_conversation = parent_conversation.scalar_one_or_none()
 
