@@ -30,6 +30,7 @@ from src.models.background_task import BackgroundTask, TaskStatus
 from src.models.audit_log import AuditLog, AuditActionType, AuditAction
 from src.models.template import Template
 from src.models.saved_search import SavedSearch
+from src.models.activity import ActivityLog
 
 __all__ = [
     "Base", "Conversation", "Message", "Comment", "Project", "ProjectFile", "Artifact",
@@ -37,5 +38,6 @@ __all__ = [
     "Folder", "FolderItem", "BackgroundTask", "TaskStatus", "AuditLog",
     "AuditActionType", "AuditAction", "User", "Session", "PasswordResetToken",
     "APIKey", "UserStatus", "Tag", "conversation_tags", "Template", "SavedSearch",
-    "CollaborationSession", "CollaborationParticipant", "CollaborationEvent"
+    "CollaborationSession", "CollaborationParticipant", "CollaborationEvent",
+    "ActivityLog"
 ]

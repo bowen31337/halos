@@ -51,6 +51,8 @@ class User(Base):
 
     # Relationships
     comments = relationship("Comment", back_populates="user", cascade="all, delete-orphan")
+    collaboration_sessions = relationship("CollaborationSession", back_populates="user", cascade="all, delete-orphan")
+    activity_logs = relationship("ActivityLog", back_populates="user", cascade="all, delete-orphan")
 
 
 class Session(Base):
