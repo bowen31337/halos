@@ -1,0 +1,14 @@
+{
+  "content_hash": "066c9eed502e3561d3b10afcceb4900e5c3876438d3c4a4fcfa39251247cc3fe",
+  "cached_at": "2025-12-28T00:15:00.979489Z",
+  "result": {
+    "passed": true,
+    "duration_seconds": 2.19,
+    "tool": "mypy",
+    "tool_version": "mypy=mypy 1.19.0 (compiled: yes)",
+    "errors": [],
+    "from_cache": false,
+    "cache_hit": false,
+    "files_checked": 1203
+  }
+}
